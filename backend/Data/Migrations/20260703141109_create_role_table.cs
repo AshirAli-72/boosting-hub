@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -18,7 +18,7 @@ namespace BoostingHub.backend.Data.Migrations
                       .Annotation("SqlServer:Identity", "1, 1"),
                   role_title = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                   description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                  created_at = table.Column<DateOnly>(type: "date", nullable: false)
+                  created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
               },
               constraints: table =>
               {

@@ -11,15 +11,13 @@ public class TaskService : ITaskService
 {
     private readonly ApplicationDbContext _db;
     private readonly ILogger<TaskService> _logger;
-    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private const int MaxActiveTasks = 10;
     private const int DailyTaskLimit = 25;
 
-    public TaskService(ApplicationDbContext db, ILogger<TaskService> logger, IDbContextFactory<ApplicationDbContext> contextFactory)
+    public TaskService(ApplicationDbContext db, ILogger<TaskService> logger)
     {
         _db = db;
         _logger = logger;
-        _contextFactory = contextFactory;
     }
 
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
@@ -30,26 +28,21 @@ public class TaskService : ITaskService
             .Select(g => new { TaskId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(tc => tc.TaskId, tc => tc.Count);
 
-        var userStatusMap = new Dictionary<int, string>();
-        if (userId.HasValue)
-        {
-            var completions = await _db.TaskCompletes
-                .Where(tc => tc.UserId == userId.Value)
-                .Select(tc => new { tc.TaskId, tc.Status })
-                .ToListAsync();
-            foreach (var c in completions)
-            {
-                if (c.Status == "Completed")
-                    userStatusMap[c.TaskId] = "Completed";
-                else if (c.Status != "Cancelled" && !userStatusMap.ContainsKey(c.TaskId))
-                    userStatusMap[c.TaskId] = "Accepted";
-            }
-        }
+        var userStatusMap = await BuildUserStatusMapAsync(userId);
 
         var allTasks = await _db.TaskGenerates
             .AsNoTracking()
             .Where(t => t.Status == "Active")
             .ToListAsync();
+
+        // Don't show "Completed" for a task until all slots are filled
+        foreach (var kv in userStatusMap.Where(kv => kv.Value == "Completed"))
+        {
+            var completedCount = completedCounts.GetValueOrDefault(kv.Key, 0);
+            var task = allTasks.FirstOrDefault(t => t.Id == kv.Key);
+            if (task != null && completedCount < task.Quantity)
+                userStatusMap[kv.Key] = "Accepted";
+        }
 
         var filtered = allTasks
             .Where(t => t.Quantity > (completedCounts.GetValueOrDefault(t.Id, 0)));
@@ -112,6 +105,36 @@ public class TaskService : ITaskService
         };
     }
 
+    private async Task<Dictionary<int, string>> BuildUserStatusMapAsync(int? userId)
+    {
+        var map = new Dictionary<int, string>();
+        if (!userId.HasValue) return map;
+
+        var completions = await _db.TaskCompletes
+            .Where(tc => tc.UserId == userId.Value)
+            .Select(tc => new { tc.TaskId, tc.Status })
+            .ToListAsync();
+        foreach (var c in completions)
+        {
+            if (c.Status == "Completed")
+                map[c.TaskId] = "Completed";
+            else if (c.Status != "Cancelled" && !map.ContainsKey(c.TaskId))
+                map[c.TaskId] = "Accepted";
+        }
+
+        var acceptedTaskIds = await _db.AcceptedTasks
+            .Where(a => a.UserId == userId.Value)
+            .Select(a => a.TaskId)
+            .ToListAsync();
+        foreach (var taskId in acceptedTaskIds)
+        {
+            if (!map.ContainsKey(taskId))
+                map[taskId] = "Accepted";
+        }
+
+        return map;
+    }
+
     public async Task<Result<TaskDetailDto>> GetTaskDetailAsync(int taskId, int? userId = null)
     {
         var task = await _db.TaskGenerates
@@ -136,8 +159,14 @@ public class TaskService : ITaskService
                 .Select(tc => tc.Status)
                 .FirstOrDefaultAsync();
             if (completion == "Completed")
-                userStatus = "Completed";
+            {
+                var totalCompleted = await _db.TaskCompletes
+                    .CountAsync(tc => tc.TaskId == taskId && tc.Status == "Completed");
+                userStatus = totalCompleted >= task.Quantity ? "Completed" : "Accepted";
+            }
             else if (completion != null && completion != "Cancelled")
+                userStatus = "Accepted";
+            else if (await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId.Value && a.TaskId == taskId))
                 userStatus = "Accepted";
         }
 
@@ -162,7 +191,7 @@ public class TaskService : ITaskService
 
     public async Task<Result<AcceptTaskResult>> AcceptTaskAsync(int taskId, int userId)
     {
-        var task = await _db.TaskGenerates.AsNoTracking().FirstOrDefaultAsync(t => t.Id == taskId);
+        var task = await _db.TaskGenerates.FirstOrDefaultAsync(t => t.Id == taskId);
         if (task == null)
             return Result.Failure<AcceptTaskResult>("Task not found", "NOT_FOUND");
         if (task.Status != "Active")
@@ -172,43 +201,127 @@ public class TaskService : ITaskService
         if (worker == null || worker.Status != 1)
             return Result.Failure<AcceptTaskResult>("Account is not active", "ACCOUNT_INACTIVE");
 
+        var alreadyAccepted = await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId && a.TaskId == taskId);
+        if (alreadyAccepted)
+            return Result.Failure<AcceptTaskResult>("You already accepted this task", "ALREADY_ACCEPTED");
+
+        var alreadyCompleted = await _db.TaskCompletes.AnyAsync(tc => tc.TaskId == taskId && tc.UserId == userId);
+        if (alreadyCompleted)
+            return Result.Failure<AcceptTaskResult>("You already completed this task", "ALREADY_COMPLETED");
+
+        _db.AcceptedTasks.Add(new AcceptedTask
+        {
+            UserId = userId,
+            TaskId = taskId,
+            AcceptedAt = DateTime.UtcNow,
+            Status = "Accepted"
+        });
+        await _db.SaveChangesAsync();
+
         return Result.Success(new AcceptTaskResult
         {
             Success = true,
-            Message = "Task accepted! Complete it and submit proof.",
-            TaskCompleteId = null
+            Message = "Task accepted! Complete it and submit proof."
         });
     }
 
     public async Task<List<MyTaskDto>> GetMyTasksAsync(int userId)
     {
-        var completedTaskIds = await _db.TaskCompletes
-            .Where(tc => tc.UserId == userId)
-            .Select(tc => tc.TaskId)
-            .ToListAsync();
+        try
+        {
+            var acceptedTaskIds = await _db.AcceptedTasks
+                .Where(a => a.UserId == userId)
+                .Select(a => a.TaskId)
+                .ToListAsync();
 
-        return await _db.TaskGenerates
-            .AsNoTracking()
-            .Where(t => t.Status == "Active" && !completedTaskIds.Contains(t.Id))
-            .Include(t => t.Order)
-            .OrderByDescending(t => t.CreatedAt)
-            .Select(t => new MyTaskDto
+            var proofs = await _db.TaskProofs
+                .Where(p => p.UserId == userId)
+                .ToDictionaryAsync(p => p.TaskId);
 
+            var completions = await _db.TaskCompletes
+                .Where(tc => tc.UserId == userId)
+                .OrderByDescending(tc => tc.Date)
+                .Select(tc => new { tc.TaskId, tc.Status, tc.Id })
+                .ToListAsync();
+
+            var completedTaskIds = completions
+                .Where(c => c.Status == "Completed")
+                .Select(c => c.TaskId)
+                .ToHashSet();
+
+            var allTaskIds = acceptedTaskIds
+                .Union(completedTaskIds)
+                .Union(completions.Select(c => c.TaskId))
+                .ToList();
+
+            if (allTaskIds.Count == 0)
+                return new List<MyTaskDto>();
+
+            var tasks = await _db.TaskGenerates
+                .AsNoTracking()
+                .Where(t => allTaskIds.Contains(t.Id))
+                .ToListAsync();
+
+            var result = new List<MyTaskDto>();
+
+            foreach (var t in tasks)
             {
-                TaskCompleteId = 0,
-                TaskId = t.Id,
-                Platform = t.Platform,
-                Service = t.Service,
-                Url = t.Url,
-                Reward = t.Reward,
-                Status = "Pending",
-                AcceptedAt = DateTime.MinValue,
-                ProofUrl = null,
-                ProofType = null,
-                ProofStatus = null
+                var proof = proofs.GetValueOrDefault(t.Id);
+                var comp = completions.FirstOrDefault(c => c.TaskId == t.Id);
 
-            })
-            .ToListAsync();
+                if (proof != null && comp == null)
+                {
+                    result.Add(new MyTaskDto
+                    {
+                        TaskId = t.Id,
+                        Platform = t.Platform,
+                        Service = t.Service,
+                        Url = t.Url,
+                        Reward = t.Reward,
+                        Status = "Submitted",
+                        ProofUrl = proof.ProofUrl,
+                        ProofType = proof.ProofType,
+                        ProofStatus = proof.Status
+                    });
+                }
+                else if (comp != null)
+                {
+                    result.Add(new MyTaskDto
+                    {
+                        TaskCompleteId = comp.Id,
+                        TaskId = t.Id,
+                        Platform = t.Platform,
+                        Service = t.Service,
+                        Url = t.Url,
+                        Reward = t.Reward,
+                        Status = comp.Status,
+                        ProofUrl = proof?.ProofUrl,
+                        ProofType = proof?.ProofType,
+                        ProofStatus = proof?.Status
+                    });
+                }
+                else
+                {
+                    result.Add(new MyTaskDto
+                    {
+                        TaskId = t.Id,
+                        Platform = t.Platform,
+                        Service = t.Service,
+                        Url = t.Url,
+                        Reward = t.Reward,
+                        Status = "Pending"
+                    });
+                }
+            }
+
+            _logger.LogInformation("GetMyTasksAsync returned {Count} results", result.Count);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetMyTasksAsync failed for user {UserId}", userId);
+            throw;
+        }
     }
 
     public async Task<Result> SubmitProofAsync(int taskId, string proofUrl, string proofType, int userId)
@@ -218,6 +331,16 @@ public class TaskService : ITaskService
             var task = await _db.TaskGenerates.AsNoTracking().FirstOrDefaultAsync(t => t.Id == taskId);
             if (task == null)
                 return Result.Failure("Task not found", "NOT_FOUND");
+
+            var accepted = await _db.AcceptedTasks
+                .FirstOrDefaultAsync(a => a.UserId == userId && a.TaskId == taskId);
+            if (accepted == null)
+                return Result.Failure("You have not accepted this task", "NOT_ACCEPTED");
+
+            var existingProof = await _db.TaskProofs
+                .AnyAsync(p => p.UserId == userId && p.TaskId == taskId);
+            if (existingProof)
+                return Result.Failure("Proof already submitted for this task", "ALREADY_SUBMITTED");
 
             var proof = new TaskProof
             {
@@ -232,21 +355,9 @@ public class TaskService : ITaskService
             _db.TaskProofs.Add(proof);
             await _db.SaveChangesAsync();
 
-            var tc = new TaskComplete
-            {
-                TaskId = taskId,
-                UserId = userId,
-                ProofId = proof.Id,
-                Date = DateTime.UtcNow,
-                Status = "Completed"
-            };
+            _logger.LogInformation("Proof submitted for task {Id} by user {UserId} — awaiting admin review", taskId, userId);
 
-            _db.TaskCompletes.Add(tc);
-            await _db.SaveChangesAsync();
-
-            _logger.LogInformation("Proof submitted for task {Id} by user {UserId}", taskId, userId);
-
-            return Result.Success("Proof submitted! Task marked as completed.");
+            return Result.Success("Proof submitted! Awaiting admin review.");
         }
         catch (Exception ex)
         {
@@ -277,7 +388,10 @@ public class TaskService : ITaskService
 
     public async Task<int> GetWorkerActiveTaskCountAsync(int userId)
     {
-        return await _db.TaskCompletes
+        var acceptedCount = await _db.AcceptedTasks
+            .CountAsync(a => a.UserId == userId && a.Status == "Accepted");
+        var pendingCount = await _db.TaskCompletes
             .CountAsync(tc => tc.UserId == userId && tc.Status == "Pending");
+        return acceptedCount + pendingCount;
     }
 }

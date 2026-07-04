@@ -179,7 +179,7 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
         var totalAvailable = await projected.CountAsync(x =>
             x.ExpiresAt >= today && x.Quantity > x.Completed);
 
-        var newToday = await projected.CountAsync(x => x.CreatedAt.Date == today.Date);
+        var newToday = await projected.CountAsync(x => x.CreatedAt == today);
 
         var endingSoon = await projected.CountAsync(x =>
             x.ExpiresAt <= endingSoonDate && x.ExpiresAt >= today);

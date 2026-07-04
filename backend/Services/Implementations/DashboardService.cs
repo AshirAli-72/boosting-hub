@@ -16,21 +16,127 @@ public class DashboardService : IDashboardService
 
     public async Task<UserDashboardDto> GetUserDashboardAsync(int userId)
     {
+        var allActiveTaskIds = await _db.TaskGenerates
+            .Where(t => t.Status == "Active")
+            .Select(t => t.Id)
+            .ToListAsync();
+
+        var acceptedTaskIds = await _db.AcceptedTasks
+            .Where(a => a.UserId == userId)
+            .Select(a => a.TaskId)
+            .ToListAsync();
+
+        var completedTaskIds = await _db.TaskCompletes
+            .Where(tc => tc.UserId == userId && tc.Status == "Completed")
+            .Select(tc => tc.TaskId)
+            .ToListAsync();
+
+        var userTaskIds = acceptedTaskIds.Union(completedTaskIds).ToHashSet();
+        var totalAvailable = allActiveTaskIds.Count(id => !userTaskIds.Contains(id));
+
+        var pendingCount = acceptedTaskIds.Count(id => !completedTaskIds.Contains(id));
+        var completedCount = completedTaskIds.Count;
+
+        var totalRewards = await _db.TaskCompletes
+            .Where(tc => tc.UserId == userId && tc.Status == "Completed")
+            .Join(_db.TaskGenerates,
+                tc => tc.TaskId,
+                t => t.Id,
+                (tc, t) => t.Reward)
+            .SumAsync();
+
+        var sevenDaysAgo = DateTime.UtcNow.Date.AddDays(-6);
+        var dailyCompletions = await _db.TaskCompletes
+            .Where(tc => tc.UserId == userId && tc.Status == "Completed" && tc.Date >= sevenDaysAgo)
+            .GroupBy(tc => tc.Date.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        var lineChart = new ChartDataDto();
+        for (var i = 0; i < 7; i++)
+        {
+            var day = sevenDaysAgo.AddDays(i);
+            lineChart.Labels.Add(day.ToString("ddd"));
+            var match = dailyCompletions.FirstOrDefault(d => d.Date == day);
+            lineChart.Data.Add(match?.Count ?? 0);
+        }
+
+        var submittedCount = await _db.TaskProofs
+            .CountAsync(p => p.UserId == userId && p.Status == "Submitted");
+        var pendingPie = pendingCount - submittedCount;
+
+        var pieChart = new ChartDataDto
+        {
+            Labels = ["Completed", "Submitted", "In Progress"],
+            Data = [completedCount, submittedCount, int.Max(pendingPie, 0)],
+            BackgroundColors = ["#10B981", "#F59E0B", "#3B82F6"]
+        };
+
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         return new UserDashboardDto
         {
             UserName = user?.Name ?? "User",
             UserEmail = user?.Email ?? "",
-            UserStatus = user?.Status == 1 ? "Active" : "Locked"
+            UserStatus = user?.Status == 1 ? "Active" : "Locked",
+            TotalTasks = totalAvailable,
+            CompletedTasks = completedCount,
+            PendingTasks = pendingCount,
+            TotalRewards = totalRewards,
+            LineChart = lineChart,
+            PieChart = pieChart
         };
     }
 
     public async Task<AdminDashboardDto> GetAdminDashboardAsync()
     {
-        var users = await _db.Users.ToListAsync();
+        var adminUserIds = await _db.UserHasRoles
+            .Where(ur => ur.Role!.RoleTitle.Contains("Admin"))
+            .Select(ur => ur.UserId)
+            .ToListAsync();
+
+        var users = await _db.Users
+            .Where(u => !adminUserIds.Contains(u.Id))
+            .ToListAsync();
+
         var orders = await _db.Orders.ToListAsync();
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = DateTime.UtcNow.Date;
+
+        var sevenDaysAgo = DateTime.UtcNow.Date.AddDays(-6);
+        var dailyOrders = orders
+            .Where(o => o.CreatedAt >= sevenDaysAgo)
+            .GroupBy(o => o.CreatedAt.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .ToList();
+
+        var lineChart = new ChartDataDto();
+        for (var i = 0; i < 7; i++)
+        {
+            var day = sevenDaysAgo.AddDays(i);
+            lineChart.Labels.Add(day.ToString("ddd"));
+            var match = dailyOrders.FirstOrDefault(d => d.Date == day);
+            lineChart.Data.Add(match?.Count ?? 0);
+        }
+
+        var statusGroups = orders
+            .GroupBy(o => o.Status ?? "Pending")
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToList();
+
+        var pieChart = new ChartDataDto();
+        var colorMap = new Dictionary<string, string>
+        {
+            { "Pending", "#F59E0B" },
+            { "Approved", "#10B981" },
+            { "Rejected", "#EF4444" },
+            { "Cancelled", "#6B7280" }
+        };
+        foreach (var group in statusGroups)
+        {
+            pieChart.Labels.Add(group.Status);
+            pieChart.Data.Add(group.Count);
+            pieChart.BackgroundColors.Add(colorMap.GetValueOrDefault(group.Status, "#3B82F6"));
+        }
 
         return new AdminDashboardDto
         {
@@ -39,7 +145,9 @@ public class DashboardService : IDashboardService
             UnverifiedEmails = users.Count(u => u.EmailVerifiedAt == null),
             RegisteredToday = users.Count(u => u.CreatedAt >= today),
             TotalOrders = orders.Count,
-            TotalRevenue = orders.Where(o => o.Status == "Approved").Sum(o => o.Budget)
+            TotalRevenue = orders.Where(o => o.Status == "Approved").Sum(o => o.Budget),
+            LineChart = lineChart,
+            PieChart = pieChart
         };
     }
 }

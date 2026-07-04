@@ -51,7 +51,7 @@ public class AuthenticationService : IAuthenticationService
             Email = dto.Email,
             Phone = dto.Phone,
             Status = 1,
-            CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+            CreatedAt = DateTime.UtcNow
         };
 
         user.Password = _passwordHasher.HashPassword(user, dto.Password);
@@ -61,7 +61,7 @@ public class AuthenticationService : IAuthenticationService
         var guestRole = await _db.Roles.FirstOrDefaultAsync(r => r.RoleTitle == "Guest", ct);
         if (guestRole == null)
         {
-            guestRole = new Role { RoleTitle = "Guest", Description = "Guest role", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) };
+            guestRole = new Role { RoleTitle = "Guest", Description = "Guest role", CreatedAt = DateTime.UtcNow };
             _db.Roles.Add(guestRole);
             await _db.SaveChangesAsync(ct);
         }
@@ -206,7 +206,7 @@ public class AuthenticationService : IAuthenticationService
         if (user == null)
             return Result.Failure("Invalid request", "INVALID_REQUEST");
 
-        if (user.CreatedAt < DateOnly.FromDateTime(DateTime.UtcNow))
+        if (user.CreatedAt < DateTime.UtcNow)
             return Result.Failure("Token expired", "TOKEN_EXPIRED");
 
         var tokenHash = _hashToken(dto.Token);

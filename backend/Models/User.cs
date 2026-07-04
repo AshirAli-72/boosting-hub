@@ -12,9 +12,9 @@ public class User
     [Column("phone")] public string? Phone { get; set; }
     [Column("password")] public string? Password { get; set; }
     [Column("status")] public int Status { get; set; } = 1;
-    [Column("email_verified_at")] public DateOnly? EmailVerifiedAt { get; set; }
+    [Column("email_verified_at")] public DateTime? EmailVerifiedAt { get; set; }
     [Column("remember_token")] public string? RememberToken { get; set; }
-    [Column("created_at")] public DateOnly CreatedAt { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
+    [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<UserHasRole> UserHasRoles { get; set; } = new List<UserHasRole>();
     public Wallet? Wallet { get; set; }

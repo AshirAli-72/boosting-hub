@@ -30,7 +30,7 @@
                 </button>
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
-                        <i class="bi bi-person-circle"></i> @(HttpContext.Session.GetString("UserRole") == "Admin" ? "Admin" : Model.Dashboard.UserName)
+                        <i class="bi bi-person-circle"></i> @Model.Dashboard.UserName
                         <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
                     </span>
                     <div class="profile-menu" id="profileMenu" style="display:none;">
@@ -45,7 +45,7 @@
                     <div class="stat-card" style="background:linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%);border:none;">
                         <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-list-task"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Tasks</span>
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Available</span>
                             <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalTasks</span>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                     <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
                         <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Pending</span>
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">In Progress</span>
                             <span class="stat-value" style="color:#fff;">@Model.Dashboard.PendingTasks</span>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                 </div>
             </div>
             <div class="row g-4">
-                <div class="col-md-8">
+                <div class="col-md-7">
                     <div class="card shadow-sm border-0 chart-card chart-line">
                         <div class="card-body">
                             <h5 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Weekly Tasks</h5>
@@ -87,11 +87,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-5">
                     <div class="card shadow-sm border-0 chart-card chart-pie">
                         <div class="card-body">
                             <h5 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Task Status</h5>
-                            <canvas id="pieChart" style="width:260px!important;height:260px!important;"></canvas>
+                            <canvas id="pieChart" style="width:100%!important;max-width:360px!important;height:300px!important;margin:0 auto;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -109,27 +109,49 @@
         var pieData    = @Html.Raw(JsonSerializer.Serialize(Model.Dashboard.PieChart.Data));
         var pieColors  = @Html.Raw(JsonSerializer.Serialize(Model.Dashboard.PieChart.BackgroundColors));
 
-        new Chart(document.getElementById('lineChart'), {
+        function isLight() { return document.body.classList.contains('light-mode'); }
+
+        var lineChart = new Chart(document.getElementById('lineChart'), {
             type: 'line',
             data: {
                 labels: lineLabels,
-                datasets: [{ label: 'Tasks', data: lineData, borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.12)', fill: true, tension: 0.4 }]
+                datasets: [{
+                    label: 'Tasks',
+                    data: lineData,
+                    borderColor: '#7C3AED',
+                    backgroundColor: 'rgba(124,58,237,0.12)',
+                    fill: true, tension: 0.4
+                }]
             },
             options: {
-                responsive: false, maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                scales: {
+                    x: { ticks: { color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }
+                }
             }
         });
 
-        new Chart(document.getElementById('pieChart'), {
+        var pieChart = new Chart(document.getElementById('pieChart'), {
             type: 'doughnut',
             data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors }] },
             options: {
-                responsive: false, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom' } }
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#334155' : 'rgba(241,245,249,0.65)' } } }
             }
         });
+
+        function updateChartTheme() {
+            var light = isLight();
+            lineChart.options.scales.x.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
+            lineChart.options.scales.x.grid.color = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            lineChart.options.scales.y.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
+            lineChart.options.scales.y.grid.color = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            lineChart.update();
+            pieChart.options.plugins.legend.labels.color = light ? '#334155' : 'rgba(241,245,249,0.65)';
+            pieChart.update();
+        }
 
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
@@ -142,5 +164,8 @@
                 if (m) m.style.display = 'none';
             }
         });
+
+        var themeObserver = new MutationObserver(function() { updateChartTheme(); });
+        themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     </script>
 }

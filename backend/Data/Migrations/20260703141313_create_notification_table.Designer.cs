@@ -153,8 +153,8 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("CreatedAt")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Names")
@@ -185,8 +185,8 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("CreatedAt")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Description")
@@ -368,8 +368,8 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("CreatedAt")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Email")
@@ -377,8 +377,8 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("email");
 
-                    b.Property<DateOnly?>("EmailVerifiedAt")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("EmailVerifiedAt")
+                        .HasColumnType("datetime2")
                         .HasColumnName("email_verified_at");
 
                     b.Property<string>("Name")

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,11 +11,6 @@ namespace BoostingHub.backend.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-           
-
-
-          
-
             migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
@@ -27,9 +22,9 @@ namespace BoostingHub.backend.Data.Migrations
                     phone = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     password = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     status = table.Column<int>(type: "int", nullable: false),
-                    email_verified_at = table.Column<DateOnly>(type: "date", nullable: true),
+                    email_verified_at = table.Column<DateTime>(type: "datetime2", nullable: true),
                     remember_token = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    created_at = table.Column<DateOnly>(type: "date", nullable: false)
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {

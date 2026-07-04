@@ -22,6 +22,45 @@ namespace BoostingHub.backend.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("BoostingHub.backend.Models.AcceptedTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AcceptedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("TaskId")
+                        .HasColumnType("int")
+                        .HasColumnName("task_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "TaskId")
+                        .IsUnique();
+
+                    b.ToTable("accepted_tasks", (string)null);
+                });
+
             modelBuilder.Entity("BoostingHub.backend.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -150,8 +189,8 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("CreatedAt")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Names")
@@ -182,8 +221,8 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("CreatedAt")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Description")
@@ -455,8 +494,8 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("CreatedAt")
-                        .HasColumnType("date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
                     b.Property<string>("Email")
@@ -464,8 +503,8 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("email");
 
-                    b.Property<DateOnly?>("EmailVerifiedAt")
-                        .HasColumnType("date")
+                    b.Property<DateTime?>("EmailVerifiedAt")
+                        .HasColumnType("datetime2")
                         .HasColumnName("email_verified_at");
 
                     b.Property<string>("Name")
@@ -581,6 +620,25 @@ namespace BoostingHub.backend.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("wallets");
+                });
+
+            modelBuilder.Entity("BoostingHub.backend.Models.AcceptedTask", b =>
+                {
+                    b.HasOne("BoostingHub.backend.Models.TaskGenerate", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BoostingHub.backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Task");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BoostingHub.backend.Models.Notification", b =>

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -25,7 +25,7 @@ namespace BoostingHub.backend.Data.Migrations
                    quantity = table.Column<string>(type: "nvarchar(max)", nullable: true),
                    budget = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                   created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                },
                constraints: table =>
                {

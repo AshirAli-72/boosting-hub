@@ -182,15 +182,15 @@ body.light-mode .sidebar-brand {
     min-height: 280px; max-height: 280px;
 }
 
-/* Pie chart: square */
+/* Pie chart: centered */
 .chart-card.chart-pie .card-body {
     padding: 20px;
     display: flex; flex-direction: column; align-items: center;
 }
 .chart-card.chart-pie canvas {
-    width: 260px !important;
-    height: 260px !important;
-    min-height: 260px; max-height: 260px;
+    width: 100% !important;
+    max-width: 360px !important;
+    height: 300px !important;
 }
 
 .dash-card:hover, .card:hover {

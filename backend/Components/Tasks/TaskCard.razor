@@ -24,7 +24,7 @@
         <span class="task-meta-item"><i class="bi bi-people me-1"></i>@(Task.TargetQuantity - Task.CompletedQuantity) slots left</span>
     </div>
     <div class="task-footer">
-        <span class="task-slots"><i class="bi bi-clock me-1"></i>@(Task.ExpiresAt.HasValue ? $"{(Task.ExpiresAt.Value - DateTime.UtcNow).Days}d left" : "No expiry")</span>
+        <span></span>
         <span class="text-muted small">#@Task.Id</span>
     </div>
 </div>

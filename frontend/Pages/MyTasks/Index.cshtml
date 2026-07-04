@@ -39,7 +39,7 @@
             </div>
         </div>
         <div class="admin-content">
-            <component type="typeof(BoostingHub.backend.Components.Tasks.MyTasks)" render-mode="ServerPrerendered" param-UserId="@Model.UserId" />
+            <component type="typeof(BoostingHub.backend.Components.Tasks.MyTasks)" render-mode="Server" param-UserId="@Model.UserId" />
         </div>
     </main>
 </div>
@@ -50,15 +50,102 @@
 
 @section Scripts {
     <script>
-        function toggleProfileMenu() {
-            var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-        }
+        console.log('My Tasks scripts loaded');
+
+        /* toggle profile menu */
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');
+            if (pd && pd.contains(e.target) && e.target.closest('.admin-user-badge')) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+                return;
+            }
             if (pd && !pd.contains(e.target)) {
                 var m = document.getElementById('profileMenu');
                 if (m) m.style.display = 'none';
+            }
+        });
+
+        /* ── Proof form modal ── */
+        function showProofForm(taskId) {
+            var overlay = document.createElement('div');
+            overlay.id = 'proof-overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+            overlay.innerHTML = [
+                '<div style="background:#fff;border-radius:12px;width:440px;max-width:92vw;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);color:#000;">',
+                '  <h5 style="margin:0 0 20px 0;"><i class="bi bi-upload text-primary me-2"></i>Submit Proof</h5>',
+                '  <div id="pf-error" style="display:none;color:#EF4444;padding:10px 14px;background:#fef2f2;border-radius:6px;margin-bottom:16px;font-size:0.9rem;"></div>',
+                '  <div style="margin-bottom:16px;">',
+                '    <label style="display:block;margin-bottom:6px;font-weight:500;">Proof URL <span style="color:#EF4444;">*</span></label>',
+                '    <input type="url" id="pf-url" class="form-control" placeholder="https://imgur.com/screenshot.png" style="color:#000;background:#fff;" />',
+                '  </div>',
+                '  <div style="margin-bottom:20px;">',
+                '    <label style="display:block;margin-bottom:6px;font-weight:500;">Proof Type</label>',
+                '    <select id="pf-type" class="form-select" style="color:#000;background:#fff;">',
+                '      <option value="URL">URL</option>',
+                '    </select>',
+                '  </div>',
+                '  <div style="display:flex;justify-content:flex-end;gap:8px;">',
+                '    <button type="button" class="btn btn-secondary" onclick="closeProofForm()">Cancel</button>',
+                '    <button type="button" class="btn btn-primary" id="pf-submit">Submit</button>',
+                '  </div>',
+                '</div>'
+            ].join('\n');
+            document.body.appendChild(overlay);
+            document.getElementById('pf-submit').onclick = function() { submitProof(taskId); };
+        }
+
+        function closeProofForm() {
+            var el = document.getElementById('proof-overlay');
+            if (el) el.remove();
+        }
+
+        function showPfError(msg) {
+            var el = document.getElementById('pf-error');
+            if (el) { el.textContent = msg; el.style.display = 'block'; }
+        }
+
+        async function submitProof(taskId) {
+            var url = document.getElementById('pf-url').value.trim();
+            if (!url) { showPfError('Please enter a proof URL.'); return; }
+            document.getElementById('pf-error').style.display = 'none';
+            var btn = document.getElementById('pf-submit');
+            btn.disabled = true; btn.innerHTML = 'Submitting...';
+            try {
+                var fd = new FormData();
+                fd.append('taskId', taskId);
+                fd.append('proofUrl', url);
+                fd.append('proofType', document.getElementById('pf-type').value);
+                var resp = await fetch('/my-tasks?handler=SubmitProof', { method: 'POST', body: fd });
+                if (!resp.ok) {
+                    var bodyText = await resp.text();
+                    console.error('Server returned', resp.status, bodyText.substring(0, 500));
+                    showPfError('Server error ' + resp.status);
+                    btn.disabled = false; btn.innerHTML = 'Submit';
+                    return;
+                }
+                var data = await resp.json();
+                if (data.success) {
+                    closeProofForm();
+                    location.reload();
+                } else {
+                    showPfError(data.message || 'Failed');
+                    btn.disabled = false; btn.innerHTML = 'Submit';
+                }
+            } catch (e) {
+                console.error('Proof submit error:', e);
+                showPfError('Network error — check console (F12) for details');
+                btn.disabled = false; btn.innerHTML = 'Submit';
+            }
+        }
+
+        /* ── Event delegation: click on any submit-proof-btn ── */
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.submit-proof-btn');
+            if (btn) {
+                var taskId = btn.getAttribute('data-task-id');
+                console.log('Submit Proof clicked, taskId:', taskId);
+                showProofForm(taskId);
             }
         });
     </script>

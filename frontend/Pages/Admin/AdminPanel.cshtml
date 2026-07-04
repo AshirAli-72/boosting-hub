@@ -14,7 +14,6 @@
         </div>
         <nav class="sidebar-nav">
             <a href="/admin-panel" class="sidebar-link active"><i class="bi bi-speedometer2"></i> Dashboard</a>
-            
             <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
             <div class="sidebar-divider"></div>
             <a href="/security" class="sidebar-link"><i class="bi bi-shield-lock"></i> Security</a>
@@ -99,7 +98,7 @@
                 </div>
             </div>
             <div class="row g-4">
-                <div class="col-md-8">
+                <div class="col-md-7">
                     <div class="card shadow-sm border-0 chart-card chart-line">
                         <div class="card-body">
                             <h5 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Weekly Orders</h5>
@@ -107,11 +106,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-5">
                     <div class="card shadow-sm border-0 chart-card chart-pie">
                         <div class="card-body">
                             <h5 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Order Status</h5>
-                            <canvas id="adminPieChart" style="width:260px!important;height:260px!important;"></canvas>
+                            <canvas id="adminPieChart" style="width:100%!important;max-width:360px!important;height:300px!important;margin:0 auto;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -129,27 +128,49 @@
         var pieData    = @Html.Raw(JsonSerializer.Serialize(Model.Dashboard.PieChart.Data));
         var pieColors  = @Html.Raw(JsonSerializer.Serialize(Model.Dashboard.PieChart.BackgroundColors));
 
-        new Chart(document.getElementById('adminLineChart'), {
+        function isLight() { return document.body.classList.contains('light-mode'); }
+
+        var adminLineChart = new Chart(document.getElementById('adminLineChart'), {
             type: 'line',
             data: {
                 labels: lineLabels,
-                datasets: [{ label: 'Orders', data: lineData, borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.12)', fill: true, tension: 0.4 }]
+                datasets: [{
+                    label: 'Orders',
+                    data: lineData,
+                    borderColor: '#7C3AED',
+                    backgroundColor: 'rgba(124,58,237,0.12)',
+                    fill: true, tension: 0.4
+                }]
             },
             options: {
-                responsive: false, maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                scales: {
+                    x: { ticks: { color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }
+                }
             }
         });
 
-        new Chart(document.getElementById('adminPieChart'), {
+        var adminPieChart = new Chart(document.getElementById('adminPieChart'), {
             type: 'doughnut',
             data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors }] },
             options: {
-                responsive: false, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom' } }
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#334155' : 'rgba(241,245,249,0.65)' } } }
             }
         });
+
+        function updateChartTheme() {
+            var light = isLight();
+            adminLineChart.options.scales.x.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
+            adminLineChart.options.scales.x.grid.color = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            adminLineChart.options.scales.y.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
+            adminLineChart.options.scales.y.grid.color = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            adminLineChart.update();
+            adminPieChart.options.plugins.legend.labels.color = light ? '#334155' : 'rgba(241,245,249,0.65)';
+            adminPieChart.update();
+        }
 
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
@@ -162,5 +183,8 @@
                 if (m) m.style.display = 'none';
             }
         });
+
+        var themeObserver = new MutationObserver(function() { updateChartTheme(); });
+        themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     </script>
 }

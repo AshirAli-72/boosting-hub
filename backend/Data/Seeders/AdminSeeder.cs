@@ -12,7 +12,7 @@ public static class AdminSeeder
         var superAdminRole = await db.Roles.FirstOrDefaultAsync(r => r.RoleTitle == "Super Admin");
         if (superAdminRole == null)
         {
-            superAdminRole = new Role { RoleTitle = "Super Admin", Description = "Full system access", CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow) };
+            superAdminRole = new Role { RoleTitle = "Super Admin", Description = "Full system access", CreatedAt = DateTime.UtcNow };
             db.Roles.Add(superAdminRole);
             await db.SaveChangesAsync();
         }
@@ -25,7 +25,7 @@ public static class AdminSeeder
             Email = "admin@gmail.com",
             Password = hasher.HashPassword(null!, "admin123"),
             Status = 1,
-            EmailVerifiedAt = DateOnly.FromDateTime(DateTime.UtcNow)
+            EmailVerifiedAt = DateTime.UtcNow
         };
         db.Users.Add(admin);
         await db.SaveChangesAsync();

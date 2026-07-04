@@ -66,5 +66,5 @@ public class UserDto
     public string? Phone { get; set; }
     public string? Status { get; set; }
     public string[] Roles { get; set; } = Array.Empty<string>();
-    public DateOnly? EmailVerifiedAt { get; set; }
+    public DateTime? EmailVerifiedAt { get; set; }
 }

@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<TaskGenerate> TaskGenerates { get; set; }
     public DbSet<TaskComplete> TaskCompletes { get; set; }
     public DbSet<TaskProof> TaskProofs { get; set; }
+    public DbSet<AcceptedTask> AcceptedTasks { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
@@ -79,6 +80,7 @@ public class ApplicationDbContext : DbContext
             e.Property(c => c.Description).HasMaxLength(1000);
             e.Property(c => c.SocialMediaUrl).HasMaxLength(500);
             e.Property(c => c.Status).HasMaxLength(50);
+            e.Property(c => c.CreatedAt).HasColumnType("datetime2");
             e.Property(c => c.Budget).HasColumnType("decimal(18,2)");
             e.HasIndex(c => c.Status);
         });
@@ -90,6 +92,7 @@ public class ApplicationDbContext : DbContext
             e.Property(t => t.Platform).HasMaxLength(200);
             e.Property(t => t.Service).HasMaxLength(200);
             e.Property(t => t.Url).HasMaxLength(500);
+            e.Property(t => t.CreatedAt).HasColumnType("datetime2");
             e.Property(t => t.Reward).HasColumnType("decimal(18,2)");
             e.Property(t => t.Status).HasMaxLength(50);
             e.HasOne(t => t.Order).WithMany(o => o.TaskGenerates).HasForeignKey(t => t.OrderId);
@@ -101,6 +104,7 @@ public class ApplicationDbContext : DbContext
         builder.Entity<TaskComplete>(e =>
         {
             e.ToTable("task_complete");
+            e.Property(t => t.Date).HasColumnType("datetime2");
             e.Property(t => t.Status).HasMaxLength(50);
             e.HasIndex(t => t.UserId);
             e.HasIndex(t => t.TaskId);
@@ -126,6 +130,7 @@ public class ApplicationDbContext : DbContext
         builder.Entity<TaskProof>(e =>
         {
             e.ToTable("task_proofs");
+            e.Property(p => p.Date).HasColumnType("datetime2");
             e.Property(p => p.ProofUrl).HasMaxLength(500);
             e.Property(p => p.ProofType).HasMaxLength(50);
             e.Property(p => p.Status).HasMaxLength(50);
@@ -142,11 +147,35 @@ public class ApplicationDbContext : DbContext
         });
 
 
+        // ── AcceptedTask ──────────────────────────────────────────────────────
+        builder.Entity<AcceptedTask>(e =>
+        {
+            e.ToTable("accepted_tasks");
+            e.Property(a => a.AcceptedAt).HasColumnType("datetime2");
+            e.Property(a => a.Status).HasMaxLength(50);
+
+            e.HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            e.HasOne(a => a.Task)
+                .WithMany()
+                .HasForeignKey(a => a.TaskId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            e.HasIndex(a => a.UserId);
+            e.HasIndex(a => a.TaskId);
+            e.HasIndex(a => new { a.UserId, a.TaskId }).IsUnique();
+        });
+
         // ── Notification ──────────────────────────────────────────────────────
         builder.Entity<Notification>(e =>
         {
             e.Property(n => n.Type).HasMaxLength(100).IsRequired();
             e.Property(n => n.Title).HasMaxLength(200).IsRequired();
+            e.Property(n => n.ReadAt).HasColumnType("datetime2");
+            e.Property(n => n.CreatedAt).HasColumnType("datetime2");
             e.HasOne(n => n.User).WithMany().HasForeignKey(n => n.UserId).OnDelete(DeleteBehavior.NoAction);
             e.HasIndex(n => n.UserId);
             e.HasIndex(n => new { n.UserId, n.IsRead });
@@ -159,6 +188,8 @@ public class ApplicationDbContext : DbContext
             e.Property(w => w.PendingBalance).HasColumnType("decimal(18,2)");
             e.Property(w => w.TotalEarned).HasColumnType("decimal(18,2)");
             e.Property(w => w.TotalWithdrawn).HasColumnType("decimal(18,2)");
+            e.Property(w => w.UpdatedAt).HasColumnType("datetime2");
+            e.Property(w => w.CreatedAt).HasColumnType("datetime2");
             e.Property(w => w.Currency).HasMaxLength(10);
             e.HasIndex(w => w.UserId).IsUnique();
         });
@@ -171,6 +202,7 @@ public class ApplicationDbContext : DbContext
             e.Property(t => t.BalanceAfter).HasColumnType("decimal(18,2)");
             e.Property(t => t.Description).HasMaxLength(500);
             e.Property(t => t.ReferenceType).HasMaxLength(100);
+            e.Property(t => t.CreatedAt).HasColumnType("datetime2");
             e.Property(t => t.Status).HasMaxLength(50);
             e.HasOne(t => t.Wallet).WithMany(w => w.Transactions).HasForeignKey(t => t.WalletId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
