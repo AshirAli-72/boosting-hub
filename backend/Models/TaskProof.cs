@@ -1,0 +1,22 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace BoostingHub.backend.Models;
+
+[Table("task_proofs")]
+public class TaskProof
+{
+    [Key] [Column("id")] public int Id { get; set; }
+    [Column("user_id")] public int UserId { get; set; }
+    [Column("task_id")] public int TaskId { get; set; }
+
+    [Column("proof_url")] public string ProofUrl { get; set; } = string.Empty;
+    [Column("proof_type")] public string ProofType { get; set; } = string.Empty;
+
+    [Column("date")] public DateTime Date { get; set; } = DateTime.UtcNow;
+    [Column("status")] public string Status { get; set; } = "Pending";
+
+    public User User { get; set; } = null!;
+    public TaskGenerate Task { get; set; } = null!;
+}
+

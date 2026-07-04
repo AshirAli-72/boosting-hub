@@ -1,0 +1,181 @@
+using BoostingHub.backend.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace BoostingHub.backend.Data;
+
+public class ApplicationDbContext : DbContext
+{
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+
+    public DbSet<User> Users { get; set; }
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<RoleHasPermission> RolesHasPermissions { get; set; }
+    public DbSet<UserHasRole> UserHasRoles { get; set; }
+    public DbSet<Orders> Orders { get; set; }
+    public DbSet<TaskGenerate> TaskGenerates { get; set; }
+    public DbSet<TaskComplete> TaskCompletes { get; set; }
+    public DbSet<TaskProof> TaskProofs { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Wallet> Wallets { get; set; }
+    public DbSet<Transaction> Transactions { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+
+
+        // ── User ─────────────────────────────────────────────────────────────
+        builder.Entity<User>(e =>
+        {
+            e.HasIndex(u => u.Email).IsUnique().HasFilter("[email] IS NOT NULL");
+            e.HasIndex(u => u.Phone).IsUnique().HasFilter("[phone] IS NOT NULL");
+            e.Property(u => u.Email).HasMaxLength(255);
+            e.Property(u => u.Phone).HasMaxLength(50);
+            e.Property(u => u.Password).HasMaxLength(500);
+            e.Property(u => u.RememberToken).HasMaxLength(500);
+            e.Property(u => u.Name).HasMaxLength(200);
+            e.HasOne(u => u.Wallet).WithOne(w => w.User).HasForeignKey<Wallet>(w => w.UserId);
+        });
+
+        // ── Role ─────────────────────────────────────────────────────────────
+        builder.Entity<Role>(e =>
+        {
+            e.Property(r => r.RoleTitle).HasMaxLength(100).IsRequired();
+            e.HasIndex(r => r.RoleTitle).IsUnique();
+        });
+
+        // ── Permission ───────────────────────────────────────────────────────
+        builder.Entity<Permission>(e =>
+        {
+            e.Property(p => p.Names).HasMaxLength(255);
+            e.Property(p => p.Slugs).HasMaxLength(255);
+            e.HasIndex(p => p.Slugs).IsUnique().HasFilter("[slugs] IS NOT NULL");
+        });
+
+        // ── RoleHasPermission ─────────────────────────────────────────────────
+        builder.Entity<RoleHasPermission>(e =>
+        {
+            e.HasIndex(rp => new { rp.RoleId, rp.PermissionId }).IsUnique();
+            e.HasOne(rp => rp.Role).WithMany(r => r.RoleHasPermissions).HasForeignKey(rp => rp.RoleId);
+            e.HasOne(rp => rp.Permission).WithMany(p => p.RoleHasPermissions).HasForeignKey(rp => rp.PermissionId);
+        });
+
+        // ── UserHasRole ───────────────────────────────────────────────────────
+        builder.Entity<UserHasRole>(e =>
+        {
+            e.HasIndex(ur => new { ur.UserId, ur.RoleId }).IsUnique();
+            e.HasOne(ur => ur.User).WithMany(u => u.UserHasRoles).HasForeignKey(ur => ur.UserId);
+            e.HasOne(ur => ur.Role).WithMany(r => r.UserHasRoles).HasForeignKey(ur => ur.RoleId);
+        });
+
+        // ── Orders (Campaigns) ────────────────────────────────────────────────
+        builder.Entity<Orders>(e =>
+        {
+            e.ToTable("orders");
+            e.Property(c => c.Platform).HasMaxLength(500);
+            e.Property(c => c.Service).HasMaxLength(500);
+            e.Property(c => c.Description).HasMaxLength(1000);
+            e.Property(c => c.SocialMediaUrl).HasMaxLength(500);
+            e.Property(c => c.Status).HasMaxLength(50);
+            e.Property(c => c.Budget).HasColumnType("decimal(18,2)");
+            e.HasIndex(c => c.Status);
+        });
+
+        // ── TaskGenerate ──────────────────────────────────────────────────────
+        builder.Entity<TaskGenerate>(e =>
+        {
+            e.ToTable("task_generate");
+            e.Property(t => t.Platform).HasMaxLength(200);
+            e.Property(t => t.Service).HasMaxLength(200);
+            e.Property(t => t.Url).HasMaxLength(500);
+            e.Property(t => t.Reward).HasColumnType("decimal(18,2)");
+            e.Property(t => t.Status).HasMaxLength(50);
+            e.HasOne(t => t.Order).WithMany(o => o.TaskGenerates).HasForeignKey(t => t.OrderId);
+            e.HasIndex(t => t.OrderId);
+            e.HasIndex(t => t.Status);
+        });
+
+        // ── TaskComplete ──────────────────────────────────────────────────────
+        builder.Entity<TaskComplete>(e =>
+        {
+            e.ToTable("task_complete");
+            e.Property(t => t.Status).HasMaxLength(50);
+            e.HasIndex(t => t.UserId);
+            e.HasIndex(t => t.TaskId);
+
+            // proof_id is optional and points to task_proofs.id
+            e.HasOne(t => t.Proof)
+                .WithMany()
+                .HasForeignKey(t => t.ProofId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            e.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            e.HasOne(t => t.Task)
+                .WithMany(tg => tg.TaskCompletes)
+                .HasForeignKey(t => t.TaskId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ── TaskProof ─────────────────────────────────────────────────────────
+        builder.Entity<TaskProof>(e =>
+        {
+            e.ToTable("task_proofs");
+            e.Property(p => p.ProofUrl).HasMaxLength(500);
+            e.Property(p => p.ProofType).HasMaxLength(50);
+            e.Property(p => p.Status).HasMaxLength(50);
+
+            e.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            e.HasOne(p => p.Task)
+                .WithMany()
+                .HasForeignKey(p => p.TaskId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+
+        // ── Notification ──────────────────────────────────────────────────────
+        builder.Entity<Notification>(e =>
+        {
+            e.Property(n => n.Type).HasMaxLength(100).IsRequired();
+            e.Property(n => n.Title).HasMaxLength(200).IsRequired();
+            e.HasOne(n => n.User).WithMany().HasForeignKey(n => n.UserId).OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(n => n.UserId);
+            e.HasIndex(n => new { n.UserId, n.IsRead });
+        });
+
+        // ── Wallet ────────────────────────────────────────────────────────────
+        builder.Entity<Wallet>(e =>
+        {
+            e.Property(w => w.Balance).HasColumnType("decimal(18,2)");
+            e.Property(w => w.PendingBalance).HasColumnType("decimal(18,2)");
+            e.Property(w => w.TotalEarned).HasColumnType("decimal(18,2)");
+            e.Property(w => w.TotalWithdrawn).HasColumnType("decimal(18,2)");
+            e.Property(w => w.Currency).HasMaxLength(10);
+            e.HasIndex(w => w.UserId).IsUnique();
+        });
+
+        // ── Transaction ───────────────────────────────────────────────────────
+        builder.Entity<Transaction>(e =>
+        {
+            e.Property(t => t.Type).HasMaxLength(50).IsRequired();
+            e.Property(t => t.Amount).HasColumnType("decimal(18,2)");
+            e.Property(t => t.BalanceAfter).HasColumnType("decimal(18,2)");
+            e.Property(t => t.Description).HasMaxLength(500);
+            e.Property(t => t.ReferenceType).HasMaxLength(100);
+            e.Property(t => t.Status).HasMaxLength(50);
+            e.HasOne(t => t.Wallet).WithMany(w => w.Transactions).HasForeignKey(t => t.WalletId).OnDelete(DeleteBehavior.NoAction);
+            e.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(t => t.WalletId);
+            e.HasIndex(t => t.CreatedAt);
+        });
+    }
+}

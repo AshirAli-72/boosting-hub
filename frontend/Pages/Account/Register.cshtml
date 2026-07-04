@@ -1,0 +1,108 @@
+@page "/register"
+@model BoostingHub.frontend.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Create Account";
+    ViewData["PageType"] = "auth";
+    ViewData["BodyClass"] = "auth-page-body";
+}
+
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-brand">
+            <div class="auth-brand-content">
+                <div class="auth-brand-icon"><i class="bi bi-person-plus-fill"></i></div>
+                <h2>Join Boosting Hub</h2>
+                <p>Create your account and start growing your social media presence with real, authentic engagement.</p>
+                <div class="decor-circles">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+        <div class="auth-form">
+            <div class="auth-form-inner">
+                <div class="auth-logo-icon"><i class="bi bi-rocket-takeoff"></i></div>
+                <h3 class="auth-form-title">Create Account</h3>
+                <p class="auth-form-subtitle">Fill in your details to get started</p>
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="auth-alert auth-alert-danger">@Model.ErrorMessage</div>
+                }
+                @if (Model.Errors?.Any() == true)
+                {
+                    <div class="auth-alert auth-alert-danger">
+                        <ul>
+                            @foreach (var err in Model.Errors)
+                            {
+                                <li>@err</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="auth-alert auth-alert-danger d-none"></div>
+
+                    <div class="input-group-custom">
+                        <label asp-for="Input.Name" class="form-label">Full Name</label>
+                        <div class="input-icon-wrapper">
+                            <input asp-for="Input.Name" class="form-control" placeholder="Your full name" />
+                            <i class="input-icon bi bi-person"></i>
+                        </div>
+                        <span asp-validation-for="Input.Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="input-group-custom">
+                        <label asp-for="Input.Email" class="form-label">Email</label>
+                        <div class="input-icon-wrapper">
+                            <input asp-for="Input.Email" class="form-control" type="email" placeholder="Your email address" />
+                            <i class="input-icon bi bi-envelope"></i>
+                        </div>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="input-group-custom">
+                        <label asp-for="Input.Phone" class="form-label">Phone <span class="auth-label-optional">(optional)</span></label>
+                        <div class="input-icon-wrapper">
+                            <input asp-for="Input.Phone" class="form-control" placeholder="Your phone number" />
+                            <i class="input-icon bi bi-telephone"></i>
+                        </div>
+                        <span asp-validation-for="Input.Phone" class="text-danger"></span>
+                    </div>
+
+                    <div class="input-group-custom">
+                        <label asp-for="Input.Password" class="form-label">Password</label>
+                        <div class="input-icon-wrapper">
+                            <input asp-for="Input.Password" class="form-control" type="password" placeholder="Create a strong password" />
+                            <i class="input-icon bi bi-lock"></i>
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="input-group-custom">
+                        <label asp-for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
+                        <div class="input-icon-wrapper">
+                            <input asp-for="Input.ConfirmPassword" class="form-control" type="password" placeholder="Repeat your password" />
+                            <i class="input-icon bi bi-lock-fill"></i>
+                        </div>
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-auth w-100">
+                        <i class="bi bi-person-plus"></i> Create Account
+                    </button>
+                </form>
+
+                <div class="auth-divider">or</div>
+
+                <div class="text-center auth-muted-text">
+                    Already have an account? <a href="/login" class="auth-link">Sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

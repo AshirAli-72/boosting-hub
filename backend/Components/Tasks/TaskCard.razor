@@ -1,0 +1,36 @@
+@using BoostingHub.backend.DTOs
+
+<div class="task-card @(Task.UserStatus == "Accepted" ? "task-card-accepted" : Task.UserStatus == "Completed" ? "task-card-completed" : "") @(IsSelected ? "task-card-selected" : "")" @onclick="OnSelect" role="button" tabindex="0">
+    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+        <span class="task-platform-badge"><i class="bi bi-globe2 me-1"></i>@Task.Platform</span>
+        <span class="text-warning fw-bold fs-5">$@(Task.RewardAmount.ToString("F2"))</span>
+    </div>
+    <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="task-meta-item"><i class="bi bi-tag me-1"></i>@Task.Service</span>
+        @if (Task.UserStatus == "Accepted")
+        {
+            <span class="task-status-badge-accepted" style="font-size:0.75rem;background:rgba(59,130,246,0.15);color:#3B82F6;padding:2px 8px;border-radius:12px;"><i class="bi bi-check-circle me-1"></i>Accepted</span>
+        }
+        else if (Task.UserStatus == "Completed")
+        {
+            <span class="task-status-badge-completed" style="font-size:0.75rem;background:rgba(16,185,129,0.15);color:#10B981;padding:2px 8px;border-radius:12px;"><i class="bi bi-check2-all me-1"></i>Completed</span>
+        }
+    </div>
+    @if (!string.IsNullOrEmpty(Task.Url))
+    {
+        <div class="task-meta-item mb-2"><i class="bi bi-link-45deg me-1"></i><span class="text-truncate d-inline-block" style="max-width:200px;">@Task.Url</span></div>
+    }
+    <div class="task-meta">
+        <span class="task-meta-item"><i class="bi bi-people me-1"></i>@(Task.TargetQuantity - Task.CompletedQuantity) slots left</span>
+    </div>
+    <div class="task-footer">
+        <span class="task-slots"><i class="bi bi-clock me-1"></i>@(Task.ExpiresAt.HasValue ? $"{(Task.ExpiresAt.Value - DateTime.UtcNow).Days}d left" : "No expiry")</span>
+        <span class="text-muted small">#@Task.Id</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public AvailableTaskDto Task { get; set; } = new();
+    [Parameter] public bool IsSelected { get; set; }
+    [Parameter] public EventCallback OnSelect { get; set; }
+}

@@ -1,0 +1,273 @@
+@page "/admin/inquiries"
+@model BoostingHub.frontend.Pages.Admin.Inquiries.IndexModel
+@{
+    ViewData["Title"] = "Client Requirements";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+            <span>Boosting Hub</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin-panel" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="/admin/inquiries" class="sidebar-link active"><i class="bi bi-inbox"></i> Client Requirements</a>
+            <div class="sidebar-divider"></div>
+            <a href="/security" class="sidebar-link"><i class="bi bi-shield-lock"></i> Security</a>
+            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="admin-main">
+        <div class="admin-header">
+            <h3><i class="bi bi-inbox text-primary"></i> Client Requirements (Orders)</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> Admin
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div id="actionAlert" class="alert" style="display:none; border-radius:12px; margin-bottom:16px;"></div>
+            <div class="admin-card mb-4 border-0 shadow-sm" style="background:var(--bg-card); border-radius:16px;">
+                <div class="admin-card-header d-flex justify-content-between align-items-center" style="padding:20px 24px; border-bottom:1px solid var(--border-subtle);">
+                    <h5 class="m-0"><i class="bi bi-list-check text-primary me-2"></i> All Orders</h5>
+                    <span class="badge" style="background:var(--primary); color:#fff; font-size:0.85rem; padding:6px 12px; border-radius:20px;">@Model.Orders.Count Total</span>
+                </div>
+                <div class="admin-card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table admin-table mb-0 align-middle">
+                            <thead class="admin-thead">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name / Email</th>
+                                    <th>Platform(s)</th>
+                                    <th>Service(s)</th>
+                                    <th>Quantity</th>
+                                    <th>Budget</th>
+                                    <th>URL</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th class="text-end pe-4">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Orders.Any())
+                                {
+                                    foreach (var item in Model.Orders)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">#@item.Id</td>
+                                            <td>
+                                                <div class="fw-semibold">@(item.FullName ?? "—")</div>
+                                                <div class="admin-td-small opacity-75">@(item.Email ?? "—")</div>
+                                            </td>
+                                            <td>
+                                                @foreach (var p in item.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                {
+                                                    <span class="admin-badge me-1" style="background:rgba(124,58,237,0.15); color:var(--primary-light);">@p</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @foreach (var s in item.Service.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                                {
+                                                    <span class="admin-badge me-1" style="background:rgba(13,148,136,0.15); color:#0D9488;">@s</span>
+                                                }
+                                            </td>
+                                            <td><span class="fw-semibold">@item.Quantity</span></td>
+                                            <td><span class="fw-bold text-success">$@item.Budget.ToString("N2")</span></td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.SocialMediaUrl))
+                                                {
+                                                    <a href="@item.SocialMediaUrl" target="_blank" class="text-truncate d-inline-block text-primary" style="max-width:120px; text-decoration:none;" title="@item.SocialMediaUrl">
+                                                        <i class="bi bi-link-45deg"></i> Link
+                                                    </a>
+                                                }
+                                                else { <span class="opacity-50">—</span> }
+                                            </td>
+                                            <td>
+                                                @if (item.Status == "Pending")
+                                                {
+                                                    <span class="inquiry-status-badge inquiry-status-pending">Pending</span>
+                                                }
+                                                else if (item.Status == "Approved")
+                                                {
+                                                    <span class="inquiry-status-badge inquiry-status-approved">Approved</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="inquiry-status-badge inquiry-status-rejected">@item.Status</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="admin-td-small">@item.CreatedAt.ToString("MMM dd, yyyy")</span><br>
+                                                <span class="admin-td-small opacity-75">@item.CreatedAt.ToString("HH:mm")</span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+                                                    @if (item.Status == "Pending")
+                                                    {
+                                                        <button class="btn btn-sm btn-success approve-btn"
+                                                                id="approve-btn-@item.Id"
+                                                                data-id="@item.Id"
+                                                                onclick="approveOrder(@item.Id)"
+                                                                style="border-radius:8px; font-weight:500; padding:4px 12px;">
+                                                            <i class="bi bi-check-lg"></i> Approve
+                                                        </button>
+                                                        <button class="btn btn-sm btn-danger reject-btn"
+                                                                id="reject-btn-@item.Id"
+                                                                data-id="@item.Id"
+                                                                onclick="rejectOrder(@item.Id)"
+                                                                style="border-radius:8px; font-weight:500; padding:4px 12px;">
+                                                            <i class="bi bi-x-lg"></i> Reject
+                                                        </button>
+                                                    }
+                                                    <button class="btn btn-sm btn-outline-primary" type="button"
+                                                            data-bs-toggle="collapse" data-bs-target="#collapse-@item.Id"
+                                                            style="border-radius:8px; font-weight:500; padding:4px 10px;">
+                                                        <i class="bi bi-chevron-down"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr class="collapse" id="collapse-@item.Id" style="border-bottom:1px solid var(--border-subtle);">
+                                            <td colspan="10" style="background-color: rgba(0,0,0,0.1); padding: 20px 24px; border-top:none;">
+                                                <div class="row g-3">
+                                                    @if (!string.IsNullOrEmpty(item.Description))
+                                                    {
+                                                        <div class="col-md-6">
+                                                            <div style="background:var(--bg-elevated); padding:16px; border-radius:12px; border:1px solid var(--border-muted);">
+                                                                <h6 class="stat-label-upper mb-2"><i class="bi bi-chat-left-text text-primary me-2"></i> Description / Notes</h6>
+                                                                <p class="mb-0 text-secondary" style="font-size:0.9rem; line-height:1.5;">@item.Description</p>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    <div class="col-md-6">
+                                                        <div style="background:var(--bg-elevated); padding:16px; border-radius:12px; border:1px solid var(--border-muted);">
+                                                            <h6 class="stat-label-upper mb-2"><i class="bi bi-info-circle text-warning me-2"></i> Order Summary</h6>
+                                                            <ul class="mb-0 list-unstyled" style="font-size:0.9rem;">
+                                                                <li><strong>Platforms:</strong> @item.Platform</li>
+                                                                <li><strong>Services:</strong> @item.Service</li>
+                                                                <li><strong>Quantity:</strong> @item.Quantity</li>
+                                                                <li><strong>Description:</strong> @item.Description</li>
+                                                                <li><strong>Budget:</strong> $@item.Budget.ToString("N2")</li>
+                                                                <li><strong>Status:</strong> @item.Status</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="10" class="text-center py-5 text-muted">
+                                            <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+                                            <span style="font-size:1.1rem; font-weight:500;">No client orders found.</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+
+        function showAlert(message, type) {
+            var el = document.getElementById('actionAlert');
+            el.className = 'alert alert-' + type;
+            el.style.display = 'block';
+            el.style.borderRadius = '12px';
+            el.innerHTML = '<i class="bi bi-' + (type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill') + '"></i> ' + message;
+            setTimeout(function() { el.style.display = 'none'; }, 5000);
+        }
+
+        async function approveOrder(id) {
+            if (!confirm('Approve this order? Tasks will be generated and published for users.')) return;
+            var btn = document.getElementById('approve-btn-' + id);
+            var rejectBtn = document.getElementById('reject-btn-' + id);
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Approving...';
+            try {
+                const resp = await fetch('/api/orders/' + id + '/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    showAlert(data.message, 'success');
+                    btn.outerHTML = '<span class="inquiry-status-badge inquiry-status-approved">Approved</span>';
+                    if (rejectBtn) rejectBtn.remove();
+                    // update status badge in row
+                    var statusCells = document.querySelectorAll('[data-order-status-' + id + ']');
+                } else {
+                    showAlert(data.message || 'Failed to approve.', 'danger');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-lg"></i> Approve';
+                }
+            } catch (e) {
+                showAlert('Network error. Please try again.', 'danger');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Approve';
+            }
+        }
+
+        async function rejectOrder(id) {
+            if (!confirm('Reject this order?')) return;
+            var btn = document.getElementById('reject-btn-' + id);
+            var approveBtn = document.getElementById('approve-btn-' + id);
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
+            try {
+                const resp = await fetch('/api/orders/' + id + '/reject', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    showAlert(data.message, 'success');
+                    btn.outerHTML = '<span class="inquiry-status-badge inquiry-status-rejected">Rejected</span>';
+                    if (approveBtn) approveBtn.remove();
+                } else {
+                    showAlert(data.message || 'Failed to reject.', 'danger');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-x-lg"></i> Reject';
+                }
+            } catch (e) {
+                showAlert('Network error. Please try again.', 'danger');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-x-lg"></i> Reject';
+            }
+        }
+    </script>
+}

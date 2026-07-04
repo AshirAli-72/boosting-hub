@@ -1,0 +1,267 @@
+@inject ITaskService TaskService
+@inject IJSRuntime JS
+
+<div class="available-tasks">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="bi bi-list-task text-primary me-2"></i>Available Tasks</h4>
+        <span class="badge" style="background:var(--primary);color:#fff;padding:6px 14px;border-radius:20px;font-size:0.85rem;">@totalCount tasks</span>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+            <p class="mt-2 text-muted">Loading tasks...</p>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger d-flex align-items-center gap-2">@errorMessage</div>
+    }
+    else if (!tasks.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-inbox display-1 text-muted"></i>
+            <p class="mt-3 text-muted fs-5">No tasks available right now.</p>
+            @if (HasActiveFilters())
+            {
+                <button class="btn btn-outline-primary mt-2" @onclick="ClearFilters"><i class="bi bi-x-circle me-1"></i>Clear Filters</button>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="filter-bar d-flex flex-wrap gap-2 mb-4">
+            <input type="text" class="form-control" style="flex:2;min-width:160px;" placeholder="Search tasks..." @bind="filter.Search" @bind:event="oninput" />
+            <select class="form-select" style="flex:1;min-width:120px;" @bind="filter.Platform">
+                <option value="">All Platforms</option>
+                @foreach (var p in platforms)
+                {
+                    <option value="@p">@p</option>
+                }
+            </select>
+            <select class="form-select" style="flex:1;min-width:120px;" @bind="filter.Service">
+                <option value="">All Services</option>
+                @foreach (var s in services)
+                {
+                    <option value="@s">@s</option>
+                }
+            </select>
+            <select class="form-select" style="flex:1;min-width:100px;" @bind="filter.SortBy">
+                <option value="newest">Newest</option>
+                <option value="reward">Highest Reward</option>
+            </select>
+            <button class="btn btn-primary" @onclick="LoadTasks"><i class="bi bi-search me-1"></i>Search</button>
+        </div>
+
+        <div class="task-grid">
+            @foreach (var task in tasks)
+            {
+                <TaskCard Task="task" IsSelected="selectedTaskId == task.Id" OnSelect="() => SelectTask(task.Id)" />
+            }
+        </div>
+
+        @if (totalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(!hasPrevious ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => ChangePage(currentPage - 1)"><i class="bi bi-chevron-left"></i></button>
+                    </li>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <button class="page-link" @onclick="() => ChangePage(i)">@i</button>
+                        </li>
+                    }
+                    <li class="page-item @(!hasNext ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => ChangePage(currentPage + 1)"><i class="bi bi-chevron-right"></i></button>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+
+    @if (selectedTask != null)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-info-circle text-primary me-2"></i>@selectedTask.Platform - @selectedTask.Service</h5>
+                        <button type="button" class="btn-close" @onclick="CloseDetail"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="d-flex flex-column gap-2">
+                                    <div><strong>Platform:</strong> <span class="text-secondary">@selectedTask.Platform</span></div>
+                                    <div><strong>Service:</strong> <span class="text-secondary">@selectedTask.Service</span></div>
+                                    <div><strong>Target URL:</strong> <a href="@selectedTask.Url" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width:280px;">@selectedTask.Url</a></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex flex-column gap-2">
+                                    <div><strong>Your Reward:</strong> <span class="text-success fw-bold fs-5">$@(selectedTask.RewardAmount.ToString("F2"))</span></div>
+                                    <div><strong>Slots:</strong> <span>@(selectedTask.TargetQuantity - selectedTask.CompletedQuantity) open / @selectedTask.CompletedQuantity completed</span></div>
+                                    <div><strong>Status:</strong> <span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;">@selectedTask.Status</span></div>
+                                    <div><strong>My Status:</strong>
+                                        @if (selectedTask.UserStatus == "Accepted")
+                                        {
+                                            <span style="color:#3B82F6;"><i class="bi bi-check-circle me-1"></i>Accepted</span>
+                                        }
+                                        else if (selectedTask.UserStatus == "Completed")
+                                        {
+                                            <span style="color:#10B981;"><i class="bi bi-check2-all me-1"></i>Completed</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not Accepted</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(selectedTask.Description))
+                        {
+                            <div class="mt-3 p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;">
+                                <strong class="d-block mb-1"><i class="bi bi-chat-left-text text-primary me-1"></i>Description:</strong>
+                                <p class="mb-0 text-secondary">@selectedTask.Description</p>
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseDetail"><i class="bi bi-x-circle me-1"></i>Close</button>
+                        @if ((selectedTask.TargetQuantity - selectedTask.CompletedQuantity) > 0 && selectedTask.Status == "Active" && selectedTask.UserStatus == "Not Accepted")
+                        {
+                            <button type="button" class="btn btn-primary" @onclick="() => AcceptTask(selectedTask.Id)" disabled="@isAccepting">
+                                @if (isAccepting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                <i class="bi bi-check2 me-1"></i>Accept Task
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (showSuccess)
+    {
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+            <div class="toast show align-items-center text-bg-success border-0">
+                <div class="d-flex">
+                    <div class="toast-body"><i class="bi bi-check-circle-fill me-2"></i>@successMessage</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" @onclick="() => showSuccess = false"></button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public int UserId { get; set; }
+    [Parameter] public string? UserName { get; set; }
+
+    private List<AvailableTaskDto> tasks = new();
+    private int totalCount;
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private bool hasPrevious;
+    private bool hasNext;
+    private bool isLoading = true;
+    private bool isAccepting;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool showSuccess;
+    private List<string> platforms = new();
+    private List<string> services = new();
+    private TaskFilterDto filter = new();
+    private int? selectedTaskId;
+    private TaskDetailDto? selectedTask;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFilterData();
+        await LoadTasks();
+    }
+
+    private async Task LoadFilterData()
+    {
+        try { platforms = await TaskService.GetPlatformsAsync(); services = await TaskService.GetServicesAsync(); } catch { }
+    }
+
+    private async Task LoadTasks()
+    {
+        isLoading = true;
+        errorMessage = null;
+        try
+        {
+            filter.Page = currentPage;
+            var result = await TaskService.GetAvailableTasksAsync(filter, UserId);
+            tasks = result.Items.ToList();
+            totalCount = result.TotalCount;
+            currentPage = result.Page;
+            totalPages = result.TotalPages;
+            hasPrevious = result.HasPrevious;
+            hasNext = result.HasNext;
+        }
+        catch (Exception ex) { errorMessage = ex.Message; }
+        finally { isLoading = false; }
+    }
+
+    private async Task ChangePage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        await LoadTasks();
+    }
+
+    private async Task SelectTask(int taskId)
+    {
+        selectedTaskId = taskId;
+        try
+        {
+            var result = await TaskService.GetTaskDetailAsync(taskId, UserId);
+            if (result.IsSuccess) selectedTask = result.Data;
+        }
+        catch { selectedTask = null; }
+    }
+
+    private void CloseDetail() { selectedTask = null; selectedTaskId = null; }
+
+    private async Task AcceptTask(int taskId)
+    {
+        if (isAccepting) return;
+        isAccepting = true;
+        try
+        {
+            var result = await TaskService.AcceptTaskAsync(taskId, UserId);
+            if (result.IsSuccess)
+            {
+                successMessage = result.Message ?? "Task accepted!";
+                showSuccess = true;
+                CloseDetail();
+                await LoadTasks();
+            }
+            else
+            {
+                successMessage = result.Message ?? "Failed to accept.";
+                showSuccess = true;
+            }
+        }
+        catch (Exception ex) { successMessage = $"Error: {ex.Message}"; showSuccess = true; }
+        finally { isAccepting = false; }
+    }
+
+    private async Task ClearFilters()
+    {
+        filter = new TaskFilterDto();
+        currentPage = 1;
+        await LoadTasks();
+    }
+
+    private bool HasActiveFilters() => !string.IsNullOrEmpty(filter.Search) || !string.IsNullOrEmpty(filter.Platform);
+}

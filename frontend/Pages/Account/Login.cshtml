@@ -1,0 +1,77 @@
+@page "/login"
+@model BoostingHub.frontend.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Sign In";
+    ViewData["PageType"] = "auth";
+    ViewData["BodyClass"] = "auth-page-body";
+}
+
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-brand">
+            <div class="auth-brand-content">
+                <div class="auth-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your dashboard, manage tasks, and track your social media growth.</p>
+                <div class="decor-circles">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+        <div class="auth-form">
+            <div class="auth-form-inner">
+                <div class="auth-logo-icon"><i class="bi bi-rocket-takeoff"></i></div>
+                <h3 class="auth-form-title">Sign In</h3>
+                <p class="auth-form-subtitle">Enter your credentials to continue</p>
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="auth-alert auth-alert-danger">@Model.ErrorMessage</div>
+                }
+
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="auth-alert auth-alert-danger" style="display:none;"></div>
+
+                    <div class="input-group-custom">
+                        <label asp-for="Input.Email" class="form-label">Email or Phone</label>
+                        <div class="input-icon-wrapper">
+                            <input asp-for="Input.Email" class="form-control" placeholder="Email or phone" />
+                            <i class="input-icon bi bi-envelope"></i>
+                        </div>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="input-group-custom">
+                        <label asp-for="Input.Password" class="form-label">Password</label>
+                        <div class="input-icon-wrapper">
+                            <input asp-for="Input.Password" class="form-control" type="password" placeholder="Enter your password" />
+                            <i class="input-icon bi bi-lock"></i>
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="input-group-custom">
+                        <div class="form-check">
+                            <input asp-for="Input.RememberMe" class="form-check-input" id="remember" />
+                            <label class="form-check-label auth-check-label" for="remember">Remember me</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-auth w-100">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In
+                    </button>
+                </form>
+
+                <div class="auth-divider">or</div>
+
+                <div class="text-center auth-muted-text">
+                    Don't have an account? <a href="/register" class="auth-link">Create one</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
