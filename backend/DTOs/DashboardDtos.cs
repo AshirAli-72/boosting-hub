@@ -6,6 +6,8 @@ public class UserDashboardDto
     public int CompletedTasks { get; set; }
     public int PendingTasks { get; set; }
     public decimal TotalRewards { get; set; }
+    public decimal WalletBalance { get; set; }
+    public string WalletStatus { get; set; } = "Inactive";
     public ChartDataDto LineChart { get; set; } = new();
     public ChartDataDto PieChart { get; set; } = new();
     public string UserName { get; set; } = string.Empty;
@@ -21,6 +23,8 @@ public class AdminDashboardDto
     public int RegisteredToday { get; set; }
     public int TotalOrders { get; set; }
     public decimal TotalRevenue { get; set; }
+    public int InProgressTasks { get; set; }
+    public int CompletedTasks { get; set; }
     public ChartDataDto LineChart { get; set; } = new();
     public ChartDataDto PieChart { get; set; } = new();
 }

@@ -15,6 +15,8 @@
             @if (HttpContext.Session.GetString("UserRole") == "Admin")
             {
                 <a href="/admin-panel" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="/admin/tasks?status=inprogress" class="sidebar-link"><i class="bi bi-hourglass-split"></i> In Progress</a>
+                <a href="/admin/tasks?status=completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
                 <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
                 <div class="sidebar-divider"></div>
                 <a href="/security" class="sidebar-link active"><i class="bi bi-shield-lock"></i> Security</a>
@@ -24,6 +26,7 @@
                 <a href="/dashboard" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
                 <a href="/tasks" class="sidebar-link"><i class="bi bi-list-task"></i> Available Tasks</a>
                 <a href="/my-tasks" class="sidebar-link"><i class="bi bi-check2-square"></i> My Tasks</a>
+                <a href="/wallet" class="sidebar-link"><i class="bi bi-wallet2"></i> Wallet</a>
                 <a href="/security" class="sidebar-link active"><i class="bi bi-shield-lock"></i> Security</a>
             }
             <div class="sidebar-divider"></div>
@@ -34,6 +37,9 @@
         <div class="admin-header">
             <h3><i class="bi bi-shield-lock text-primary"></i> Security Settings</h3>
             <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> @(HttpContext.Session.GetString("UserRole") == "Admin" ? "Admin" : Model.CurrentUserName)

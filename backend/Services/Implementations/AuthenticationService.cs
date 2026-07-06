@@ -34,16 +34,11 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterDto dto, HttpContext httpContext, CancellationToken ct = default)
     {
-        var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email, ct);
-        if (existingUser != null)
+        if (await _db.Users.AnyAsync(u => u.Email == dto.Email, ct))
             return Result.Failure<AuthResponseDto>("Email already registered", "DUPLICATE_EMAIL");
 
-        if (!string.IsNullOrEmpty(dto.Phone))
-        {
-            var existingPhone = await _db.Users.AnyAsync(u => u.Phone == dto.Phone, ct);
-            if (existingPhone)
-                return Result.Failure<AuthResponseDto>("Phone number already registered", "DUPLICATE_PHONE");
-        }
+        if (await _db.Users.AnyAsync(u => u.Phone == dto.Phone, ct))
+            return Result.Failure<AuthResponseDto>("Phone number already registered", "DUPLICATE_PHONE");
 
         var user = new User
         {
@@ -69,16 +64,19 @@ public class AuthenticationService : IAuthenticationService
         _db.UserHasRoles.Add(new UserHasRole { UserId = user.Id, RoleId = guestRole.Id });
         await _db.SaveChangesAsync(ct);
 
-        //var emailToken = _generateSecureToken();
-        //user.RememberToken = _hashToken(emailToken);
-        //await _db.SaveChangesAsync(ct);
-
-        //await _emailService.SendWelcomeEmailAsync(user.Email!, user.Name);
-        //await _emailService.SendEmailVerificationAsync(user.Email!, emailToken, user.Name);
+        _db.Wallets.Add(new Wallet
+        {
+            UserId = user.Id,
+            TotalBalance = 0,
+            Currency = "USD",
+            Withdrawn = 0,
+            Status = "Active",
+            CreatedAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync(ct);
 
         var authResponse = await _tokenService.GenerateTokensAsync(user);
 
-        // Populate User on registration (same as login path) so Register page can store session
         var userWithRoles = await _db.Users
             .Include(u => u.UserHasRoles)
             .ThenInclude(ur => ur.Role)
@@ -242,8 +240,66 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Result> VerifyEmailAsync(VerifyEmailDto dto, CancellationToken ct = default)
     {
-        // Verification process commented out
-        await Task.CompletedTask;
+        var pending = await _db.PendingRegistrations.FirstOrDefaultAsync(p => p.Email == dto.Email, ct);
+        if (pending == null)
+            return Result.Failure("Invalid or expired verification link", "INVALID_LINK");
+
+        if (pending.Token != _hashToken(dto.Token))
+            return Result.Failure("Invalid or expired verification link", "INVALID_TOKEN");
+
+        if (pending.ExpiresAt < DateTime.UtcNow)
+        {
+            _db.PendingRegistrations.Remove(pending);
+            await _db.SaveChangesAsync(ct);
+            return Result.Failure("Verification link has expired. Please register again.", "TOKEN_EXPIRED");
+        }
+
+        if (await _db.Users.AnyAsync(u => u.Email == dto.Email, ct))
+        {
+            _db.PendingRegistrations.Remove(pending);
+            await _db.SaveChangesAsync(ct);
+            return Result.Success("Email already verified");
+        }
+
+        var user = new User
+        {
+            Name = pending.Name,
+            Email = pending.Email,
+            Phone = pending.Phone,
+            Password = pending.Password,
+            Status = 1,
+            EmailVerifiedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync(ct);
+
+        var guestRole = await _db.Roles.FirstOrDefaultAsync(r => r.RoleTitle == "Guest", ct);
+        if (guestRole == null)
+        {
+            guestRole = new Role { RoleTitle = "Guest", Description = "Guest role", CreatedAt = DateTime.UtcNow };
+            _db.Roles.Add(guestRole);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        _db.UserHasRoles.Add(new UserHasRole { UserId = user.Id, RoleId = guestRole.Id });
+
+        _db.Wallets.Add(new Wallet
+        {
+            UserId = user.Id,
+            TotalBalance = 0,
+            Currency = "USD",
+            Withdrawn = 0,
+            Status = "Active",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        _db.PendingRegistrations.Remove(pending);
+        await _db.SaveChangesAsync(ct);
+
+        await _emailService.SendWelcomeEmailAsync(user.Email!, user.Name);
+
         return Result.Success("Email verified successfully");
     }
 

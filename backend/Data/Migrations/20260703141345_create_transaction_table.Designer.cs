@@ -292,73 +292,6 @@ namespace BoostingHub.backend.Data.Migrations
                     b.ToTable("task_generate", (string)null);
                 });
 
-            modelBuilder.Entity("BoostingHub.backend.Models.Transaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("amount");
-
-                    b.Property<decimal>("BalanceAfter")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("balance_after");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("description");
-
-                    b.Property<int?>("ReferenceId")
-                        .HasColumnType("int")
-                        .HasColumnName("reference_id");
-
-                    b.Property<string>("ReferenceType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("reference_type");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("status");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("type");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
-
-                    b.Property<int>("WalletId")
-                        .HasColumnType("int")
-                        .HasColumnName("wallet_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("WalletId");
-
-                    b.ToTable("transactions");
-                });
-
             modelBuilder.Entity("BoostingHub.backend.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -496,6 +429,73 @@ namespace BoostingHub.backend.Data.Migrations
                     b.ToTable("wallets");
                 });
 
+            modelBuilder.Entity("BoostingHub.backend.Models.Transaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("balance_after");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("description");
+
+                    b.Property<int?>("ReferenceId")
+                        .HasColumnType("int")
+                        .HasColumnName("reference_id");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("reference_type");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("type");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("WalletId")
+                        .HasColumnType("int")
+                        .HasColumnName("wallet_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("WalletId");
+
+                    b.ToTable("transactions");
+                });
+
             modelBuilder.Entity("BoostingHub.backend.Models.Notification", b =>
                 {
                     b.HasOne("BoostingHub.backend.Models.User", "User")
@@ -537,25 +537,6 @@ namespace BoostingHub.backend.Data.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("BoostingHub.backend.Models.Transaction", b =>
-                {
-                    b.HasOne("BoostingHub.backend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("BoostingHub.backend.Models.Wallet", "Wallet")
-                        .WithMany("Transactions")
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("User");
-
-                    b.Navigation("Wallet");
-                });
-
             modelBuilder.Entity("BoostingHub.backend.Models.UserHasRole", b =>
                 {
                     b.HasOne("BoostingHub.backend.Models.Role", "Role")
@@ -586,6 +567,25 @@ namespace BoostingHub.backend.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("BoostingHub.backend.Models.Transaction", b =>
+                {
+                    b.HasOne("BoostingHub.backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BoostingHub.backend.Models.Wallet", "Wallet")
+                        .WithMany("Transactions")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Wallet");
+                });
+
             modelBuilder.Entity("BoostingHub.backend.Models.Orders", b =>
                 {
                     b.Navigation("TaskGenerates");
@@ -602,10 +602,6 @@ namespace BoostingHub.backend.Data.Migrations
 
                     b.Navigation("UserHasRoles");
                 });
-
-            modelBuilder.Entity("BoostingHub.backend.Models.TaskGenerate", b =>
-                {
-                                    });
 
             modelBuilder.Entity("BoostingHub.backend.Models.User", b =>
                 {

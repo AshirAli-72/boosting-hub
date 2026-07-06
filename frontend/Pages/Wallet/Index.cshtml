@@ -1,0 +1,110 @@
+@page "/wallet"
+@model BoostingHub.frontend.Pages.Wallet.IndexModel
+@{
+    ViewData["Title"] = "Wallet";
+    ViewData["BodyClass"] = "user-dashboard-page";
+}
+
+<div class="admin-layout">
+    <aside class="admin-sidebar user-sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+            <span>Boosting Hub</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="/tasks" class="sidebar-link"><i class="bi bi-list-task"></i> Available Tasks</a>
+            <a href="/my-tasks" class="sidebar-link"><i class="bi bi-check2-square"></i> My Tasks</a>
+            <a href="/wallet" class="sidebar-link active"><i class="bi bi-wallet2"></i> Wallet</a>
+            <a href="/security" class="sidebar-link"><i class="bi bi-shield-lock"></i> Security</a>
+            <div class="sidebar-divider"></div>
+            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="admin-main">
+        <div class="admin-header">
+            <h3><i class="bi bi-wallet2 text-primary"></i> Wallet</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> User
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-semibold mb-4"><i class="bi bi-wallet2 text-primary"></i> Wallet Overview</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle admin-table">
+                                <thead class="admin-thead">
+                                <tr>
+                                    <th>Total Balance</th>
+                                    <th>Currency</th>
+                                    <th>Withdrawn</th>
+                                    <th>Created At</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold fs-5">$@Model.WalletData.TotalBalance.ToString("N2")</td>
+                                    <td>@Model.WalletData.Currency</td>
+                                    <td>$@Model.WalletData.Withdrawn.ToString("N2")</td>
+                                    <td>@Model.WalletData.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        @if (Model.WalletData.Status == "Active")
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-warning" disabled title="Withdrawals are not available yet">
+                                            <i class="bi bi-box-arrow-up"></i> Withdraw
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+    </script>
+}

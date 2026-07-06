@@ -73,6 +73,7 @@ public class DashboardService : IDashboardService
         };
 
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
 
         return new UserDashboardDto
         {
@@ -83,6 +84,8 @@ public class DashboardService : IDashboardService
             CompletedTasks = completedCount,
             PendingTasks = pendingCount,
             TotalRewards = totalRewards,
+            WalletBalance = wallet?.TotalBalance ?? 0,
+            WalletStatus = wallet?.Status ?? "Inactive",
             LineChart = lineChart,
             PieChart = pieChart
         };
@@ -138,6 +141,16 @@ public class DashboardService : IDashboardService
             pieChart.BackgroundColors.Add(colorMap.GetValueOrDefault(group.Status, "#3B82F6"));
         }
 
+        var tasks = await _db.TaskGenerates.ToListAsync();
+        var completedCounts = await _db.TaskCompletes
+            .Where(tc => tc.Status == "Completed")
+            .GroupBy(tc => tc.TaskId)
+            .Select(g => new { TaskId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.TaskId, x => x.Count);
+
+        var inProgressTasks = tasks.Count(t => completedCounts.GetValueOrDefault(t.Id, 0) < t.Quantity);
+        var completedTasks = tasks.Count(t => completedCounts.GetValueOrDefault(t.Id, 0) >= t.Quantity && t.Quantity > 0);
+
         return new AdminDashboardDto
         {
             TotalUsers = users.Count,
@@ -146,6 +159,8 @@ public class DashboardService : IDashboardService
             RegisteredToday = users.Count(u => u.CreatedAt >= today),
             TotalOrders = orders.Count,
             TotalRevenue = orders.Where(o => o.Status == "Approved").Sum(o => o.Budget),
+            InProgressTasks = inProgressTasks,
+            CompletedTasks = completedTasks,
             LineChart = lineChart,
             PieChart = pieChart
         };

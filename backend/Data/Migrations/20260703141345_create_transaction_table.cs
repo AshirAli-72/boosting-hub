@@ -31,20 +31,21 @@ namespace BoostingHub.backend.Data.Migrations
                 {
                     table.PrimaryKey("PK_transactions", x => x.id);
                     table.ForeignKey(
-                        name: "FK_transactions_users_user_id",
-                        column: x => x.user_id,
-                        principalTable: "users",
-                        principalColumn: "id");
-                    table.ForeignKey(
                         name: "FK_transactions_wallets_wallet_id",
                         column: x => x.wallet_id,
                         principalTable: "wallets",
                         principalColumn: "id");
+                    table.ForeignKey(
+                        name: "FK_transactions_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id");
                 });
+
             migrationBuilder.CreateIndex(
-             name: "IX_transactions_created_at",
-             table: "transactions",
-             column: "created_at");
+                name: "IX_transactions_created_at",
+                table: "transactions",
+                column: "created_at");
 
             migrationBuilder.CreateIndex(
                 name: "IX_transactions_user_id",
@@ -61,7 +62,7 @@ namespace BoostingHub.backend.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                  name: "transactions");
+                name: "transactions");
         }
     }
 }

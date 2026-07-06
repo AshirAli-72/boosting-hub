@@ -204,6 +204,17 @@
 .auth-alert ul { margin-bottom: 0; padding-left: 20px; }
 .auth-alert li { margin-bottom: 2px; }
 
+/* ── Auth Card Icons ── */
+.auth-card-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+}
+.auth-card-icon-success { background: rgba(16,185,129,0.15); color: #10B981; }
+.auth-card-icon-danger  { background: rgba(239,68,68,0.15);  color: #EF4444; }
+.auth-icon-centered     { margin: 0 auto 16px; }
+
 /* ── Utility ── */
 .auth-check-label    { font-weight: 500; color: #475569; cursor: pointer; }
 .auth-muted-text     { color: #64748B; font-size: 0.9rem; }

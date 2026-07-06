@@ -28,7 +28,6 @@ public class RegisterModel : PageModel
 
         if (result.IsSuccess)
         {
-            // Guard: if user data missing, fall back to login
             if (result.Data == null || result.Data.User == null)
                 return RedirectToPage("/Account/Login");
 

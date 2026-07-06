@@ -112,6 +112,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
 
 var app = builder.Build();
 

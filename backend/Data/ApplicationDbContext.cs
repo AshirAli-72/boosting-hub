@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<PendingRegistration> PendingRegistrations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -184,13 +185,11 @@ public class ApplicationDbContext : DbContext
         // ── Wallet ────────────────────────────────────────────────────────────
         builder.Entity<Wallet>(e =>
         {
-            e.Property(w => w.Balance).HasColumnType("decimal(18,2)");
-            e.Property(w => w.PendingBalance).HasColumnType("decimal(18,2)");
-            e.Property(w => w.TotalEarned).HasColumnType("decimal(18,2)");
-            e.Property(w => w.TotalWithdrawn).HasColumnType("decimal(18,2)");
-            e.Property(w => w.UpdatedAt).HasColumnType("datetime2");
+            e.Property(w => w.TotalBalance).HasColumnType("decimal(18,2)");
+            e.Property(w => w.Withdrawn).HasColumnType("decimal(18,2)");
             e.Property(w => w.CreatedAt).HasColumnType("datetime2");
             e.Property(w => w.Currency).HasMaxLength(10);
+            e.Property(w => w.Status).HasMaxLength(20);
             e.HasIndex(w => w.UserId).IsUnique();
         });
 
@@ -208,6 +207,15 @@ public class ApplicationDbContext : DbContext
             e.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
             e.HasIndex(t => t.WalletId);
             e.HasIndex(t => t.CreatedAt);
+        });
+
+        // ── PendingRegistration ────────────────────────────────────────────────
+        builder.Entity<PendingRegistration>(e =>
+        {
+            e.HasIndex(r => r.Email).IsUnique();
+            e.HasIndex(r => r.Token);
+            e.Property(r => r.CreatedAt).HasColumnType("datetime2");
+            e.Property(r => r.ExpiresAt).HasColumnType("datetime2");
         });
     }
 }

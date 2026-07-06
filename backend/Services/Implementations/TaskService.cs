@@ -11,13 +11,15 @@ public class TaskService : ITaskService
 {
     private readonly ApplicationDbContext _db;
     private readonly ILogger<TaskService> _logger;
+    private readonly IWalletService _walletService;
     private const int MaxActiveTasks = 10;
     private const int DailyTaskLimit = 25;
 
-    public TaskService(ApplicationDbContext db, ILogger<TaskService> logger)
+    public TaskService(ApplicationDbContext db, ILogger<TaskService> logger, IWalletService walletService)
     {
         _db = db;
         _logger = logger;
+        _walletService = walletService;
     }
 
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
@@ -349,15 +351,28 @@ public class TaskService : ITaskService
                 ProofUrl = proofUrl,
                 ProofType = proofType,
                 Date = DateTime.UtcNow,
-                Status = "Submitted"
+                Status = "Completed"
             };
 
             _db.TaskProofs.Add(proof);
             await _db.SaveChangesAsync();
 
-            _logger.LogInformation("Proof submitted for task {Id} by user {UserId} — awaiting admin review", taskId, userId);
+            _db.TaskCompletes.Add(new TaskComplete
+            {
+                UserId = userId,
+                TaskId = taskId,
+                ProofId = proof.Id,
+                Date = DateTime.UtcNow,
+                Status = "Completed"
+            });
 
-            return Result.Success("Proof submitted! Awaiting admin review.");
+            await _db.SaveChangesAsync();
+
+            await _walletService.AddRewardAsync(userId, task.Reward);
+
+            _logger.LogInformation("Task {Id} auto-completed for user {UserId}, reward {Reward} added to wallet", taskId, userId, task.Reward);
+
+            return Result.Success($"Task completed! ${task.Reward} added to your wallet.");
         }
         catch (Exception ex)
         {
