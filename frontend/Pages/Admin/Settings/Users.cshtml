@@ -1,0 +1,211 @@
+@page "/admin/users"
+@model BoostingHub.frontend.Pages.Admin.Settings.UsersModel
+@{
+    ViewData["Title"] = "User Management";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+            <span>Boosting Hub</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin-panel" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="/admin/in-progress" class="sidebar-link"><i class="bi bi-hourglass-split"></i> In Progress</a>
+            <a href="/admin/completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
+            <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
+            <div class="sidebar-divider"></div>
+            <a href="/admin/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
+            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="admin-main">
+        <div class="admin-header">
+            <h3><i class="bi bi-people text-primary"></i> User Management</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> Admin
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert alert-success alert-dismissible fade show">@Model.SuccessMessage<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger alert-dismissible fade show">@Model.ErrorMessage<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-transparent border-bottom">
+                            <h5 class="mb-0 fw-semibold"><i class="bi bi-person-plus text-primary"></i> Create New User</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" asp-page-handler="Create">
+                                <div class="mb-3">
+                                    <label class="form-label">Full Name</label>
+                                    <input asp-for="CreateInput.Name" class="form-control" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input asp-for="CreateInput.Email" class="form-control" type="email" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phone</label>
+                                    <input asp-for="CreateInput.Phone" class="form-control" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input asp-for="CreateInput.Password" class="form-control" type="password" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Assign Roles</label>
+                                    <div class="roles-list" style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">
+                                        @if (Model.AllRoles.Any())
+                                        {
+                                            @foreach (var role in Model.AllRoles)
+                                            {
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input" name="CreateInput.RoleIds" value="@role.Id" id="create_role_@role.Id" />
+                                                    <label class="form-check-label" for="create_role_@role.Id">@role.RoleTitle</label>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <p class="text-muted mb-0 small">No roles created yet. <a href="/admin/roles">Create roles first</a>.</p>
+                                        }
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-circle"></i> Create User</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-semibold"><i class="bi bi-list-ul text-primary"></i> Users</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Roles</th>
+                                            <th>Verified</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var user in Model.Users)
+                                        {
+                                            <tr>
+                                                <td>@user.Name</td>
+                                                <td>@user.Email</td>
+                                                <td>
+                                                    @if (user.Roles.Any())
+                                                    {
+                                                        @foreach (var r in user.Roles)
+                                                        {
+                                                            <span class="badge bg-secondary me-1">@r.RoleTitle</span>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-info">No Role</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (user.EmailVerifiedAt != null)
+                                                    {
+                                                        <span class="badge bg-success">Yes</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning text-dark">No</span>
+                                                    }
+                                                </td>
+                                                <td class="text-end">
+                                                    <a href="/admin/users?edit=@user.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Roles</a>
+                                                </td>
+                                            </tr>
+                                        }
+                                        @if (!Model.Users.Any())
+                                        {
+                                            <tr><td colspan="5" class="text-center text-muted py-4">No users found</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.IsEditing)
+                    {
+                        var editUser = Model.Users.FirstOrDefault(u => u.Id == Model.EditUserId);
+                        if (editUser != null)
+                        {
+                            <div class="card shadow-sm border-0 mt-4">
+                                <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0 fw-semibold"><i class="bi bi-pencil text-primary"></i> Edit Roles: @editUser.Name</h5>
+                                    <a href="/admin/users" class="btn btn-sm btn-outline-secondary">Cancel</a>
+                                </div>
+                                <div class="card-body">
+                                    <form method="post" asp-page-handler="UpdateRoles" asp-route-userId="@Model.EditUserId">
+                                        <div class="mb-3">
+                                            <label class="form-label">Roles</label>
+                                            <div class="roles-list" style="max-height:250px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">
+                                                @foreach (var role in Model.AllRoles)
+                                                {
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input" name="EditRoleIds" value="@role.Id" id="edit_role_@role.Id" checked="@Model.EditRoleIds.Contains(role.Id)" />
+                                                        <label class="form-check-label" for="edit_role_@role.Id">@role.RoleTitle</label>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i> Save Roles</button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+    </script>
+}

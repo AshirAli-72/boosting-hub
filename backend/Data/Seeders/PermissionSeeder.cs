@@ -66,31 +66,4 @@ public static class PermissionSeeder
 
         await db.SaveChangesAsync();
     }
-
-    public static async Task AssignAllToSuperAdmin(ApplicationDbContext db)
-    {
-        var superAdmin = await db.Roles.FirstOrDefaultAsync(r => r.RoleTitle == "Super Admin");
-        if (superAdmin == null)
-            return;
-
-        var permissionIds = await db.Permissions.Select(p => p.Id).ToListAsync();
-        var existingAssignments = await db.RolesHasPermissions
-            .Where(rp => rp.RoleId == superAdmin.Id)
-            .Select(rp => rp.PermissionId)
-            .ToHashSetAsync();
-
-        foreach (var permissionId in permissionIds)
-        {
-            if (!existingAssignments.Contains(permissionId))
-            {
-                db.RolesHasPermissions.Add(new RoleHasPermission
-                {
-                    RoleId = superAdmin.Id,
-                    PermissionId = permissionId
-                });
-            }
-        }
-
-        await db.SaveChangesAsync();
-    }
 }
