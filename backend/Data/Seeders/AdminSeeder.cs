@@ -17,6 +17,9 @@ public static class AdminSeeder
             await db.SaveChangesAsync();
         }
 
+        await PermissionSeeder.SeedAsync(db);
+        await PermissionSeeder.AssignAllToSuperAdmin(db);
+
         if (await db.Users.AnyAsync(u => u.Email == "admin@gmail.com")) return;
         var hasher = new PasswordHasher<User>();
         var admin = new User

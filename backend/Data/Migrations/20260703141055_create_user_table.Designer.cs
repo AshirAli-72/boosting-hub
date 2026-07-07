@@ -401,6 +401,11 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("remember_token");
 
+                    b.Property<string>("EmailChangeToken")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("email_change_token");
+
                     b.Property<int>("Status")
                         .HasColumnType("int")
                         .HasColumnName("status");

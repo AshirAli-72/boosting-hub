@@ -8,24 +8,18 @@
 
 <div class="auth-page">
     <div class="auth-card auth-card-centered">
-        @if (Model.Verified)
-        {
-            <div class="auth-card-icon auth-card-icon-success auth-icon-centered"><i class="bi bi-check-lg"></i></div>
-            <h3 class="auth-form-title text-center">Email Verified!</h3>
-            <p class="auth-text-description">Your email has been verified successfully.</p>
-            <a href="/login" class="btn btn-auth"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
-        }
-        else if (Model.Error)
+        @if (Model.Error)
         {
             <div class="auth-card-icon auth-card-icon-danger auth-icon-centered"><i class="bi bi-x-lg"></i></div>
             <h3 class="auth-form-title text-center">Verification Failed</h3>
             <p class="auth-text-description">@Model.ErrorMessage</p>
-            <a href="/" class="btn btn-auth"><i class="bi bi-house"></i> Go Home</a>
+            <a href="/register" class="btn btn-auth"><i class="bi bi-person-plus"></i> Register Again</a>
         }
         else
         {
             <div class="spinner-border text-primary mb-3" role="status"></div>
             <p class="auth-text-loading">Verifying your email...</p>
+            <p class="auth-text-description text-center">Redirecting you to your dashboard...</p>
         }
     </div>
 </div>

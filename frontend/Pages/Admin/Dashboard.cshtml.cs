@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BoostingHub.frontend.Pages.Admin;
 
-public class AdminPanelModel : PageModel
+public class DashboardModel : PageModel
 {
     private readonly IDashboardService _dashboardService;
 
-    public AdminPanelModel(IDashboardService dashboardService)
+    public DashboardModel(IDashboardService dashboardService)
     {
         _dashboardService = dashboardService;
     }

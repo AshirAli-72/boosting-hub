@@ -2,13 +2,13 @@ using BoostingHub.backend.Data;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace BoostingHub.frontend.Pages.Tasks;
+namespace BoostingHub.frontend.Pages.Users.Tasks;
 
-public class IndexModel : PageModel
+public class AvailableModel : PageModel
 {
     private readonly ApplicationDbContext _db;
 
-    public IndexModel(ApplicationDbContext db)
+    public AvailableModel(ApplicationDbContext db)
     {
         _db = db;
     }

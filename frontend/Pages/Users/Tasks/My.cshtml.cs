@@ -4,15 +4,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace BoostingHub.frontend.Pages.MyTasks;
+namespace BoostingHub.frontend.Pages.Users.Tasks;
 
 [IgnoreAntiforgeryToken]
-public class IndexModel : PageModel
+public class MyModel : PageModel
 {
     private readonly ApplicationDbContext _db;
     private readonly ITaskService _taskService;
 
-    public IndexModel(ApplicationDbContext db, ITaskService taskService)
+    public MyModel(ApplicationDbContext db, ITaskService taskService)
     {
         _db = db;
         _taskService = taskService;

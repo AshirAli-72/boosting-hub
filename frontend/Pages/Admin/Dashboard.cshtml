@@ -1,5 +1,5 @@
 @page "/admin-panel"
-@model BoostingHub.frontend.Pages.Admin.AdminPanelModel
+@model BoostingHub.frontend.Pages.Admin.DashboardModel
 @using System.Text.Json
 @{
     ViewData["Title"] = "Admin Panel";
@@ -14,11 +14,12 @@
         </div>
         <nav class="sidebar-nav">
             <a href="/admin-panel" class="sidebar-link active"><i class="bi bi-speedometer2"></i> Dashboard</a>
-            <a href="/admin/tasks?status=inprogress" class="sidebar-link"><i class="bi bi-hourglass-split"></i> In Progress</a>
-            <a href="/admin/tasks?status=completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
+            <a href="/admin/in-progress" class="sidebar-link"><i class="bi bi-hourglass-split"></i> In Progress</a>
+            <a href="/admin/completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
             <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
             <div class="sidebar-divider"></div>
-            <a href="/security" class="sidebar-link"><i class="bi bi-shield-lock"></i> Security</a>
+            <a href="/admin/roles" class="sidebar-link"><i class="bi bi-shield-lock"></i> Roles & Permissions</a>
+            <a href="/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
             <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </nav>
     </aside>

@@ -288,5 +288,43 @@ body.light-mode .sidebar-brand {
     .admin-sidebar .sidebar-link { justify-content: center; padding: 10px; }
     .admin-main  { margin-left: 64px; }
     .admin-content { padding: 20px 16px; }
-    .admin-header  { padding: 14px 18px; }
+}
+
+/* ── Custom Tabs for Settings ── */
+.custom-tabs {
+    border-bottom: 2px solid var(--border-subtle);
+    gap: 16px; margin-bottom: 24px;
+}
+.custom-tabs .nav-link {
+    background: transparent; color: var(--text-secondary);
+    border: none; border-bottom: 2px solid transparent;
+    font-weight: 600; padding: 12px 16px;
+    transition: all 0.3s ease; font-size: 0.95rem;
+    display: flex; align-items: center; gap: 8px;
+}
+.custom-tabs .nav-link:hover {
+    color: var(--primary);
+}
+.custom-tabs .nav-link.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    background: transparent;
+}
+.custom-tabs .nav-link i { font-size: 1.1rem; }
+
+/* Enhanced Glassmorphism & Hover Effects */
+.admin-card {
+    background: rgba(var(--bg-card-rgb), 0.7) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+body.light-mode .admin-card {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+.admin-card:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15) !important;
+}
+body.light-mode .admin-card:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08) !important;
 }

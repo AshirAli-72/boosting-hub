@@ -24,6 +24,7 @@ namespace BoostingHub.backend.Data.Migrations
                     status = table.Column<int>(type: "int", nullable: false),
                     email_verified_at = table.Column<DateTime>(type: "datetime2", nullable: true),
                     remember_token = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    email_change_token = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>

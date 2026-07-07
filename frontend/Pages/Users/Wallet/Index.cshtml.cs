@@ -1,7 +1,7 @@
 using BoostingHub.backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace BoostingHub.frontend.Pages.Wallet;
+namespace BoostingHub.frontend.Pages.Users.Wallet;
 
 public class IndexModel : PageModel
 {

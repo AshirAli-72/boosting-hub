@@ -12,6 +12,8 @@ public interface IAuthenticationService
     Task<Result> ForgotPasswordAsync(ForgotPasswordDto dto, CancellationToken ct = default);
     Task<Result> ResetPasswordAsync(ResetPasswordDto dto, CancellationToken ct = default);
     Task<Result> ChangePasswordAsync(int userId, ChangePasswordDto dto, CancellationToken ct = default);
-    Task<Result> VerifyEmailAsync(VerifyEmailDto dto, CancellationToken ct = default);
+    Task<Result<AuthResponseDto>> VerifyEmailAsync(VerifyEmailDto dto, CancellationToken ct = default);
     Task<Result<UserDto>> GetCurrentUserAsync(int userId, CancellationToken ct = default);
+    Task<Result> UpdateProfileAsync(int userId, UpdateProfileDto dto, HttpContext httpContext, CancellationToken ct = default);
+    Task<Result> VerifyEmailChangeAsync(string email, string token, CancellationToken ct = default);
 }

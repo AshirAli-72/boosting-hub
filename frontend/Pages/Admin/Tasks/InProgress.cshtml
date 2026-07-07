@@ -1,7 +1,7 @@
-@page "/admin/tasks"
-@model BoostingHub.frontend.Pages.Admin.TasksModel
+@page "/admin/in-progress"
+@model BoostingHub.frontend.Pages.Admin.Tasks.InProgressModel
 @{
-    ViewData["Title"] = "Admin Tasks";
+    ViewData["Title"] = "In Progress Tasks";
     ViewData["BodyClass"] = "admin-page";
 }
 
@@ -13,17 +13,18 @@
         </div>
         <nav class="sidebar-nav">
             <a href="/admin-panel" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
-            <a href="/admin/tasks?status=inprogress" class="sidebar-link @(Model.CurrentStatus == "inprogress" ? "active" : "")"><i class="bi bi-hourglass-split"></i> In Progress</a>
-            <a href="/admin/tasks?status=completed" class="sidebar-link @(Model.CurrentStatus == "completed" ? "active" : "")"><i class="bi bi-check2-all"></i> Completed</a>
+            <a href="/admin/in-progress" class="sidebar-link active"><i class="bi bi-hourglass-split"></i> In Progress</a>
+            <a href="/admin/completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
             <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
             <div class="sidebar-divider"></div>
-            <a href="/security" class="sidebar-link"><i class="bi bi-shield-lock"></i> Security</a>
-            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logouts</a>
+            <a href="/admin/roles" class="sidebar-link"><i class="bi bi-shield-lock"></i> Roles & Permissions</a>
+            <a href="/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
+            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </nav>
     </aside>
     <main class="admin-main">
         <div class="admin-header">
-            <h3><i class="bi bi-list-task text-primary"></i> Tasks</h3>
+            <h3><i class="bi bi-hourglass-split text-primary"></i> In Progress Tasks</h3>
             <div class="admin-header-right">
                 <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
                     <i class="bi bi-moon-stars fs-5"></i>
@@ -42,14 +43,12 @@
         <div class="admin-content">
             <div class="card shadow-sm border-0">
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-semibold mb-4">
-                        @(Model.CurrentStatus == "completed" ? "Completed Tasks" : Model.CurrentStatus == "inprogress" ? "In Progress Tasks" : "All Tasks")
-                    </h5>
-                    @if (Model.TaskList.Count == 0)
+                    <h5 class="card-title fw-semibold mb-4">Tasks Still In Progress</h5>
+                    @if (Model.Tasks.Count == 0)
                     {
                         <div class="text-center py-5 text-muted">
-                            <i class="bi bi-inbox fs-1"></i>
-                            <p class="mt-2">No @(string.IsNullOrEmpty(Model.CurrentStatus) ? "" : Model.CurrentStatus + " ")tasks found.</p>
+                            <i class="bi bi-check2-all fs-1"></i>
+                            <p class="mt-2">All tasks are completed!</p>
                         </div>
                     }
                     else
@@ -65,11 +64,10 @@
                                         <th>Completed</th>
                                         <th>Reward</th>
                                         <th>Created</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var task in Model.TaskList)
+                                    @foreach (var task in Model.Tasks)
                                     {
                                         <tr>
                                             <td>#@task.Id</td>
@@ -79,16 +77,6 @@
                                             <td>@task.CompletedCount</td>
                                             <td>$@task.Reward.ToString("N2")</td>
                                             <td>@task.CreatedAt.ToString("yyyy-MM-dd")</td>
-                                            <td>
-                                                @if (task.Status == "Completed")
-                                                {
-                                                    <span class="badge bg-success">Completed</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-warning text-dark">In Progress</span>
-                                                }
-                                            </td>
                                         </tr>
                                     }
                                 </tbody>

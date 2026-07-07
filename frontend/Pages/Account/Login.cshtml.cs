@@ -17,8 +17,12 @@ public class LoginModel : PageModel
 
     [BindProperty] public LoginDto Input { get; set; } = new();
     public string? ErrorMessage { get; set; }
+    public string? SuccessMessage { get; set; }
 
-    public void OnGet() { }
+    public void OnGet()
+    {
+        SuccessMessage = TempData["SuccessMessage"] as string;
+    }
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -35,11 +39,11 @@ public class LoginModel : PageModel
             if (roles.Any(r => r.Contains("Admin")))
             {
                 HttpContext.Session.SetString("UserRole", "Admin");
-                return RedirectToPage("/Admin/AdminPanel");
+                return RedirectToPage("/Admin/Dashboard");
             }
 
             HttpContext.Session.SetString("UserRole", "User");
-            return RedirectToPage("/User/UsersDashboard");
+            return RedirectToPage("/Users/Dashboard");
         }
 
         ErrorMessage = result.Message;

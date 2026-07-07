@@ -14,29 +14,29 @@ public class VerifyEmailModel : PageModel
         _authService = authService;
     }
 
-    public bool Verified { get; set; }
+    public bool Success { get; set; }
     public bool Error { get; set; }
     public string? ErrorMessage { get; set; }
 
-    public async Task<IActionResult> OnGetAsync(string? email, string? token)
+    public async Task<IActionResult> OnGetAsync(string? token)
     {
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+        if (string.IsNullOrEmpty(token))
         {
             Error = true;
             ErrorMessage = "Invalid verification link";
             return Page();
         }
 
-        var result = await _authService.VerifyEmailAsync(new VerifyEmailDto { Email = email, Token = token });
+        var result = await _authService.VerifyEmailAsync(new VerifyEmailDto { Token = token });
 
         if (result.IsSuccess)
-            Verified = true;
-        else
         {
-            Error = true;
-            ErrorMessage = result.Message;
+            TempData["SuccessMessage"] = "Your email has been verified successfully. You can now log in.";
+            return RedirectToPage("/Account/Login");
         }
 
+        Error = true;
+        ErrorMessage = result.Message;
         return Page();
     }
 }

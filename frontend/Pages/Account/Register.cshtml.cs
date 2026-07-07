@@ -15,8 +15,10 @@ public class RegisterModel : PageModel
     }
 
     [BindProperty] public RegisterDto Input { get; set; } = new();
+    public string? Message { get; set; }
     public string? ErrorMessage { get; set; }
     public string[]? Errors { get; set; }
+    public bool IsSuccess { get; set; }
 
     public void OnGet() { }
 
@@ -28,12 +30,9 @@ public class RegisterModel : PageModel
 
         if (result.IsSuccess)
         {
-            if (result.Data == null || result.Data.User == null)
-                return RedirectToPage("/Account/Login");
-
-            HttpContext.Session.SetString("AccessToken", result.Data.AccessToken ?? "");
-            HttpContext.Session.SetString("UserId", result.Data.User.Id.ToString());
-            return RedirectToPage("/User/UsersDashboard");
+            IsSuccess = true;
+            Message = result.Message;
+            return Page();
         }
 
         ErrorMessage = result.Message;

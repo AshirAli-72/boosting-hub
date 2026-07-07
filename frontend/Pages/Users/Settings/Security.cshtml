@@ -1,0 +1,187 @@
+@page "/settings"
+@model BoostingHub.frontend.Pages.Users.Settings.SecurityModel
+@{
+    ViewData["Title"] = "Settings";
+    ViewData["BodyClass"] = "user-dashboard-page";
+    var isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
+}
+
+<div class="admin-layout">
+    <aside class="admin-sidebar @(!isAdmin ? "user-sidebar" : "")">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+            <span>Boosting Hub</span>
+        </div>
+        <nav class="sidebar-nav">
+            @if (isAdmin)
+            {
+                <a href="/admin-panel" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="/admin/in-progress" class="sidebar-link"><i class="bi bi-hourglass-split"></i> In Progress</a>
+                <a href="/admin/completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
+                <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
+                <div class="sidebar-divider"></div>
+                <a href="/settings" class="sidebar-link active"><i class="bi bi-gear"></i> Settings</a>
+            }
+            else
+            {
+                <a href="/dashboard" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                <a href="/tasks" class="sidebar-link"><i class="bi bi-list-task"></i> Available Tasks</a>
+                <a href="/my-tasks" class="sidebar-link"><i class="bi bi-check2-square"></i> My Tasks</a>
+                <a href="/wallet" class="sidebar-link"><i class="bi bi-wallet2"></i> Wallet</a>
+                <a href="/settings" class="sidebar-link active"><i class="bi bi-gear"></i> Settings</a>
+            }
+            <div class="sidebar-divider"></div>
+            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="admin-main">
+        <div class="admin-header">
+            <h3><i class="bi bi-gear text-primary"></i> Settings</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> @(isAdmin ? "Admin" : Model.CurrentUserName)
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="auth-alert auth-alert-success mb-4">@Model.SuccessMessage</div>
+            }
+            
+            <ul class="nav nav-tabs custom-tabs mb-4" id="settingsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(Model.ActiveTab == "configuration" ? "active" : "")" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-tab-pane" type="button" role="tab" aria-controls="config-tab-pane" aria-selected="@(Model.ActiveTab == "configuration" ? "true" : "false")">
+                        <i class="bi bi-person-lines-fill"></i> Configuration
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(Model.ActiveTab == "security" ? "active" : "")" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-tab-pane" type="button" role="tab" aria-controls="security-tab-pane" aria-selected="@(Model.ActiveTab == "security" ? "true" : "false")">
+                        <i class="bi bi-shield-lock"></i> Security
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="settingsTabContent">
+                <div class="tab-pane fade @(Model.ActiveTab == "configuration" ? "show active" : "")" id="config-tab-pane" role="tabpanel" aria-labelledby="config-tab" tabindex="0">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="admin-card">
+                                <div class="admin-card-header">
+                                    <h5><i class="bi bi-person text-primary"></i> Personal Details</h5>
+                                </div>
+                                <div class="admin-card-body">
+                                    <form method="post" asp-page-handler="UpdateProfile">
+                                        <div class="input-group-custom mb-3">
+                                            <label asp-for="UpdateProfile.Email" class="form-label">Email Address</label>
+                                            <div class="input-icon-wrapper">
+                                                <input asp-for="UpdateProfile.Email" class="form-control" type="email" placeholder="Enter your email" />
+                                                <i class="input-icon bi bi-envelope"></i>
+                                            </div>
+                                            <span asp-validation-for="UpdateProfile.Email" class="text-danger small"></span>
+                                        </div>
+                                        <div class="input-group-custom mb-3">
+                                            <label asp-for="UpdateProfile.Name" class="form-label">Full Name</label>
+                                            <div class="input-icon-wrapper">
+                                                <input asp-for="UpdateProfile.Name" class="form-control" type="text" placeholder="Enter your name" />
+                                                <i class="input-icon bi bi-person"></i>
+                                            </div>
+                                            <span asp-validation-for="UpdateProfile.Name" class="text-danger small"></span>
+                                        </div>
+                                        <div class="input-group-custom mb-3">
+                                            <label asp-for="UpdateProfile.Phone" class="form-label">Phone Number</label>
+                                            <div class="input-icon-wrapper">
+                                                <input asp-for="UpdateProfile.Phone" class="form-control" type="tel" placeholder="Enter phone number" />
+                                                <i class="input-icon bi bi-telephone"></i>
+                                            </div>
+                                            <span asp-validation-for="UpdateProfile.Phone" class="text-danger small"></span>
+                                        </div>
+                                        <button type="submit" class="btn btn-auth w-100"><i class="bi bi-save"></i> Save Changes</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade @(Model.ActiveTab == "security" ? "show active" : "")" id="security-tab-pane" role="tabpanel" aria-labelledby="security-tab" tabindex="0">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="admin-card">
+                                <div class="admin-card-header">
+                                    <h5><i class="bi bi-key text-primary"></i> Change Password</h5>
+                                </div>
+                                <div class="admin-card-body">
+                                    <form method="post" asp-page-handler="ChangePassword">
+                                        <div asp-validation-summary="ModelOnly" class="auth-alert auth-alert-danger" style="display:none;"></div>
+                                        <div class="input-group-custom mb-3">
+                                            <label asp-for="ChangePassword.CurrentPassword" class="form-label">Current Password</label>
+                                            <div class="input-icon-wrapper">
+                                                <input asp-for="ChangePassword.CurrentPassword" class="form-control" type="password" placeholder="Enter current password" />
+                                                <i class="input-icon bi bi-lock"></i>
+                                            </div>
+                                            <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger small"></span>
+                                        </div>
+                                        <div class="input-group-custom mb-3">
+                                            <label asp-for="ChangePassword.NewPassword" class="form-label">New Password</label>
+                                            <div class="input-icon-wrapper">
+                                                <input asp-for="ChangePassword.NewPassword" class="form-control" type="password" placeholder="Enter new password" />
+                                                <i class="input-icon bi bi-lock-fill"></i>
+                                            </div>
+                                            <span asp-validation-for="ChangePassword.NewPassword" class="text-danger small"></span>
+                                        </div>
+                                        <div class="input-group-custom mb-3">
+                                            <label asp-for="ChangePassword.ConfirmNewPassword" class="form-label">Confirm New Password</label>
+                                            <div class="input-icon-wrapper">
+                                                <input asp-for="ChangePassword.ConfirmNewPassword" class="form-control" type="password" placeholder="Repeat new password" />
+                                                <i class="input-icon bi bi-lock-fill"></i>
+                                            </div>
+                                            <span asp-validation-for="ChangePassword.ConfirmNewPassword" class="text-danger small"></span>
+                                        </div>
+                                        <button type="submit" class="btn btn-auth w-100"><i class="bi bi-arrow-repeat"></i> Change Password</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+
+        // Initialize tabs correctly if they have issues with bootstrap
+        var triggerTabList = [].slice.call(document.querySelectorAll('#settingsTab button'))
+        triggerTabList.forEach(function (triggerEl) {
+            var tabTrigger = new bootstrap.Tab(triggerEl)
+            triggerEl.addEventListener('click', function (event) {
+                event.preventDefault()
+                tabTrigger.show()
+            })
+        })
+    </script>
+}

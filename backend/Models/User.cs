@@ -14,6 +14,7 @@ public class User
     [Column("status")] public int Status { get; set; } = 1;
     [Column("email_verified_at")] public DateTime? EmailVerifiedAt { get; set; }
     [Column("remember_token")] public string? RememberToken { get; set; }
+    [Column("email_change_token")] public string? EmailChangeToken { get; set; }
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<UserHasRole> UserHasRoles { get; set; } = new List<UserHasRole>();

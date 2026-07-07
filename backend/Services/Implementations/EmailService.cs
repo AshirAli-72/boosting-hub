@@ -26,21 +26,28 @@ public class EmailService : IEmailService
 
         if (!string.IsNullOrEmpty(smtpHost))
         {
-            using var client = new SmtpClient(smtpHost, int.Parse(smtpPortStr))
+            try
             {
-                Credentials = new NetworkCredential(smtpUser, smtpPass),
-                EnableSsl = true
-            };
-            var mailMsg = new MailMessage
+                using var client = new SmtpClient(smtpHost, int.Parse(smtpPortStr))
+                {
+                    Credentials = new NetworkCredential(smtpUser, smtpPass),
+                    EnableSsl = true
+                };
+                var mailMsg = new MailMessage
+                {
+                    From = new MailAddress(fromEmail, fromName),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+                mailMsg.To.Add(to);
+                await client.SendMailAsync(mailMsg);
+                _logger.LogInformation("Email sent to {To}: {Subject}", to, subject);
+            }
+            catch (Exception ex)
             {
-                From = new MailAddress(fromEmail, fromName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
-            };
-            mailMsg.To.Add(to);
-            await client.SendMailAsync(mailMsg);
-            _logger.LogInformation("Email sent to {To}: {Subject}", to, subject);
+                _logger.LogWarning(ex, "Failed to send email to {To}: {Subject}. Body:\n{Body}", to, subject, body);
+            }
         }
         else
         {

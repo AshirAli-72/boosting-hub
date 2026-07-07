@@ -68,3 +68,10 @@ public class UserDto
     public string[] Roles { get; set; } = Array.Empty<string>();
     public DateTime? EmailVerifiedAt { get; set; }
 }
+
+public class UpdateProfileDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+}

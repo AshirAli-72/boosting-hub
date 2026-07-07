@@ -20,7 +20,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
-    public DbSet<PendingRegistration> PendingRegistrations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -38,6 +37,7 @@ public class ApplicationDbContext : DbContext
             e.Property(u => u.Password).HasMaxLength(500);
             e.Property(u => u.RememberToken).HasMaxLength(500);
             e.Property(u => u.Name).HasMaxLength(200);
+            e.Property(u => u.EmailChangeToken).HasMaxLength(500);
             e.HasOne(u => u.Wallet).WithOne(w => w.User).HasForeignKey<Wallet>(w => w.UserId);
         });
 
@@ -207,15 +207,6 @@ public class ApplicationDbContext : DbContext
             e.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
             e.HasIndex(t => t.WalletId);
             e.HasIndex(t => t.CreatedAt);
-        });
-
-        // ── PendingRegistration ────────────────────────────────────────────────
-        builder.Entity<PendingRegistration>(e =>
-        {
-            e.HasIndex(r => r.Email).IsUnique();
-            e.HasIndex(r => r.Token);
-            e.Property(r => r.CreatedAt).HasColumnType("datetime2");
-            e.Property(r => r.ExpiresAt).HasColumnType("datetime2");
         });
     }
 }
