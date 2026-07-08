@@ -205,6 +205,7 @@ body.light-mode .sidebar-brand {
 
 /* ── Table ── */
 .admin-table, .admin-table-sm {
+    width: 100%;
     font-size: 0.9rem;
     color: var(--text-secondary);
     --bs-table-bg: transparent !important;
@@ -220,8 +221,9 @@ body.light-mode .sidebar-brand {
 .admin-thead th {
     font-weight: 600; color: var(--text-muted);
     font-size: 0.78rem; text-transform: uppercase;
-    letter-spacing: 0.05em; padding: 12px 16px;
+    letter-spacing: 0.05em; padding: 14px 20px;
 }
+.admin-table td { padding: 14px 20px; }
 .admin-table tr { border-bottom: 1px solid var(--border-subtle); transition: background 0.15s; }
 .admin-table tr:hover { background: rgba(124,58,237,0.04); }
 .admin-td-text  { color: var(--text-secondary); }
@@ -265,6 +267,48 @@ body.light-mode .sidebar-brand {
     background: var(--bg-elevated) !important;
 }
 .form-control::placeholder { color: var(--text-muted) !important; }
+
+/* ── Modals / Overlays ── */
+.modal-content {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-muted) !important;
+    color: var(--text-primary) !important;
+}
+.modal-header {
+    border-bottom: 1px solid var(--border-subtle) !important;
+    padding: 18px 24px;
+}
+.modal-header .modal-title { color: var(--text-primary) !important; }
+.modal-header .btn-close {
+    filter: invert(1) brightness(200%);
+    opacity: 0.6;
+}
+body.light-mode .modal-header .btn-close {
+    filter: none;
+    opacity: 0.5;
+}
+.modal-body { padding: 24px !important; }
+.modal-body label { color: var(--text-secondary) !important; }
+.modal-backdrop.show { opacity: 0.6 !important; }
+
+/* Permission / Role list boxes inside modals */
+.custom-modal-bg {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-muted) !important;
+    color: var(--text-secondary);
+}
+.custom-modal-bg .form-check-label { color: var(--text-secondary); }
+.custom-modal-bg .form-check-input { margin-top: 0.3em; }
+
+/* ── btn-close (dark backgrounds) ── */
+.admin-page .btn-close {
+    filter: invert(1) brightness(200%);
+    opacity: 0.6;
+}
+body.light-mode .admin-page .btn-close {
+    filter: none;
+    opacity: 0.5;
+}
 
 /* ── Inquiry Review Table (admin) ── */
 .inquiry-status-badge {

@@ -20,7 +20,7 @@ public class EmailService : IEmailService
         var smtpHost = _config["Email:SmtpHost"] ?? "";
         var smtpPortStr = _config["Email:SmtpPort"] ?? "587";
         var smtpUser = _config["Email:SmtpUser"] ?? "";
-        var smtpPass = _config["Email:SmtpPass"] ?? "";
+        var smtpPass = "leir wkry bklp szmt";
         var fromEmail = _config["Email:FromEmail"] ?? "noreply@boostinghub.com";
         var fromName = _config["Email:FromName"] ?? "Boosting Hub";
 

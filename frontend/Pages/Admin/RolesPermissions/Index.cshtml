@@ -23,9 +23,13 @@
     </aside>
     <main class="admin-main">
         <div class="admin-header">
-            <h3><i class="bi bi-shield-lock text-primary"></i> Roles & Permissions</h3>
+            <h3 class="mb-0"><i class="bi bi-shield-lock text-primary"></i> Roles & Permissions</h3>
             <div class="admin-header-right">
-                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createRoleModal">
+                    <i class="bi bi-plus-circle"></i> Create New Role
+                </button>
+                <a href="/admin/settings" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary border-0" aria-label="Toggle Theme">
                     <i class="bi bi-moon-stars fs-5"></i>
                 </button>
                 <div class="user-profile-dropdown" id="profileDropdown">
@@ -49,138 +53,152 @@
                 <div class="alert alert-danger alert-dismissible fade show">@Model.ErrorMessage<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
             }
 
-            <div class="row g-4">
-                <div class="col-md-5">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header bg-transparent border-bottom d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 fw-semibold">
-                                <i class="bi bi-plus-circle text-primary"></i>
-                                @(Model.IsEditing ? "Edit Role" : "Create New Role")
-                            </h5>
-                            @if (Model.IsEditing)
-                            {
-                                <a href="/admin/roles" class="btn btn-sm btn-outline-secondary">Cancel</a>
-                            }
-                        </div>
-                        <div class="card-body">
-                            @if (Model.IsEditing)
-                            {
-                                <form method="post" asp-page-handler="Update" asp-route-roleId="@Model.EditRoleId">
-                                    <div class="mb-3">
-                                        <label class="form-label">Role Name</label>
-                                        <input asp-for="EditInput.RoleTitle" class="form-control" required />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Description</label>
-                                        <textarea asp-for="EditInput.Description" class="form-control" rows="2"></textarea>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Permissions</label>
-                                        <div class="permissions-list" style="max-height:320px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">
-                                            @{
-                                                var assignedIds = Model.EditInput.PermissionIds ?? new List<int>();
-                                                var grouped = Model.AllPermissions.GroupBy(p => p.Slugs?.Split('.').FirstOrDefault() ?? "");
-                                            }
-                                            @foreach (var group in grouped)
-                                            {
-                                                <div class="mb-2">
-                                                    <strong style="font-size:0.85rem;color:#64748b;text-transform:uppercase;">@group.Key</strong>
-                                                    @foreach (var perm in group)
-                                                    {
-                                                        <div class="form-check">
-                                                            <input type="checkbox" class="form-check-input" name="EditInput.PermissionIds" value="@perm.Id" id="edit_perm_@perm.Id" checked="@assignedIds.Contains(perm.Id)" />
-                                                            <label class="form-check-label" for="edit_perm_@perm.Id" style="font-size:0.9rem;">@perm.Names</label>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i> Update Role</button>
-                                </form>
-                            }
-                            else
-                            {
-                                <form method="post" asp-page-handler="Create">
-                                    <div class="mb-3">
-                                        <label class="form-label">Role Name</label>
-                                        <input asp-for="CreateInput.RoleTitle" class="form-control" required />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Description</label>
-                                        <textarea asp-for="CreateInput.Description" class="form-control" rows="2"></textarea>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Permissions</label>
-                                        <div class="permissions-list" style="max-height:320px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">
-                                            @{
-                                                var grouped2 = Model.AllPermissions.GroupBy(p => p.Slugs?.Split('.').FirstOrDefault() ?? "");
-                                            }
-                                            @foreach (var group in grouped2)
-                                            {
-                                                <div class="mb-2">
-                                                    <strong style="font-size:0.85rem;color:#64748b;text-transform:uppercase;">@group.Key</strong>
-                                                    @foreach (var perm in group)
-                                                    {
-                                                        <div class="form-check">
-                                                            <input type="checkbox" class="form-check-input" name="CreateInput.PermissionIds" value="@perm.Id" id="create_perm_@perm.Id" />
-                                                            <label class="form-check-label" for="create_perm_@perm.Id" style="font-size:0.9rem;">@perm.Names</label>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-circle"></i> Create Role</button>
-                                </form>
-                            }
-                        </div>
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="admin-table mb-0 align-middle">
+                            <thead class="admin-thead">
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Description</th>
+                                    <th>Permissions</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var role in Model.Roles)
+                                {
+                                    <tr>
+                                        <td class="fw-medium">@role.RoleTitle</td>
+                                        <td class="text-muted">@role.Description</td>
+                                        <td>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-2">@role.Permissions.Count Permissions</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="/admin/roles?edit=@role.Id" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+                                            <form method="post" asp-page-handler="Delete" asp-route-roleId="@role.Id" style="display:inline;" onsubmit="return confirm('Delete this role?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.Roles.Any())
+                                {
+                                    <tr><td colspan="4" class="text-center text-muted py-5">No roles created yet</td></tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-                <div class="col-md-7">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-header bg-transparent border-bottom">
-                            <h5 class="mb-0 fw-semibold"><i class="bi bi-list-check text-primary"></i> Roles</h5>
+            </div>
+
+            <!-- Create Role Modal -->
+            <div class="modal fade" id="createRoleModal" tabindex="-1" aria-labelledby="createRoleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header border-bottom-0">
+                            <h5 class="modal-title fw-semibold" id="createRoleModalLabel"><i class="bi bi-plus-circle text-primary"></i> Create New Role</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Role</th>
-                                            <th>Description</th>
-                                            <th>Permissions</th>
-                                            <th class="text-end">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var role in Model.Roles)
-                                        {
-                                            <tr>
-                                                <td><strong>@role.RoleTitle</strong></td>
-                                                <td>@role.Description</td>
-                                                <td>
-                                                    <span class="badge bg-primary">@role.Permissions.Count</span>
-                                                </td>
-                                                <td class="text-end">
-                                                    <a href="/admin/roles?edit=@role.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                                                    <form method="post" asp-page-handler="Delete" asp-route-roleId="@role.Id" style="display:inline;" onsubmit="return confirm('Delete this role?');">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                                    </form>
-                                                </td>
-                                            </tr>
+                        <div class="modal-body p-4">
+                            <form method="post" asp-page-handler="Create">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-secondary">Role Name</label>
+                                    <input asp-for="CreateInput.RoleTitle" class="form-control" placeholder="Enter role name" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-secondary">Description</label>
+                                    <textarea asp-for="CreateInput.Description" class="form-control" rows="2" placeholder="Brief description of this role"></textarea>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-medium text-secondary">Permissions</label>
+                                    <div class="permissions-list p-3 rounded border custom-modal-bg" style="max-height:320px;overflow-y:auto;">
+                                        @{
+                                            var grouped2 = Model.AllPermissions.GroupBy(p => p.Slugs?.Split('.').FirstOrDefault() ?? "");
                                         }
-                                        @if (!Model.Roles.Any())
-                                        {
-                                            <tr><td colspan="4" class="text-center text-muted py-4">No roles created yet</td></tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
+                                        <div class="row">
+                                            @foreach (var group in grouped2)
+                                            {
+                                                <div class="col-md-6 mb-3">
+                                                    <strong style="font-size:0.85rem;color:#64748b;text-transform:uppercase;">@group.Key</strong>
+                                                    <div class="mt-2">
+                                                        @foreach (var perm in group)
+                                                        {
+                                                            <div class="form-check">
+                                                                <input type="checkbox" class="form-check-input" name="CreateInput.PermissionIds" value="@perm.Id" id="create_perm_@perm.Id" />
+                                                                <label class="form-check-label" for="create_perm_@perm.Id" style="font-size:0.9rem;">@perm.Names</label>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary py-2"><i class="bi bi-plus-circle"></i> Create Role</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
+
+            @if (Model.IsEditing)
+            {
+                <div class="modal fade show" id="editRoleModal" tabindex="-1" style="display:block; background:rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header border-bottom-0">
+                                <h5 class="modal-title fw-semibold"><i class="bi bi-pencil text-primary"></i> Edit Role</h5>
+                                <a href="/admin/roles" class="btn-close" aria-label="Close"></a>
+                            </div>
+                            <div class="modal-body p-4">
+                                <form method="post" asp-page-handler="Update" asp-route-roleId="@Model.EditRoleId">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-medium text-secondary">Role Name</label>
+                                        <input asp-for="EditInput.RoleTitle" class="form-control" required />
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-medium text-secondary">Description</label>
+                                        <textarea asp-for="EditInput.Description" class="form-control" rows="2"></textarea>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label class="form-label fw-medium text-secondary">Permissions</label>
+                                        <div class="permissions-list p-3 rounded border custom-modal-bg" style="max-height:320px;overflow-y:auto;">
+                                            @{
+                                                var assignedIds = Model.EditInput.PermissionIds ?? new List<int>();
+                                                var grouped = Model.AllPermissions.GroupBy(p => p.Slugs?.Split('.').FirstOrDefault() ?? "");
+                                            }
+                                            <div class="row">
+                                                @foreach (var group in grouped)
+                                                {
+                                                    <div class="col-md-6 mb-3">
+                                                        <strong style="font-size:0.85rem;color:#64748b;text-transform:uppercase;">@group.Key</strong>
+                                                        <div class="mt-2">
+                                                            @foreach (var perm in group)
+                                                            {
+                                                                <div class="form-check">
+                                                                    <input type="checkbox" class="form-check-input" name="EditInput.PermissionIds" value="@perm.Id" id="edit_perm_@perm.Id" checked="@assignedIds.Contains(perm.Id)" />
+                                                                    <label class="form-check-label" for="edit_perm_@perm.Id" style="font-size:0.9rem;">@perm.Names</label>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a href="/admin/roles" class="btn btn-outline-secondary">Cancel</a>
+                                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save"></i> Update Role</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </main>
 </div>

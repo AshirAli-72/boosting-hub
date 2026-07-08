@@ -47,7 +47,7 @@ public class AuthenticationService : IAuthenticationService
         var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
         var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
 
-        var verificationLink = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/verify-email?token={Uri.EscapeDataString(token)}";
+        var verificationLink = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/register?token={Uri.EscapeDataString(token)}";
         await _emailService.SendEmailVerificationAsync(dto.Email, verificationLink, dto.Name);
 
         return Result.Success<AuthResponseDto>(new AuthResponseDto(), "Please check your email to verify your account");
