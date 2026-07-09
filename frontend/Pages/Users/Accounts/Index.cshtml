@@ -1,0 +1,168 @@
+@page "/user/accounts"
+@model BoostingHub.frontend.Pages.Users.Accounts.IndexModel
+@{
+    ViewData["Title"] = "My Accounts";
+    ViewData["BodyClass"] = "user-dashboard-page";
+}
+
+<div class="admin-layout">
+    <aside class="admin-sidebar user-sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+            <span>Boosting Hub</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="/tasks" class="sidebar-link"><i class="bi bi-list-task"></i> Available Tasks</a>
+            <a href="/my-tasks" class="sidebar-link"><i class="bi bi-check2-square"></i> My Tasks</a>
+            <a href="/wallet" class="sidebar-link"><i class="bi bi-wallet2"></i> Wallet</a>
+            <a href="/user/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
+            <div class="sidebar-divider"></div>
+            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="admin-main">
+        <div class="admin-header">
+            <h3><i class="bi bi-credit-card text-primary"></i> My Accounts</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> User
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert alert-success alert-dismissible fade show">@Model.SuccessMessage<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+            @if (TempData["Error"] is string errMsg && !string.IsNullOrEmpty(errMsg))
+            {
+                <div class="alert alert-danger alert-dismissible fade show">@errMsg<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-credit-card text-primary me-2"></i> Payment Accounts</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAccountModal">
+                            <i class="bi bi-plus-circle"></i> Add Account
+                        </button>
+                        <a href="/user/settings" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="admin-table mb-0 align-middle">
+                            <thead class="admin-thead">
+                                <tr>
+                                    <th>Account Title</th>
+                                    <th>Mobile Number</th>
+                                    <th>CNIC</th>
+                                    <th>Default</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var acc in Model.Accounts)
+                                {
+                                    <tr>
+                                        <td class="fw-medium">@acc.AccountTitle</td>
+                                        <td>@acc.MobileNumber</td>
+                                        <td>@acc.Cnic</td>
+                                        <td>
+                                            @if (acc.IsDefault)
+                                            {
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2">Yes</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-2">No</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2">@acc.Status</span>
+                                        </td>
+                                        <td class="text-muted">@acc.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                        <td class="text-end">
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@acc.Id" style="display:inline;" onsubmit="return confirm('Delete this account?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.Accounts.Any())
+                                {
+                                    <tr><td colspan="7" class="text-center text-muted py-5">No accounts found. <a href="#" data-bs-toggle="modal" data-bs-target="#createAccountModal">Add one now</a>.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Account Modal -->
+            <div class="modal fade" id="createAccountModal" tabindex="-1" aria-labelledby="createAccountModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header border-bottom-0">
+                            <h5 class="modal-title fw-semibold" id="createAccountModalLabel"><i class="bi bi-credit-card text-primary"></i> Add EasyPaisa Account</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <form method="post" asp-page-handler="Create">
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-secondary">Account Title</label>
+                                    <input asp-for="Input.AccountTitle" class="form-control" readonly />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-secondary">Mobile Number</label>
+                                    <input asp-for="Input.MobileNumber" class="form-control" type="tel" placeholder="03XX-XXXXXXX" required />
+                                    <span asp-validation-for="Input.MobileNumber" class="text-danger small"></span>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-secondary">CNIC</label>
+                                    <input asp-for="Input.Cnic" class="form-control" placeholder="XXXXX-XXXXXXX-X" required />
+                                    <span asp-validation-for="Input.Cnic" class="text-danger small"></span>
+                                </div>
+                                <div class="mb-4 form-check">
+                                    <input asp-for="Input.IsDefault" class="form-check-input" />
+                                    <label class="form-check-label" asp-for="Input.IsDefault">Set as default account</label>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary py-2"><i class="bi bi-save"></i> Save Account</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+    </script>
+}

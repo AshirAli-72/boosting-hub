@@ -16,7 +16,7 @@
             <a href="/tasks" class="sidebar-link"><i class="bi bi-list-task"></i> Available Tasks</a>
             <a href="/my-tasks" class="sidebar-link"><i class="bi bi-check2-square"></i> My Tasks</a>
             <a href="/wallet" class="sidebar-link active"><i class="bi bi-wallet2"></i> Wallet</a>
-            <a href="/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
+            <a href="/user/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
             <div class="sidebar-divider"></div>
             <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </nav>
@@ -47,9 +47,18 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             }
+            @if (TempData["Error"] is string errMsg && !string.IsNullOrEmpty(errMsg))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> @errMsg
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
             <div class="card shadow-sm border-0">
+                <div class="card-header">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-wallet2 text-primary me-2"></i> Wallet Overview</h5>
+                </div>
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-semibold mb-4"><i class="bi bi-wallet2 text-primary"></i> Wallet Overview</h5>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle admin-table">
                                 <thead class="admin-thead">
@@ -79,7 +88,7 @@
                                         }
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-warning" disabled title="Withdrawals are not available yet">
+                                        <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#withdrawModal">
                                             <i class="bi bi-box-arrow-up"></i> Withdraw
                                         </button>
                                     </td>
@@ -93,7 +102,58 @@
     </main>
 </div>
 
+<!-- Withdraw Modal -->
+<div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-semibold" id="withdrawModalLabel"><i class="bi bi-box-arrow-up text-warning"></i> Withdraw Funds</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                @if (Model.WalletData.TotalBalance <= 0)
+                {
+                    <div class="alert alert-warning mb-4 py-2 small"><i class="bi bi-exclamation-triangle"></i> Your balance is $0.00. Withdrawal is not possible.</div>
+                }
+                <form method="post" asp-page-handler="Withdraw">
+                    <div class="mb-4">
+                        <label class="form-label fw-medium text-secondary">Withdrawal Method</label>
+                        <div class="p-3 rounded border bg-light">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-credit-card fs-4 text-primary me-3"></i>
+                                <div>
+                                    <strong>EasyPaisa</strong>
+                                    @if (Model.DefaultAccount != null)
+                                    {
+                                        <div class="text-muted small">@Model.DefaultAccount.AccountTitle - @Model.DefaultAccount.MobileNumber</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-danger small">No account found. <a href="/user/accounts">Add one</a>.</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="WithdrawAmount" class="form-label fw-medium text-secondary">Amount ($)</label>
+                        <input asp-for="WithdrawAmount" class="form-control" type="number" step="0.01" min="0.01" placeholder="Enter amount" />
+                        <span asp-validation-for="WithdrawAmount" class="text-danger small"></span>
+                        <div class="text-muted small mt-1">Available balance: $@Model.WalletData.TotalBalance.ToString("N2")</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning py-2" @(Model.DefaultAccount == null ? "disabled" : "")>
+                            <i class="bi bi-send"></i> Submit Withdraw
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');

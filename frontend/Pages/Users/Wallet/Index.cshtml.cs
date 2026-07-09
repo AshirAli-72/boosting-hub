@@ -1,4 +1,6 @@
+using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BoostingHub.frontend.Pages.Users.Wallet;
@@ -6,14 +8,17 @@ namespace BoostingHub.frontend.Pages.Users.Wallet;
 public class IndexModel : PageModel
 {
     private readonly IWalletService _walletService;
+    private readonly IAccountService _accountService;
 
-    public IndexModel(IWalletService walletService)
+    public IndexModel(IWalletService walletService, IAccountService accountService)
     {
         _walletService = walletService;
+        _accountService = accountService;
     }
 
     public int UserId { get; set; }
     public WalletDto WalletData { get; set; } = new();
+    public AccountDto? DefaultAccount { get; set; }
 
     public class WalletDto
     {
@@ -24,7 +29,9 @@ public class IndexModel : PageModel
         public string Status { get; set; } = "Active";
     }
 
-    public async Task OnGetAsync()
+    [BindProperty] public decimal WithdrawAmount { get; set; }
+
+    public async Task<IActionResult> OnGetAsync()
     {
         var userIdStr = HttpContext.Session.GetString("UserId");
         UserId = int.TryParse(userIdStr, out var id) ? id : 0;
@@ -40,6 +47,49 @@ public class IndexModel : PageModel
                 WalletData.CreatedAt = wallet.CreatedAt;
                 WalletData.Status = wallet.Status;
             }
+
+            var accountsResult = await _accountService.GetAccountsByUserIdAsync(UserId);
+            if (accountsResult.IsSuccess && accountsResult.Data != null)
+                DefaultAccount = accountsResult.Data.FirstOrDefault(a => a.IsDefault && a.Status == "Active")
+                    ?? accountsResult.Data.FirstOrDefault(a => a.Status == "Active");
         }
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostWithdrawAsync()
+    {
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+            return RedirectToPage("/Account/Login");
+
+        if (WithdrawAmount <= 0)
+        {
+            TempData["Error"] = "Invalid withdrawal amount";
+            return RedirectToPage();
+        }
+
+        var wallet = await _walletService.GetWalletByUserIdAsync(userId);
+        if (wallet == null || wallet.TotalBalance < WithdrawAmount)
+        {
+            TempData["Error"] = "Insufficient balance";
+            return RedirectToPage();
+        }
+
+        var accountsResult = await _accountService.GetAccountsByUserIdAsync(userId);
+        var defaultAccount = accountsResult.IsSuccess && accountsResult.Data != null
+            ? accountsResult.Data.FirstOrDefault(a => a.IsDefault && a.Status == "Active")
+                ?? accountsResult.Data.FirstOrDefault(a => a.Status == "Active")
+            : null;
+
+        if (defaultAccount == null)
+        {
+            TempData["Error"] = "No active account found. Please add an account first.";
+            return RedirectToPage();
+        }
+
+        await _walletService.WithdrawAsync(userId, WithdrawAmount);
+        TempData["Success"] = $"Withdrawal of ${WithdrawAmount:N2} requested to {defaultAccount.AccountTitle} ({defaultAccount.MobileNumber})";
+
+        return RedirectToPage();
     }
 }

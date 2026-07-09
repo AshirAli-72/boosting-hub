@@ -237,15 +237,15 @@ public class AuthenticationService : IAuthenticationService
         _db.Users.Add(user);
         await _db.SaveChangesAsync(ct);
 
-        var guestRole = await _db.Roles.FirstOrDefaultAsync(r => r.RoleTitle == "Guest", ct);
-        if (guestRole == null)
+        var userRole = await _db.Roles.FirstOrDefaultAsync(r => r.RoleTitle == "User", ct);
+        if (userRole == null)
         {
-            guestRole = new Role { RoleTitle = "Guest", Description = "Guest role", CreatedAt = DateTime.UtcNow };
-            _db.Roles.Add(guestRole);
+            userRole = new Role { RoleTitle = "User", Description = "Default user role", CreatedAt = DateTime.UtcNow };
+            _db.Roles.Add(userRole);
             await _db.SaveChangesAsync(ct);
         }
 
-        _db.UserHasRoles.Add(new UserHasRole { UserId = user.Id, RoleId = guestRole.Id });
+        _db.UserHasRoles.Add(new UserHasRole { UserId = user.Id, RoleId = userRole.Id });
 
         _db.Wallets.Add(new Wallet
         {
@@ -268,7 +268,7 @@ public class AuthenticationService : IAuthenticationService
             Phone = user.Phone,
             Status = "Active",
             EmailVerifiedAt = user.EmailVerifiedAt,
-            Roles = new[] { "Guest" }
+            Roles = new[] { "User" }
         };
 
         return Result.Success(authResponse, "Email verified successfully");

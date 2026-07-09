@@ -41,8 +41,10 @@
         </div>
         <div class="admin-content">
             <div class="card shadow-sm border-0">
+                <div class="card-header">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-hourglass-split text-primary me-2"></i>Tasks Still In Progress</h5>
+                </div>
                 <div class="card-body p-4">
-                    <h5 class="card-title fw-semibold mb-4">Tasks Still In Progress</h5>
                     @if (Model.Tasks.Count == 0)
                     {
                         <div class="text-center py-5 text-muted">

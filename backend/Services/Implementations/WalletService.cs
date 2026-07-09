@@ -71,4 +71,14 @@ public class WalletService : IWalletService
 
         await _db.SaveChangesAsync();
     }
+
+    public async Task WithdrawAsync(int userId, decimal amount)
+    {
+        var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+        if (wallet == null) return;
+
+        wallet.TotalBalance -= amount;
+        wallet.Withdrawn += amount;
+        await _db.SaveChangesAsync();
+    }
 }

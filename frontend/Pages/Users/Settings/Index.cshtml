@@ -1,0 +1,85 @@
+@page "/user/settings"
+@model BoostingHub.frontend.Pages.Users.Settings.IndexModel
+@{
+    ViewData["Title"] = "Settings";
+    ViewData["BodyClass"] = "user-dashboard-page";
+}
+
+<div class="admin-layout">
+    <aside class="admin-sidebar user-sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+            <span>Boosting Hub</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="/tasks" class="sidebar-link"><i class="bi bi-list-task"></i> Available Tasks</a>
+            <a href="/my-tasks" class="sidebar-link"><i class="bi bi-check2-square"></i> My Tasks</a>
+            <a href="/wallet" class="sidebar-link"><i class="bi bi-wallet2"></i> Wallet</a>
+            <a href="/user/settings" class="sidebar-link active"><i class="bi bi-gear"></i> Settings</a>
+            <div class="sidebar-divider"></div>
+            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="admin-main">
+        <div class="admin-header">
+            <h3><i class="bi bi-gear text-primary"></i> Settings</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> User
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <a href="/settings" class="text-decoration-none">
+                        <div class="card shadow-sm border-0 h-100" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                            <div class="card-body text-center py-5">
+                                <div style="font-size:3rem;color:#7C3AED;margin-bottom:16px;"><i class="bi bi-shield-lock"></i></div>
+                                <h5 class="fw-semibold">Security</h5>
+                                <p class="text-muted mb-0">Password and profile preferences</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="/user/accounts" class="text-decoration-none">
+                        <div class="card shadow-sm border-0 h-100" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                            <div class="card-body text-center py-5">
+                                <div style="font-size:3rem;color:#0D9488;margin-bottom:16px;"><i class="bi bi-credit-card"></i></div>
+                                <h5 class="fw-semibold">Accounts</h5>
+                                <p class="text-muted mb-0">Manage your payment accounts</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+    </script>
+}

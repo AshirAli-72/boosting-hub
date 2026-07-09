@@ -20,7 +20,7 @@
                 <a href="/admin/completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
                 <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
                 <div class="sidebar-divider"></div>
-                <a href="/settings" class="sidebar-link active"><i class="bi bi-gear"></i> Settings</a>
+                <a href="/user/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
             }
             else
             {
@@ -28,7 +28,7 @@
                 <a href="/tasks" class="sidebar-link"><i class="bi bi-list-task"></i> Available Tasks</a>
                 <a href="/my-tasks" class="sidebar-link"><i class="bi bi-check2-square"></i> My Tasks</a>
                 <a href="/wallet" class="sidebar-link"><i class="bi bi-wallet2"></i> Wallet</a>
-                <a href="/settings" class="sidebar-link active"><i class="bi bi-gear"></i> Settings</a>
+                <a href="/user/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
             }
             <div class="sidebar-divider"></div>
             <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
@@ -36,8 +36,8 @@
     </aside>
     <main class="admin-main">
         <div class="admin-header">
-            <div class="d-flex align-items-center">
-                <a href="@(isAdmin ? "/admin-panel" : "/dashboard")" class="btn btn-sm btn-outline-secondary me-3"><i class="bi bi-arrow-left"></i> Back</a>
+            <div class="d-flex align-items-center gap-3">
+                <a href="/user/settings" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
                 <h3 class="mb-0"><i class="bi bi-gear text-primary"></i> Settings</h3>
             </div>
             <div class="admin-header-right">

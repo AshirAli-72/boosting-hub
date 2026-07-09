@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<Account> Accounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -207,6 +208,19 @@ public class ApplicationDbContext : DbContext
             e.HasOne(t => t.User).WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
             e.HasIndex(t => t.WalletId);
             e.HasIndex(t => t.CreatedAt);
+        });
+
+        // ── Account ───────────────────────────────────────────────────────────
+        builder.Entity<Account>(e =>
+        {
+            e.Property(a => a.AccountTitle).HasMaxLength(200).IsRequired();
+            e.Property(a => a.MobileNumber).HasMaxLength(50).IsRequired();
+            e.Property(a => a.Cnic).HasMaxLength(50).IsRequired();
+            e.Property(a => a.Status).HasMaxLength(20);
+            e.Property(a => a.CreatedAt).HasColumnType("datetime2");
+            e.Property(a => a.UpdatedAt).HasColumnType("datetime2");
+            e.HasOne(a => a.User).WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(a => a.UserId);
         });
     }
 }
