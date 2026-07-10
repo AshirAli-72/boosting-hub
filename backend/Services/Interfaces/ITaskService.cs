@@ -13,4 +13,7 @@ public interface ITaskService
     Task<int> GetWorkerActiveTaskCountAsync(int userId);
     Task<List<MyTaskDto>> GetMyTasksAsync(int userId);
     Task<Result> SubmitProofAsync(int taskId, string proofUrl, string proofType, int userId);
+    Task<List<ProofReviewDto>> GetProofsPendingReviewAsync();
+    Task<Result> ApproveProofAsync(int proofId);
+    Task<Result> RejectProofAsync(int proofId, string reason);
 }

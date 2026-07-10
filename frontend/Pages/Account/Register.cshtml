@@ -8,16 +8,32 @@
 
 <div class="auth-page">
     <div class="auth-container">
-        <div class="auth-brand">
-            <div class="auth-brand-content">
-                <div class="auth-brand-icon"><i class="bi bi-shield-check"></i></div>
-                <h2>Account Verification</h2>
-                <p>Secure your access with verified credentials and start growing your social presence.</p>
-                <div class="decor-circles">
-                    <span></span><span></span><span></span>
+        @if (Model.IsVerified || Model.IsVerificationError || Model.IsSuccess)
+        {
+            <div class="auth-brand">
+                <div class="auth-brand-content">
+                    <div class="auth-brand-icon"><i class="bi bi-shield-check"></i></div>
+                    <h2>Account Verification</h2>
+                    <p>Secure your access with verified credentials and start growing your social presence.</p>
+                    <div class="decor-circles">
+                        <span></span><span></span><span></span>
+                    </div>
                 </div>
             </div>
-        </div>
+        }
+        else
+        {
+            <div class="auth-brand">
+                <div class="auth-brand-content">
+                    <div class="auth-brand-icon"><i class="bi bi-person-plus-fill"></i></div>
+                    <h2>Create Account</h2>
+                    <p>Join us and start your journey to grow your social presence.</p>
+                    <div class="decor-circles">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+        }
         <div class="auth-form">
             <div class="auth-form-inner">
 
@@ -26,32 +42,7 @@
                     <div class="auth-logo-icon text-success"><i class="bi bi-check-circle-fill"></i></div>
                     <h3 class="auth-form-title">Email Verified</h3>
                     <p class="auth-form-subtitle">@Model.Message</p>
-
-                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                    {
-                        <div class="auth-alert auth-alert-danger">@Model.ErrorMessage</div>
-                    }
-
-                    <form method="post" asp-page-handler="Login" id="inlineLoginForm">
-                        <div class="input-group-custom">
-                            <label class="form-label">Email or Phone</label>
-                            <div class="input-icon-wrapper">
-                                <input asp-for="LoginInput.Email" class="form-control" placeholder="Email or phone" required />
-                                <i class="input-icon bi bi-envelope"></i>
-                            </div>
-                        </div>
-                        <div class="input-group-custom">
-                            <label class="form-label">Password</label>
-                            <div class="input-icon-wrapper">
-                                <input asp-for="LoginInput.Password" class="form-control" type="password" placeholder="Enter your password" required />
-                                <i class="input-icon bi bi-lock"></i>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-auth w-100">
-                            <i class="bi bi-box-arrow-in-right"></i> Sign In
-                        </button>
-                    </form>
-
+                    <a href="/login" class="btn btn-auth w-100"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
                     <div class="auth-divider">or</div>
                     <div class="text-center auth-muted-text">
                         <a href="/register" class="auth-link">Create a new account</a>
@@ -69,7 +60,20 @@
                     <div class="auth-logo-icon text-primary"><i class="bi bi-envelope-check-fill"></i></div>
                     <h3 class="auth-form-title">Check Your Email</h3>
                     <p class="auth-form-subtitle">@Model.Message</p>
-                    <div class="text-center auth-muted-text">
+                    @if (!string.IsNullOrEmpty(Model.VerificationLink))
+                    {
+                        <p class="auth-muted-text" style="font-size:0.85rem;margin-bottom:8px;">
+                            No email service configured. Click the link below to verify:
+                        </p>
+                        <a href="@Model.VerificationLink" class="btn btn-auth w-100">
+                            <i class="bi bi-check-circle"></i> Click to Verify Email
+                        </a>
+                        <div style="margin-top:8px;font-size:0.75rem;word-break:break-all;" class="auth-muted-text">
+                            <strong>Or copy this link:</strong><br>
+                            <code style="font-size:0.7rem;">@Model.VerificationLink</code>
+                        </div>
+                    }
+                    <div class="text-center auth-muted-text" style="margin-top:16px;">
                         <a href="/login" class="auth-link">Go to Sign In</a>
                     </div>
                 }
@@ -79,29 +83,13 @@
                     <h3 class="auth-form-title">Create Account</h3>
                     <p class="auth-form-subtitle">Fill in your details to get started</p>
 
-                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                    {
-                        <div class="auth-alert auth-alert-danger">@Model.ErrorMessage</div>
-                    }
-                    @if (Model.Errors?.Any() == true)
-                    {
-                        <div class="auth-alert auth-alert-danger">
-                            <ul>
-                                @foreach (var err in Model.Errors)
-                                {
-                                    <li>@err</li>
-                                }
-                            </ul>
-                        </div>
-                    }
+                    <div asp-validation-summary="All" class="mb-3"></div>
 
                     <form method="post">
-                        <div asp-validation-summary="ModelOnly" class="auth-alert auth-alert-danger d-none"></div>
-
                         <div class="input-group-custom">
                             <label asp-for="Input.Name" class="form-label">Full Name</label>
                             <div class="input-icon-wrapper">
-                                <input asp-for="Input.Name" class="form-control" placeholder="Your full name" />
+                                <input asp-for="Input.Name" class="form-control" placeholder="Your full name" required />
                                 <i class="input-icon bi bi-person"></i>
                             </div>
                             <span asp-validation-for="Input.Name" class="text-danger"></span>
@@ -110,7 +98,7 @@
                         <div class="input-group-custom">
                             <label asp-for="Input.Email" class="form-label">Email</label>
                             <div class="input-icon-wrapper">
-                                <input asp-for="Input.Email" class="form-control" type="email" placeholder="Your email address" />
+                                <input asp-for="Input.Email" class="form-control" type="email" placeholder="Your email address" required />
                                 <i class="input-icon bi bi-envelope"></i>
                             </div>
                             <span asp-validation-for="Input.Email" class="text-danger"></span>
@@ -128,16 +116,19 @@
                         <div class="input-group-custom">
                             <label asp-for="Input.Password" class="form-label">Password</label>
                             <div class="input-icon-wrapper">
-                                <input asp-for="Input.Password" class="form-control" type="password" placeholder="Create a strong password" />
+                                <input asp-for="Input.Password" class="form-control" type="password" placeholder="Enter password" minlength="6" required />
                                 <i class="input-icon bi bi-lock"></i>
                             </div>
                             <span asp-validation-for="Input.Password" class="text-danger"></span>
+                            <div class="form-text auth-muted-text" style="font-size:0.75rem;margin-top:4px;">
+                                Min 6 characters
+                            </div>
                         </div>
 
                         <div class="input-group-custom">
                             <label asp-for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
                             <div class="input-icon-wrapper">
-                                <input asp-for="Input.ConfirmPassword" class="form-control" type="password" placeholder="Repeat your password" />
+                                <input asp-for="Input.ConfirmPassword" class="form-control" type="password" placeholder="Re-enter password" minlength="6" required />
                                 <i class="input-icon bi bi-lock-fill"></i>
                             </div>
                             <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
@@ -160,4 +151,26 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/site.js"></script>
+    <script>
+        document.querySelectorAll('[data-val-equalto-other]').forEach(function(el) {
+            var other = el.getAttribute('data-val-equalto-other');
+            if (other && other.indexOf('.') > -1 && !other.startsWith('[')) {
+                el.setAttribute('data-val-equalto-other', '[name="' + other + '"]');
+            }
+        });
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@Model.ErrorMessage', 'danger'); });</text>
+        }
+        @if (Model.Errors?.Any() == true)
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() {
+                @foreach (var err in Model.Errors)
+                {
+                    <text>showToast('@err', 'danger');</text>
+                }
+            });</text>
+        }
+    </script>
 }

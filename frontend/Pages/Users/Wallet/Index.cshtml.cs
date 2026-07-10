@@ -56,6 +56,20 @@ public class IndexModel : PageModel
         return Page();
     }
 
+    public async Task<JsonResult> OnPostChangeCurrencyAsync(string currency)
+    {
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+            return new JsonResult(new { success = false, message = "Not logged in" });
+
+        var valid = new[] { "USD", "EUR", "GBP", "PKR", "INR", "BDT" };
+        if (!valid.Contains(currency))
+            return new JsonResult(new { success = false, message = "Invalid currency" });
+
+        var ok = await _walletService.UpdateCurrencyAsync(userId, currency);
+        return new JsonResult(new { success = ok, message = ok ? "Currency updated" : "Wallet not found" });
+    }
+
     public async Task<IActionResult> OnPostWithdrawAsync()
     {
         var userIdStr = HttpContext.Session.GetString("UserId");

@@ -24,16 +24,6 @@
                 <h3 class="auth-form-title">Sign In</h3>
                 <p class="auth-form-subtitle">Enter your credentials to continue</p>
 
-                @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-                {
-                    <div class="auth-alert auth-alert-success">@Model.SuccessMessage</div>
-                }
-
-                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-                {
-                    <div class="auth-alert auth-alert-danger">@Model.ErrorMessage</div>
-                }
-
                 <form method="post">
                     <div asp-validation-summary="ModelOnly" class="auth-alert auth-alert-danger" style="display:none;"></div>
 
@@ -79,4 +69,15 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/site.js"></script>
+    <script>
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@Model.SuccessMessage', 'success'); });</text>
+        }
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@Model.ErrorMessage', 'danger'); });</text>
+        }
+    </script>
 }

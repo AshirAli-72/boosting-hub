@@ -215,6 +215,35 @@
 .auth-card-icon-danger  { background: rgba(239,68,68,0.15);  color: #EF4444; }
 .auth-icon-centered     { margin: 0 auto 16px; }
 
+/* ── Validation ── */
+.input-validation-error {
+    border-color: #EF4444 !important;
+    box-shadow: 0 0 0 4px rgba(239,68,68,0.10) !important;
+}
+.input-validation-error ~ .input-icon { color: #EF4444 !important; }
+.input-validation-error:focus {
+    border-color: #EF4444 !important;
+    box-shadow: 0 0 0 4px rgba(239,68,68,0.15) !important;
+}
+.field-validation-error {
+    display: block;
+    color: #EF4444;
+    font-size: 0.8rem;
+    margin-top: 4px;
+}
+.validation-summary-errors {
+    border-radius: 12px;
+    padding: 14px 16px;
+    background: #FEF2F2;
+    color: #991B1B;
+    border-left: 4px solid #EF4444;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    animation: authAlertSlide 0.3s ease-out;
+}
+.validation-summary-errors ul { margin-bottom: 0; padding-left: 20px; }
+.validation-summary-errors li { margin-bottom: 2px; }
+
 /* ── Utility ── */
 .auth-check-label    { font-weight: 500; color: #475569; cursor: pointer; }
 .auth-muted-text     { color: #64748B; font-size: 0.9rem; }

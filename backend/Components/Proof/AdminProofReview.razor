@@ -1,0 +1,239 @@
+@using BoostingHub.backend.DTOs
+@inject ITaskService TaskService
+@inject ILogger<AdminProofReview> Logger
+
+<div class="proof-review">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0"><i class="bi bi-shield-check text-primary me-2"></i>Proofs Pending Review</h5>
+        @if (!isLoading && !hasError)
+        {
+            <span class="badge bg-warning text-dark" style="padding:6px 14px;border-radius:20px;font-size:0.85rem;">
+                @proofs.Count pending
+            </span>
+        }
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary"><span class="visually-hidden">Loading...</span></div>
+            <p class="mt-2 text-muted">Loading proofs...</p>
+        </div>
+    }
+    else if (hasError)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+        </div>
+    }
+    else if (proofs.Count == 0)
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-check2-all fs-1"></i>
+            <p class="mt-2">All proofs have been reviewed!</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle admin-table">
+                <thead class="admin-thead">
+                    <tr>
+                        <th>ID</th>
+                        <th>Worker</th>
+                        <th>Platform</th>
+                        <th>Service</th>
+                        <th>Proof URL</th>
+                        <th>Submitted</th>
+                        <th>Reward</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in proofs)
+                    {
+                        <tr>
+                            <td>#@p.ProofId</td>
+                            <td>@p.UserName</td>
+                            <td><span class="badge bg-info">@p.Platform</span></td>
+                            <td>@p.Service</td>
+                            <td>
+                                <a href="@p.ProofUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.ProofUrl">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>View
+                                </a>
+                            </td>
+                            <td>@p.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="fw-bold" style="color:var(--success);">$@p.Reward.ToString("F2")</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-success" onclick="@(() => Approve(p.ProofId))">
+                                        <i class="bi bi-check-lg"></i> Approve
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="@(() => ShowRejectModal(p.ProofId))">
+                                        <i class="bi bi-x-lg"></i> Reject
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (showRejectModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-semibold"><i class="bi bi-x-circle text-danger"></i> Reject Proof #@rejectProofId</h5>
+                    <button type="button" class="btn-close" onclick="@CloseRejectModal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium text-secondary">Rejection Reason</label>
+                        <textarea class="form-control" rows="3" @bind="rejectReason" placeholder="Provide a reason for rejection..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button class="btn btn-secondary" onclick="@CloseRejectModal">Cancel</button>
+                        <button class="btn btn-danger" onclick="@Reject" disabled="@(string.IsNullOrWhiteSpace(rejectReason))">
+                            <i class="bi bi-x-lg"></i> Reject
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(operationMessage))
+                    {
+                        <div class="mt-2 small @(operationSuccess ? "text-success" : "text-danger")">@operationMessage</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
+        <div class="alert alert-success alert-dismissible fade show mb-0 shadow">
+            <i class="bi bi-check-circle-fill me-2"></i>@successMessage
+            <button type="button" class="btn-close" onclick="@(() => successMessage = null)"></button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public int AdminUserId { get; set; }
+
+    private List<ProofReviewDto> proofs = new();
+    private bool isLoading = true;
+    private bool hasError;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private bool showRejectModal;
+    private int rejectProofId;
+    private string rejectReason = string.Empty;
+    private string? operationMessage;
+    private bool operationSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProofs();
+    }
+
+    private async Task LoadProofs()
+    {
+        isLoading = true;
+        hasError = false;
+        errorMessage = null;
+        try
+        {
+            proofs = await TaskService.GetProofsPendingReviewAsync();
+        }
+        catch (Exception ex)
+        {
+            hasError = true;
+            errorMessage = ex.Message;
+            Logger.LogError(ex, "Failed to load pending proofs");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task Approve(int proofId)
+    {
+        try
+        {
+            var result = await TaskService.ApproveProofAsync(proofId);
+            if (result.IsSuccess)
+            {
+                successMessage = result.Message;
+                proofs.RemoveAll(p => p.ProofId == proofId);
+            }
+            else
+            {
+                hasError = true;
+                errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            hasError = true;
+            errorMessage = ex.Message;
+            Logger.LogError(ex, "Failed to approve proof {ProofId}", proofId);
+        }
+    }
+
+    private void ShowRejectModal(int proofId)
+    {
+        rejectProofId = proofId;
+        rejectReason = string.Empty;
+        operationMessage = null;
+        showRejectModal = true;
+    }
+
+    private void CloseRejectModal()
+    {
+        showRejectModal = false;
+        rejectProofId = 0;
+        rejectReason = string.Empty;
+        operationMessage = null;
+    }
+
+    private async Task Reject()
+    {
+        if (string.IsNullOrWhiteSpace(rejectReason))
+        {
+            operationMessage = "Please provide a rejection reason.";
+            operationSuccess = false;
+            return;
+        }
+
+        try
+        {
+            var result = await TaskService.RejectProofAsync(rejectProofId, rejectReason.Trim());
+            if (result.IsSuccess)
+            {
+                operationMessage = "Proof rejected successfully.";
+                operationSuccess = true;
+                proofs.RemoveAll(p => p.ProofId == rejectProofId);
+                await Task.Delay(800);
+                CloseRejectModal();
+            }
+            else
+            {
+                operationMessage = result.Message;
+                operationSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            operationMessage = ex.Message;
+            operationSuccess = false;
+            Logger.LogError(ex, "Failed to reject proof {ProofId}", rejectProofId);
+        }
+    }
+}

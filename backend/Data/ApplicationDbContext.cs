@@ -82,6 +82,7 @@ public class ApplicationDbContext : DbContext
             e.Property(c => c.Description).HasMaxLength(1000);
             e.Property(c => c.SocialMediaUrl).HasMaxLength(500);
             e.Property(c => c.Status).HasMaxLength(50);
+            e.Property(c => c.Currency).HasMaxLength(10);
             e.Property(c => c.CreatedAt).HasColumnType("datetime2");
             e.Property(c => c.Budget).HasColumnType("decimal(18,2)");
             e.HasIndex(c => c.Status);
@@ -133,9 +134,11 @@ public class ApplicationDbContext : DbContext
         {
             e.ToTable("task_proofs");
             e.Property(p => p.Date).HasColumnType("datetime2");
-            e.Property(p => p.ProofUrl).HasMaxLength(500);
+            e.Property(p => p.ProofUrl).HasMaxLength(2048);
             e.Property(p => p.ProofType).HasMaxLength(50);
             e.Property(p => p.Status).HasMaxLength(50);
+            e.Property(p => p.VerificationStatus).HasMaxLength(50).IsRequired().HasDefaultValue("None");
+            e.Property(p => p.RejectReason).HasMaxLength(1000);
 
             e.HasOne(p => p.User)
                 .WithMany()
@@ -146,6 +149,9 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(p => p.TaskId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            e.HasIndex(p => p.VerificationStatus);
+            e.HasIndex(p => new { p.UserId, p.TaskId });
         });
 
 

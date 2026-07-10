@@ -56,6 +56,7 @@ public class AuthResponseDto
     public int ExpiresIn { get; set; }
     public bool TwoFactorRequired { get; set; }
     public UserDto? User { get; set; }
+    public string? VerificationLink { get; set; }
 }
 
 public class UserDto

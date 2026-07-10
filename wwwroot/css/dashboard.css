@@ -219,9 +219,11 @@ body.light-mode .sidebar-brand {
 }
 .admin-thead { background: var(--bg-elevated); border-bottom: 1px solid var(--border-muted); }
 .admin-thead th {
-    font-weight: 600; color: var(--text-muted);
+    font-weight: 700; color: var(--text-primary);
     font-size: 0.78rem; text-transform: uppercase;
     letter-spacing: 0.05em; padding: 14px 20px;
+    background: var(--bg-elevated);
+    border-bottom: 2px solid var(--primary);
 }
 .admin-table td { padding: 14px 20px; }
 .admin-table tr { border-bottom: 1px solid var(--border-subtle); transition: background 0.15s; }

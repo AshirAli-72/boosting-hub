@@ -12,14 +12,20 @@ public class TaskService : ITaskService
     private readonly ApplicationDbContext _db;
     private readonly ILogger<TaskService> _logger;
     private readonly IWalletService _walletService;
+    private readonly IProofVerificationService _proofVerification;
     private const int MaxActiveTasks = 10;
     private const int DailyTaskLimit = 25;
 
-    public TaskService(ApplicationDbContext db, ILogger<TaskService> logger, IWalletService walletService)
+    public TaskService(
+        ApplicationDbContext db,
+        ILogger<TaskService> logger,
+        IWalletService walletService,
+        IProofVerificationService proofVerification)
     {
         _db = db;
         _logger = logger;
         _walletService = walletService;
+        _proofVerification = proofVerification;
     }
 
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
@@ -37,7 +43,6 @@ public class TaskService : ITaskService
             .Where(t => t.Status == "Active")
             .ToListAsync();
 
-        // Don't show "Completed" for a task until all slots are filled
         foreach (var kv in userStatusMap.Where(kv => kv.Value == "Completed"))
         {
             var completedCount = completedCounts.GetValueOrDefault(kv.Key, 0);
@@ -280,10 +285,12 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
-                        Status = "Submitted",
+                        Status = proof.VerificationStatus == "Rejected" ? "Rejected" : "Submitted",
                         ProofUrl = proof.ProofUrl,
                         ProofType = proof.ProofType,
-                        ProofStatus = proof.Status
+                        ProofStatus = proof.Status,
+                        VerificationStatus = proof.VerificationStatus,
+                        RejectReason = proof.RejectReason
                     });
                 }
                 else if (comp != null)
@@ -299,7 +306,9 @@ public class TaskService : ITaskService
                         Status = comp.Status,
                         ProofUrl = proof?.ProofUrl,
                         ProofType = proof?.ProofType,
-                        ProofStatus = proof?.Status
+                        ProofStatus = proof?.Status,
+                        VerificationStatus = proof?.VerificationStatus,
+                        RejectReason = proof?.RejectReason
                     });
                 }
                 else
@@ -339,10 +348,15 @@ public class TaskService : ITaskService
             if (accepted == null)
                 return Result.Failure("You have not accepted this task", "NOT_ACCEPTED");
 
+            if (task.Status != "Active")
+                return Result.Failure("Task has expired or is no longer available", "TASK_EXPIRED");
+
             var existingProof = await _db.TaskProofs
-                .AnyAsync(p => p.UserId == userId && p.TaskId == taskId);
-            if (existingProof)
-                return Result.Failure("Proof already submitted for this task", "ALREADY_SUBMITTED");
+                .FirstOrDefaultAsync(p => p.UserId == userId && p.TaskId == taskId && p.VerificationStatus != "Rejected");
+            if (existingProof != null)
+                return Result.Failure("You have already submitted a proof for this task", "ALREADY_SUBMITTED");
+
+            var verification = await _proofVerification.ValidateProofAsync(taskId, proofUrl, userId);
 
             var proof = new TaskProof
             {
@@ -351,33 +365,195 @@ public class TaskService : ITaskService
                 ProofUrl = proofUrl,
                 ProofType = proofType,
                 Date = DateTime.UtcNow,
-                Status = "Completed"
+                Status = "Submitted",
+                VerificationStatus = verification.Success ? "PendingReview" : "Rejected",
+                RejectReason = verification.Success ? null : verification.ErrorMessage
             };
 
             _db.TaskProofs.Add(proof);
             await _db.SaveChangesAsync();
 
-            _db.TaskCompletes.Add(new TaskComplete
+            if (!verification.Success)
             {
-                UserId = userId,
-                TaskId = taskId,
-                ProofId = proof.Id,
-                Date = DateTime.UtcNow,
-                Status = "Completed"
-            });
+                _logger.LogInformation("Proof for task {TaskId} by user {UserId} rejected by auto-validation: {Reason}",
+                    taskId, userId, verification.ErrorMessage);
+                return Result.Failure($"Proof rejected: {verification.ErrorMessage}", "VERIFICATION_FAILED");
+            }
 
-            await _db.SaveChangesAsync();
+            await NotifyAdminsAsync(proof.Id, userId, taskId);
 
-            await _walletService.AddRewardAsync(userId, task.Reward);
+            _logger.LogInformation("Proof for task {TaskId} by user {UserId} passed auto-validation, pending admin review", taskId, userId);
 
-            _logger.LogInformation("Task {Id} auto-completed for user {UserId}, reward {Reward} added to wallet", taskId, userId, task.Reward);
-
-            return Result.Success($"Task completed! ${task.Reward} added to your wallet.");
+            return Result.Success("Proof submitted successfully and is pending admin review.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to submit proof for task {Id} by user {UserId}", taskId, userId);
             return Result.Failure($"Error: {ex.Message}", "ERROR");
+        }
+    }
+
+    public async Task<List<ProofReviewDto>> GetProofsPendingReviewAsync()
+    {
+        return await _db.TaskProofs
+            .AsNoTracking()
+            .Where(p => p.VerificationStatus == "PendingReview")
+            .Include(p => p.User)
+            .Include(p => p.Task)
+            .OrderByDescending(p => p.Date)
+            .Select(p => new ProofReviewDto
+            {
+                ProofId = p.Id,
+                TaskId = p.TaskId,
+                UserId = p.UserId,
+                UserName = p.User!.Name ?? string.Empty,
+                ProofUrl = p.ProofUrl,
+                Platform = p.Task!.Platform,
+                Service = p.Task.Service,
+                TaskUrl = p.Task.Url,
+                Reward = p.Task.Reward,
+                SubmittedAt = p.Date,
+                VerificationStatus = p.VerificationStatus,
+                RejectReason = p.RejectReason
+            })
+            .ToListAsync();
+    }
+
+    public async Task<Result> ApproveProofAsync(int proofId)
+    {
+        try
+        {
+            var proof = await _db.TaskProofs
+                .Include(p => p.Task)
+                .FirstOrDefaultAsync(p => p.Id == proofId);
+
+            if (proof == null)
+                return Result.Failure("Proof not found", "NOT_FOUND");
+
+            if (proof.VerificationStatus != "PendingReview")
+                return Result.Failure("Proof is not pending review", "INVALID_STATUS");
+
+            var alreadyCompleted = await _db.TaskCompletes
+                .AnyAsync(tc => tc.TaskId == proof.TaskId && tc.UserId == proof.UserId && tc.Status == "Completed");
+
+            if (!alreadyCompleted)
+            {
+                _db.TaskCompletes.Add(new TaskComplete
+                {
+                    UserId = proof.UserId,
+                    TaskId = proof.TaskId,
+                    ProofId = proof.Id,
+                    Date = DateTime.UtcNow,
+                    Status = "Completed"
+                });
+            }
+
+            proof.VerificationStatus = "Approved";
+            proof.Status = "Completed";
+
+            await _db.SaveChangesAsync();
+
+            await _walletService.CreditRewardAsync(proof.UserId, proof.Task.Reward, proof.TaskId, proof.Id);
+
+            _db.Notifications.Add(new Notification
+            {
+                UserId = proof.UserId,
+                Type = "ProofApproved",
+                Title = "Proof Approved",
+                Message = $"Your proof for task #{proof.TaskId} has been approved. ${proof.Task.Reward} credited to your wallet.",
+                Data = $"{{\"proofId\":{proofId},\"taskId\":{proof.TaskId}}}",
+                CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation("Proof {ProofId} approved; task {TaskId} completed for user {UserId}, reward {Reward} credited",
+                proofId, proof.TaskId, proof.UserId, proof.Task.Reward);
+
+            return Result.Success($"Proof approved! ${proof.Task.Reward} credited to worker's wallet.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to approve proof {ProofId}", proofId);
+            return Result.Failure($"Error: {ex.Message}", "ERROR");
+        }
+    }
+
+    public async Task<Result> RejectProofAsync(int proofId, string reason)
+    {
+        try
+        {
+            var proof = await _db.TaskProofs.FindAsync(proofId);
+            if (proof == null)
+                return Result.Failure("Proof not found", "NOT_FOUND");
+
+            if (proof.VerificationStatus != "PendingReview")
+                return Result.Failure("Proof is not pending review", "INVALID_STATUS");
+
+            proof.VerificationStatus = "Rejected";
+            proof.RejectReason = reason ?? "Rejected by admin";
+            proof.Status = "Rejected";
+
+            await _db.SaveChangesAsync();
+
+            _db.Notifications.Add(new Notification
+            {
+                UserId = proof.UserId,
+                Type = "ProofRejected",
+                Title = "Proof Rejected",
+                Message = $"Your proof for task #{proof.TaskId} has been rejected. Reason: {proof.RejectReason}",
+                Data = $"{{\"proofId\":{proofId},\"taskId\":{proof.TaskId}}}",
+                CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation("Proof {ProofId} rejected by admin: {Reason}", proofId, reason);
+
+            return Result.Success("Proof rejected.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to reject proof {ProofId}", proofId);
+            return Result.Failure($"Error: {ex.Message}", "ERROR");
+        }
+    }
+
+    private async Task NotifyAdminsAsync(int proofId, int userId, int taskId)
+    {
+        try
+        {
+            var adminUserIds = await _db.UserHasRoles
+                .Include(ur => ur.Role)
+                .Where(ur => ur.Role!.RoleTitle == "Admin" || ur.Role.RoleTitle == "Administrator")
+                .Select(ur => ur.UserId)
+                .Distinct()
+                .ToListAsync();
+
+            if (adminUserIds.Count == 0)
+            {
+                var adminUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == "admin@gmail.com");
+                if (adminUser != null)
+                    adminUserIds.Add(adminUser.Id);
+            }
+
+            foreach (var adminId in adminUserIds)
+            {
+                _db.Notifications.Add(new Notification
+                {
+                    UserId = adminId,
+                    Type = "ProofReview",
+                    Title = "Proof Pending Review",
+                    Message = $"Proof #{proofId} submitted by user #{userId} for task #{taskId} is pending your review.",
+                    Data = $"{{\"proofId\":{proofId},\"taskId\":{taskId},\"userId\":{userId}}}",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            if (adminUserIds.Count > 0)
+                await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to notify admins about proof {ProofId}", proofId);
         }
     }
 

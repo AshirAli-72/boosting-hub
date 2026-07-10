@@ -40,20 +40,6 @@
             </div>
         </div>
         <div class="admin-content">
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["Error"] is string errMsg && !string.IsNullOrEmpty(errMsg))
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill"></i> @errMsg
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
             <div class="card shadow-sm border-0">
                 <div class="card-header">
                     <h5 class="mb-0 fw-semibold"><i class="bi bi-wallet2 text-primary me-2"></i> Wallet Overview</h5>
@@ -73,9 +59,18 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="fw-bold fs-5">$@Model.WalletData.TotalBalance.ToString("N2")</td>
-                                    <td>@Model.WalletData.Currency</td>
-                                    <td>$@Model.WalletData.Withdrawn.ToString("N2")</td>
+                                    <td class="fw-bold fs-5">@Model.WalletData.Currency @Model.WalletData.TotalBalance.ToString("N2")</td>
+                                    <td>
+                                        <select class="form-select form-select-sm" style="width:auto;display:inline-block;" id="currencySelect" onchange="changeCurrency(this.value)">
+                                            <option value="USD" selected="@(Model.WalletData.Currency == "USD")">$ USD</option>
+                                            <option value="EUR" selected="@(Model.WalletData.Currency == "EUR")">€ EUR</option>
+                                            <option value="GBP" selected="@(Model.WalletData.Currency == "GBP")">£ GBP</option>
+                                            <option value="PKR" selected="@(Model.WalletData.Currency == "PKR")">₨ PKR</option>
+                                            <option value="INR" selected="@(Model.WalletData.Currency == "INR")">₹ INR</option>
+                                            <option value="BDT" selected="@(Model.WalletData.Currency == "BDT")">৳ BDT</option>
+                                        </select>
+                                    </td>
+                                    <td>@Model.WalletData.Currency @Model.WalletData.Withdrawn.ToString("N2")</td>
                                     <td>@Model.WalletData.CreatedAt.ToString("yyyy-MM-dd")</td>
                                     <td>
                                         @if (Model.WalletData.Status == "Active")
@@ -154,6 +149,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/site.js"></script>
     <script>
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
@@ -166,5 +162,45 @@
                 if (m) m.style.display = 'none';
             }
         });
+
+        @if (TempData["Success"] != null)
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@TempData["Success"]', 'success'); });</text>
+        }
+        @if (TempData["Error"] is string eMsg && !string.IsNullOrEmpty(eMsg))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@eMsg', 'danger'); });</text>
+        }
+
+        async function changeCurrency(currency) {
+            try {
+                const resp = await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(currency), {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
+                });
+                const data = await resp.json();
+                if (resp.ok) {
+                    location.reload();
+                } else {
+                    showToast(data.message || 'Failed to update currency', 'danger');
+                }
+            } catch (e) {
+                showToast('Network error', 'danger');
+            }
+        }
+
+        function showToast(message, type) {
+            var toast = document.createElement('div');
+            toast.className = 'toast align-items-center text-bg-' + type + ' border-0 show';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.zIndex = '9999';
+            toast.style.minWidth = '280px';
+            toast.style.borderRadius = '12px';
+            toast.innerHTML = '<div class="d-flex"><div class="toast-body"><i class="bi bi-' + (type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill') + ' me-2"></i>' + message + '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 5000);
+        }
     </script>
 }

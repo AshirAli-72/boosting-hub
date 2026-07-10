@@ -31,21 +31,11 @@ namespace BoostingHub.backend.Data.Migrations
                         principalTable: "task_generate",
                         principalColumn: "id");
                     table.ForeignKey(
-                        name: "FK_task_complete_task_proofs_proof_id",
-                        column: x => x.proof_id,
-                        principalTable: "task_proofs",
-                        principalColumn: "id");
-                    table.ForeignKey(
                         name: "FK_task_complete_users_user_id",
                         column: x => x.user_id,
                         principalTable: "users",
                         principalColumn: "id");
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_task_complete_proof_id",
-                table: "task_complete",
-                column: "proof_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_task_complete_task_id",

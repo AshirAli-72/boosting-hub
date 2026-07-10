@@ -56,13 +56,21 @@
                             {
                                 <span>Pending Submission</span>
                             }
-                            else if (task.Status == "Submitted")
+                            else if (task.VerificationStatus == "PendingReview")
                             {
                                 <span style="color:var(--warning);">Awaiting Review</span>
                             }
-                            else if (task.Status == "Rejected")
+                            else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
                             {
                                 <span style="color:var(--danger);">Rejected</span>
+                            }
+                            else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
+                            {
+                                <span style="color:var(--success);">Completed</span>
+                            }
+                            else if (task.Status == "Submitted")
+                            {
+                                <span style="color:var(--warning);">Awaiting Review</span>
                             }
                             else
                             {
@@ -75,13 +83,21 @@
                             {
                                 <span style="color:var(--warning);">In Progress</span>
                             }
-                            else if (task.Status == "Submitted")
+                            else if (task.VerificationStatus == "PendingReview")
                             {
                                 <span style="color:var(--info);">Under Review</span>
                             }
-                            else if (task.Status == "Rejected")
+                            else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
                             {
                                 <span style="color:var(--danger);">Needs Resubmit</span>
+                            }
+                            else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
+                            {
+                                <span style="color:var(--success);">Completed</span>
+                            }
+                            else if (task.Status == "Submitted")
+                            {
+                                <span style="color:var(--info);">Under Review</span>
                             }
                             else
                             {
@@ -89,6 +105,13 @@
                             }
                         </span>
                     </div>
+                    @if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
+                    {
+                        @if (!string.IsNullOrEmpty(task.RejectReason))
+                        {
+                            <div class="mt-2 small text-danger"><i class="bi bi-exclamation-circle me-1"></i>@task.RejectReason</div>
+                        }
+                    }
                     <div class="task-footer">
                         @if (task.Status == "Pending")
                         {
@@ -100,7 +123,7 @@
                         {
                             <span style="color:var(--warning);"><i class="bi bi-clock me-1"></i>Awaiting Admin Review</span>
                         }
-                        else if (task.Status == "Rejected")
+                        else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
                         {
                             <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId">
                                 <i class="bi bi-upload me-1"></i>Resubmit

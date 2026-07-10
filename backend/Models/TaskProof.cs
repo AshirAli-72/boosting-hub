@@ -14,7 +14,9 @@ public class TaskProof
     [Column("proof_type")] public string ProofType { get; set; } = string.Empty;
 
     [Column("date")] public DateTime Date { get; set; } = DateTime.UtcNow;
-    [Column("status")] public string Status { get; set; } = "Pending";
+    [Column("status")] public string Status { get; set; } = "Submitted";
+    [Column("verification_status")] public string VerificationStatus { get; set; } = "None";
+    [Column("reject_reason")] public string? RejectReason { get; set; }
 
     public User User { get; set; } = null!;
     public TaskGenerate Task { get; set; } = null!;

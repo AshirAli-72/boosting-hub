@@ -35,6 +35,7 @@ public class OrdersController : ControllerBase
             Quantity = dto.Quantity.ToString(),
             SocialMediaUrl = dto.SocialMediaUrl,
             Budget = dto.Budget,
+            Currency = dto.Currency,
             Description = dto.Description,
             Status = "Pending",
             CreatedAt = DateTime.UtcNow
@@ -136,6 +137,7 @@ public class OrdersController : ControllerBase
                 o.Quantity,
                 o.SocialMediaUrl,
                 o.Budget,
+                o.Currency,
                 o.Status,
                 o.CreatedAt
             })

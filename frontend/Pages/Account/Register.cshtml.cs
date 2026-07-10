@@ -16,13 +16,13 @@ public class RegisterModel : PageModel
     }
 
     [BindProperty] public RegisterDto Input { get; set; } = new();
-    [BindProperty] public LoginDto LoginInput { get; set; } = new();
     public string? Message { get; set; }
     public string? ErrorMessage { get; set; }
     public string[]? Errors { get; set; }
     public bool IsSuccess { get; set; }
     public bool IsVerified { get; set; }
     public bool IsVerificationError { get; set; }
+    public string? VerificationLink { get; set; }
 
     public async Task<IActionResult> OnGetAsync(string? token)
     {
@@ -55,39 +55,12 @@ public class RegisterModel : PageModel
         {
             IsSuccess = true;
             Message = result.Message;
+            VerificationLink = result.Data?.VerificationLink;
             return Page();
         }
 
         ErrorMessage = result.Message;
         Errors = result.Errors;
-        return Page();
-    }
-
-    public async Task<IActionResult> OnPostLoginAsync()
-    {
-        if (!ModelState.IsValid) return Page();
-
-        var result = await _authService.LoginAsync(LoginInput, HttpContext);
-
-        if (result.IsSuccess)
-        {
-            HttpContext.Session.SetString("AccessToken", result.Data?.AccessToken ?? "");
-            HttpContext.Session.SetString("UserId", result.Data?.User?.Id.ToString() ?? "");
-
-            var roles = result.Data?.User?.Roles ?? Array.Empty<string>();
-            var email = result.Data?.User?.Email ?? "";
-            var isAdmin = roles.Any(r => r.Contains("Admin")) || email == "admin@gmail.com";
-            if (isAdmin)
-            {
-                HttpContext.Session.SetString("UserRole", "Admin");
-                return RedirectToPage("/Admin/Dashboard");
-            }
-
-            HttpContext.Session.SetString("UserRole", "User");
-            return RedirectToPage("/Users/Dashboard");
-        }
-
-        ErrorMessage = result.Message;
         return Page();
     }
 }

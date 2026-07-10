@@ -56,11 +56,6 @@
             </div>
         </div>
         <div class="admin-content">
-            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-            {
-                <div class="auth-alert auth-alert-success mb-4">@Model.SuccessMessage</div>
-            }
-            
             <ul class="nav nav-tabs custom-tabs mb-4" id="settingsTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link @(Model.ActiveTab == "configuration" ? "active" : "")" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-tab-pane" type="button" role="tab" aria-controls="config-tab-pane" aria-selected="@(Model.ActiveTab == "configuration" ? "true" : "false")">
@@ -164,7 +159,13 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/site.js"></script>
     <script>
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@Model.SuccessMessage', 'success'); });</text>
+        }
+
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
             menu.style.display = menu.style.display === 'none' ? 'block' : 'none';

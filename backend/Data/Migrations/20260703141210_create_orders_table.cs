@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BoostingHub.backend.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class create_order_table : Migration
+    public partial class create_orders_table : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,16 +25,17 @@ namespace BoostingHub.backend.Data.Migrations
                    quantity = table.Column<string>(type: "nvarchar(max)", nullable: true),
                    budget = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
+                   created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                   currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false)
                },
                constraints: table =>
                {
                    table.PrimaryKey("PK_orders", x => x.id);
                });
             migrationBuilder.CreateIndex(
-            name: "IX_orders_status",
-            table: "orders",
-            column: "status");
+                name: "IX_orders_status",
+                table: "orders",
+                column: "status");
         }
 
         /// <inheritdoc />

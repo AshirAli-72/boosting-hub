@@ -189,6 +189,12 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("currency");
+
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)")
@@ -447,9 +453,14 @@ namespace BoostingHub.backend.Data.Migrations
 
                     b.Property<string>("ProofUrl")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)")
                         .HasColumnName("proof_url");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("reject_reason");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -465,11 +476,21 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("user_id");
 
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("None")
+                        .HasColumnName("verification_status");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TaskId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("VerificationStatus");
+
+                    b.HasIndex("UserId", "TaskId");
 
                     b.ToTable("task_proofs", (string)null);
                 });

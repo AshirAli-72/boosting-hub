@@ -21,11 +21,7 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required")
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters")
-            .Matches("[A-Z]").WithMessage("Password must contain uppercase letter")
-            .Matches("[a-z]").WithMessage("Password must contain lowercase letter")
-            .Matches("[0-9]").WithMessage("Password must contain a digit")
-            .Matches("[^a-zA-Z0-9]").WithMessage("Password must contain a special character");
+            .MinimumLength(6).WithMessage("Password must be at least 6 characters");
 
         RuleFor(x => x.ConfirmPassword)
             .Equal(x => x.Password).WithMessage("Passwords do not match");
@@ -63,8 +59,7 @@ public class ResetPasswordDtoValidator : AbstractValidator<ResetPasswordDto>
         RuleFor(x => x.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Token).NotEmpty();
         RuleFor(x => x.Password)
-            .NotEmpty().MinimumLength(8)
-            .Matches("[A-Z]").Matches("[a-z]").Matches("[0-9]").Matches("[^a-zA-Z0-9]");
+            .NotEmpty().MinimumLength(6);
         RuleFor(x => x.ConfirmPassword).Equal(x => x.Password);
     }
 }
@@ -75,8 +70,7 @@ public class ChangePasswordDtoValidator : AbstractValidator<ChangePasswordDto>
     {
         RuleFor(x => x.CurrentPassword).NotEmpty();
         RuleFor(x => x.NewPassword)
-            .NotEmpty().MinimumLength(8)
-            .Matches("[A-Z]").Matches("[a-z]").Matches("[0-9]").Matches("[^a-zA-Z0-9]");
+            .NotEmpty().MinimumLength(6);
         RuleFor(x => x.ConfirmNewPassword).Equal(x => x.NewPassword);
     }
 }

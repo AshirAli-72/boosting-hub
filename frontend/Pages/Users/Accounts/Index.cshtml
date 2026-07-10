@@ -40,15 +40,6 @@
             </div>
         </div>
         <div class="admin-content">
-            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-            {
-                <div class="alert alert-success alert-dismissible fade show">@Model.SuccessMessage<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-            }
-            @if (TempData["Error"] is string errMsg && !string.IsNullOrEmpty(errMsg))
-            {
-                <div class="alert alert-danger alert-dismissible fade show">@errMsg<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-            }
-
             <div class="card shadow-sm border-0">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-semibold"><i class="bi bi-credit-card text-primary me-2"></i> Payment Accounts</h5>
@@ -152,7 +143,17 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/site.js"></script>
     <script>
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@Model.SuccessMessage', 'success'); });</text>
+        }
+        @if (TempData["Error"] is string eMsg && !string.IsNullOrEmpty(eMsg))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@eMsg', 'danger'); });</text>
+        }
+
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
             menu.style.display = menu.style.display === 'none' ? 'block' : 'none';

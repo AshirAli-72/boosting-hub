@@ -252,8 +252,18 @@
                                     <input type="url" id="iq-url" placeholder="https://instagram.com/..." required />
                                 </div>
                                 <div class="inquiry-field">
-                                    <label>Budget ($) <span>*</span></label>
-                                    <input type="number" id="iq-budget" min="1" step="0.01" placeholder="e.g. 50.00" required />
+                                    <label>Budget <span>*</span></label>
+                                    <div class="input-group" style="display:flex;gap:0;">
+                                        <select id="iq-currency" style="width:90px;border:1px solid var(--border-muted);border-radius:10px 0 0 10px;background:var(--bg-card);color:var(--text-primary);padding:10px 6px;font-size:0.9rem;outline:none;">
+                                            <option value="USD">$ USD</option>
+                                            <option value="EUR">€ EUR</option>
+                                            <option value="GBP">£ GBP</option>
+                                            <option value="PKR">₨ PKR</option>
+                                            <option value="INR">₹ INR</option>
+                                            <option value="BDT">৳ BDT</option>
+                                        </select>
+                                        <input type="number" id="iq-budget" min="1" step="0.01" placeholder="e.g. 50.00" required style="border-radius:0 10px 10px 0;flex:1;border:1px solid var(--border-muted);border-left:none;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;" />
+                                    </div>
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Description <small>(optional)</small></label>
@@ -381,6 +391,7 @@
             const qty = parseInt(document.getElementById('iq-qty').value);
             const url = document.getElementById('iq-url').value;
             const budget = parseFloat(document.getElementById('iq-budget').value);
+            const currency = document.getElementById('iq-currency').value;
             const name = document.getElementById('iq-name').value;
             const email = document.getElementById('iq-email').value;
             const description = document.getElementById('iq-description').value;
@@ -401,6 +412,7 @@
                         quantity: qty,
                         socialMediaUrl: url,
                         budget: budget,
+                        currency: currency,
                         description: description
                     })
                 });

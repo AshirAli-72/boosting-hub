@@ -247,10 +247,6 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("date");
 
-                    b.Property<int?>("ProofId")
-                        .HasColumnType("int")
-                        .HasColumnName("proof_id");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -266,8 +262,6 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProofId");
 
                     b.HasIndex("TaskId");
 
@@ -332,54 +326,6 @@ namespace BoostingHub.backend.Data.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("task_generate", (string)null);
-                });
-
-            modelBuilder.Entity("BoostingHub.backend.Models.TaskProof", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("date");
-
-                    b.Property<string>("ProofType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("proof_type");
-
-                    b.Property<string>("ProofUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("proof_url");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("status");
-
-                    b.Property<int>("TaskId")
-                        .HasColumnType("int")
-                        .HasColumnName("task_id");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TaskId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("task_proofs", (string)null);
                 });
 
             modelBuilder.Entity("BoostingHub.backend.Models.Transaction", b =>
@@ -618,11 +564,6 @@ namespace BoostingHub.backend.Data.Migrations
 
             modelBuilder.Entity("BoostingHub.backend.Models.TaskComplete", b =>
                 {
-                    b.HasOne("BoostingHub.backend.Models.TaskProof", "Proof")
-                        .WithMany()
-                        .HasForeignKey("ProofId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("BoostingHub.backend.Models.TaskGenerate", "Task")
                         .WithMany("TaskCompletes")
                         .HasForeignKey("TaskId")
@@ -634,8 +575,6 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.Navigation("Proof");
 
                     b.Navigation("Task");
 
@@ -651,25 +590,6 @@ namespace BoostingHub.backend.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("BoostingHub.backend.Models.TaskProof", b =>
-                {
-                    b.HasOne("BoostingHub.backend.Models.TaskGenerate", "Task")
-                        .WithMany()
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("BoostingHub.backend.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Task");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BoostingHub.backend.Models.Transaction", b =>

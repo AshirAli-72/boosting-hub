@@ -1,0 +1,41 @@
+@page "/verify-email"
+@model BoostingHub.frontend.Pages.VerifyEmailModel
+@{
+    ViewData["Title"] = "Verify Email";
+    ViewData["PageType"] = "auth";
+    ViewData["BodyClass"] = "auth-page-body";
+}
+
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-brand">
+            <div class="auth-brand-content">
+                <div class="auth-brand-icon"><i class="bi bi-shield-check"></i></div>
+                <h2>Account Verification</h2>
+                <p>Secure your access with verified credentials and start growing your social presence.</p>
+                <div class="decor-circles">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+        <div class="auth-form">
+            <div class="auth-form-inner">
+
+                @if (Model.IsVerified)
+                {
+                    <div class="auth-logo-icon text-success"><i class="bi bi-check-circle-fill"></i></div>
+                    <h3 class="auth-form-title">Email Verified</h3>
+                    <p class="auth-form-subtitle">@Model.Message</p>
+                }
+                else
+                {
+                    <div class="auth-logo-icon text-danger"><i class="bi bi-x-circle-fill"></i></div>
+                    <h3 class="auth-form-title">Verification Failed</h3>
+                    <p class="auth-form-subtitle">@Model.ErrorMessage</p>
+                    <a href="/register" class="btn btn-auth w-100"><i class="bi bi-person-plus"></i> Register Again</a>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>

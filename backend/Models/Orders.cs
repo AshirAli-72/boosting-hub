@@ -18,6 +18,7 @@ public class Orders
     // migration: orders.quantity is nvarchar(1000) (nullable)
     [Column("quantity")] public string? Quantity { get; set; }
     [Column("budget")] public decimal Budget { get; set; }
+    [Column("currency")] public string Currency { get; set; } = "USD";
     [Column("status")] public string Status { get; set; } = "Pending";
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

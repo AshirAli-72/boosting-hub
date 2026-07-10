@@ -143,6 +143,8 @@ public class MyTaskDto
     public string? ProofUrl { get; set; }
     public string? ProofType { get; set; }
     public string? ProofStatus { get; set; }
+    public string? VerificationStatus { get; set; }
+    public string? RejectReason { get; set; }
 }
 
 public class SubmitProofDto
@@ -160,5 +162,6 @@ public class SubmitOrderDto
     public int Quantity { get; set; }
     public string? SocialMediaUrl { get; set; }
     public decimal Budget { get; set; }
+    public string Currency { get; set; } = "USD";
     public string? Description { get; set; }
 }
