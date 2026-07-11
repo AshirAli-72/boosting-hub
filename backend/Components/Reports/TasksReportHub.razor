@@ -1,0 +1,98 @@
+@inject IReportService ReportService
+
+<div class="report-hub-card">
+    <div class="report-hub-header">
+        <div class="report-hub-icon" style="background:linear-gradient(135deg,#0D9488,#0F766E);">
+            <i class="bi bi-list-task"></i>
+        </div>
+        <div>
+            <div class="report-hub-title">Tasks Report</div>
+            <div class="report-hub-subtitle">Task generation & completion stats</div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="report-metrics-grid">
+            <div class="report-metric">
+                <span class="report-metric-label">Total Tasks</span>
+                <span class="report-metric-value" style="color:#2DD4BF;">@TotalTasks</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Active</span>
+                <span class="report-metric-value" style="color:#10B981;">@ActiveTasks</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Completed</span>
+                <span class="report-metric-value" style="color:#10B981;">@CompletedTasks</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Pending Proofs</span>
+                <span class="report-metric-value" style="color:#F59E0B;">@PendingProofs</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Approved Proofs</span>
+                <span class="report-metric-value" style="color:#10B981;">@ApprovedProofs</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Rejected Proofs</span>
+                <span class="report-metric-value" style="color:#EF4444;">@RejectedProofs</span>
+            </div>
+        </div>
+
+        @if (DailyCompletions.Any())
+        {
+            <div class="mt-3">
+                <div class="report-chart-label">Completions (Last 7 Days)</div>
+                <div class="report-bar-chart">
+                    @{ var maxVal = DailyCompletions.Values.Any() ? DailyCompletions.Values.Max() : 1; }
+                    @foreach (var kvp in DailyCompletions)
+                    {
+                        var pct = maxVal > 0 ? (double)kvp.Value / (double)maxVal * 100 : 0;
+                        <div class="report-bar-item">
+                            <div class="report-bar-label">@kvp.Key</div>
+                            <div class="report-bar-track">
+                                <div class="report-bar-fill" style="width:@pct.ToString("F0")%;background:linear-gradient(90deg,#0D9488,#0F766E);"></div>
+                            </div>
+                            <div class="report-bar-val">@kvp.Value</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private int TotalTasks;
+    private int ActiveTasks;
+    private int CompletedTasks;
+    private int PendingProofs;
+    private int ApprovedProofs;
+    private int RejectedProofs;
+    private Dictionary<string, int> DailyCompletions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var data = await ReportService.GetTasksReportAsync();
+            TotalTasks      = data.TotalTasks;
+            ActiveTasks     = data.ActiveTasks;
+            CompletedTasks  = data.CompletedTasks;
+            PendingProofs   = data.PendingProofs;
+            ApprovedProofs  = data.ApprovedProofs;
+            RejectedProofs  = data.RejectedProofs;
+            DailyCompletions = data.DailyCompletions;
+        }
+        catch { }
+        finally { isLoading = false; }
+    }
+}

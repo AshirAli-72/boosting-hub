@@ -3,14 +3,14 @@ using BoostingHub.backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace BoostingHub.frontend.Pages.Admin.Settings;
+namespace BoostingHub.frontend.Pages.Admin.Settings.User;
 
-public class UsersModel : PageModel
+public class IndexModel : PageModel
 {
     private readonly IUserManagementService _userService;
     private readonly IRoleService _roleService;
 
-    public UsersModel(IUserManagementService userService, IRoleService roleService)
+    public IndexModel(IUserManagementService userService, IRoleService roleService)
     {
         _userService = userService;
         _roleService = roleService;

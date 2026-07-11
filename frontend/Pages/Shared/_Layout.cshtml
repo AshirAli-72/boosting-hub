@@ -30,6 +30,9 @@
         const savedTheme = localStorage.getItem('theme') || 'dark';
         if (savedTheme === 'light') {
             document.documentElement.classList.add('light-mode');
+            document.addEventListener('DOMContentLoaded', function() {
+                document.body.classList.add('light-mode');
+            });
         }
     </script>
 </head>
@@ -465,7 +468,8 @@
                 if (document.body.classList.contains('light-mode')) {
                     icon.classList.replace('bi-moon-stars', 'bi-sun');
                 }
-                themeToggleBtn.addEventListener('click', () => {
+                themeToggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     document.body.classList.toggle('light-mode');
                     document.documentElement.classList.toggle('light-mode');
                     if (document.body.classList.contains('light-mode')) {

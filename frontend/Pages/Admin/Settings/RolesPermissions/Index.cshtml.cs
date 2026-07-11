@@ -3,7 +3,7 @@ using BoostingHub.backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace BoostingHub.frontend.Pages.Admin.RolesPermissions;
+namespace BoostingHub.frontend.Pages.Admin.Settings.RolesPermissions;
 
 public class IndexModel : PageModel
 {

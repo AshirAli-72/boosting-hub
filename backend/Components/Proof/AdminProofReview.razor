@@ -66,10 +66,10 @@
                             <td class="fw-bold" style="color:var(--success);">$@p.Reward.ToString("F2")</td>
                             <td>
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-success" onclick="@(() => Approve(p.ProofId))">
+                                    <button class="btn btn-sm btn-success" @onclick="() => Approve(p.ProofId)">
                                         <i class="bi bi-check-lg"></i> Approve
                                     </button>
-                                    <button class="btn btn-sm btn-danger" onclick="@(() => ShowRejectModal(p.ProofId))">
+                                    <button class="btn btn-sm btn-danger" @onclick="() => ShowRejectModal(p.ProofId)">
                                         <i class="bi bi-x-lg"></i> Reject
                                     </button>
                                 </div>
@@ -89,7 +89,7 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header border-bottom-0">
                     <h5 class="modal-title fw-semibold"><i class="bi bi-x-circle text-danger"></i> Reject Proof #@rejectProofId</h5>
-                    <button type="button" class="btn-close" onclick="@CloseRejectModal"></button>
+                    <button type="button" class="btn-close" @onclick="CloseRejectModal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="mb-3">
@@ -97,8 +97,8 @@
                         <textarea class="form-control" rows="3" @bind="rejectReason" placeholder="Provide a reason for rejection..."></textarea>
                     </div>
                     <div class="d-flex gap-2 justify-content-end">
-                        <button class="btn btn-secondary" onclick="@CloseRejectModal">Cancel</button>
-                        <button class="btn btn-danger" onclick="@Reject" disabled="@(string.IsNullOrWhiteSpace(rejectReason))">
+                        <button class="btn btn-secondary" @onclick="CloseRejectModal">Cancel</button>
+                        <button class="btn btn-danger" @onclick="Reject" disabled="@(string.IsNullOrWhiteSpace(rejectReason))">
                             <i class="bi bi-x-lg"></i> Reject
                         </button>
                     </div>
@@ -117,7 +117,7 @@
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
         <div class="alert alert-success alert-dismissible fade show mb-0 shadow">
             <i class="bi bi-check-circle-fill me-2"></i>@successMessage
-            <button type="button" class="btn-close" onclick="@(() => successMessage = null)"></button>
+            <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
         </div>
     </div>
 }

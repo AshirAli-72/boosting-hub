@@ -35,6 +35,10 @@
                         <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
                     </span>
                     <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <button onclick="openEmailModal(); document.getElementById('profileMenu').style.display='none';" class="profile-menu-item" style="background:none;border:none;width:100%;text-align:left;cursor:pointer;color:inherit;">
+                            <i class="bi bi-envelope-arrow-up"></i> Change Email
+                        </button>
+                        <div style="border-top:1px solid rgba(255,255,255,0.08);margin:4px 0;"></div>
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -171,3 +175,129 @@
         themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     </script>
 }
+
+<!-- ── Email Change OTP Modal ─────────────────────────────────────── -->
+<div id="emailOtpModal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+    <div style="background:var(--bg-card,#1e293b);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:2.5rem;max-width:420px;width:90%;box-shadow:0 40px 80px rgba(0,0,0,0.5);position:relative;">
+        <button onclick="closeEmailModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#94a3b8;"><i class="bi bi-x-lg"></i></button>
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+            <div style="width:44px;height:44px;background:linear-gradient(135deg,#7C3AED,#3b82f6);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:#fff;"><i class="bi bi-envelope-arrow-up"></i></div>
+            <div><h4 style="margin:0;font-size:1.15rem;color:var(--text-primary,#f1f5f9);">Change Email</h4><p style="margin:0;font-size:0.8rem;color:#94a3b8;">Secure OTP verification required</p></div>
+        </div>
+
+        <!-- Step 1: Enter new email -->
+        <div id="otpStep1">
+            <label style="display:block;font-size:0.85rem;font-weight:600;color:#94a3b8;margin-bottom:0.4rem;">New Email Address</label>
+            <input type="email" id="newEmailInput" placeholder="new@example.com" style="width:100%;padding:0.8rem 1rem;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:rgba(255,255,255,0.05);color:var(--text-primary,#f1f5f9);font-family:inherit;box-sizing:border-box;outline:none;font-size:0.95rem;" />
+            <div id="sendOtpErr" style="color:#ef4444;font-size:0.82rem;margin-top:0.5rem;display:none;"></div>
+            <button id="sendOtpBtn" onclick="sendEmailOtp()" style="width:100%;margin-top:1rem;padding:0.85rem;background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.95rem;font-family:inherit;">
+                <i class="bi bi-send"></i> Send OTP
+            </button>
+        </div>
+
+        <!-- Step 2: Enter OTP -->
+        <div id="otpStep2" style="display:none;">
+            <p style="font-size:0.88rem;color:#94a3b8;margin-bottom:1rem;">Enter the 6-digit code sent to <strong id="otpEmailDisplay" style="color:var(--text-primary,#f1f5f9);"></strong></p>
+            <input type="text" id="otpInput" maxlength="6" placeholder="• • • • • •" style="width:100%;padding:1rem;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:rgba(255,255,255,0.05);color:var(--text-primary,#f1f5f9);font-family:monospace;box-sizing:border-box;outline:none;font-size:1.6rem;text-align:center;letter-spacing:8px;font-weight:700;" />
+            <div id="verifyOtpErr" style="color:#ef4444;font-size:0.82rem;margin-top:0.5rem;display:none;"></div>
+            <button id="verifyOtpBtn" onclick="verifyEmailOtp()" style="width:100%;margin-top:1rem;padding:0.85rem;background:linear-gradient(135deg,#10B981,#059669);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.95rem;font-family:inherit;">
+                <i class="bi bi-check2-circle"></i> Verify & Update Email
+            </button>
+            <button onclick="resetEmailModal()" style="width:100%;margin-top:0.5rem;padding:0.5rem;background:transparent;color:#94a3b8;border:none;font-size:0.82rem;cursor:pointer;text-decoration:underline;font-family:inherit;">← Use a different email</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEmailModal() {
+        resetEmailModal();
+        document.getElementById('emailOtpModal').style.display = 'flex';
+    }
+    function closeEmailModal() {
+        document.getElementById('emailOtpModal').style.display = 'none';
+    }
+    function resetEmailModal() {
+        document.getElementById('otpStep1').style.display = 'block';
+        document.getElementById('otpStep2').style.display = 'none';
+        document.getElementById('newEmailInput').value = '';
+        document.getElementById('otpInput').value = '';
+        document.getElementById('sendOtpErr').style.display = 'none';
+        document.getElementById('verifyOtpErr').style.display = 'none';
+        document.getElementById('sendOtpBtn').disabled = false;
+        document.getElementById('sendOtpBtn').innerHTML = '<i class="bi bi-send"></i> Send OTP';
+    }
+    document.getElementById('emailOtpModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEmailModal();
+    });
+    async function sendEmailOtp() {
+        const email = document.getElementById('newEmailInput').value.trim();
+        const err = document.getElementById('sendOtpErr');
+        const btn = document.getElementById('sendOtpBtn');
+        if (!email || !email.includes('@@')) {
+            err.textContent = 'Please enter a valid email address.';
+            err.style.display = 'block'; return;
+        }
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
+        err.style.display = 'none';
+        try {
+            const res = await fetch('/api/email-update/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newEmail: email })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('otpEmailDisplay').textContent = email;
+                document.getElementById('otpStep1').style.display = 'none';
+                document.getElementById('otpStep2').style.display = 'block';
+            } else {
+                err.textContent = data.message || 'Failed to send OTP.';
+                err.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send"></i> Send OTP';
+            }
+        } catch {
+            err.textContent = 'Network error. Please try again.';
+            err.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send"></i> Send OTP';
+        }
+    }
+    async function verifyEmailOtp() {
+        const otp = document.getElementById('otpInput').value.trim();
+        const err = document.getElementById('verifyOtpErr');
+        const btn = document.getElementById('verifyOtpBtn');
+        if (!otp || otp.length < 6) {
+            err.textContent = 'Please enter the full 6-digit code.';
+            err.style.display = 'block'; return;
+        }
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
+        err.style.display = 'none';
+        try {
+            const res = await fetch('/api/email-update/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otp: otp })
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeEmailModal();
+                showToast(data.message, 'success');
+                setTimeout(function() { window.location.href = '/login'; }, 2500);
+            } else {
+                err.textContent = data.message || 'Invalid OTP.';
+                err.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check2-circle"></i> Verify & Update Email';
+            }
+        } catch {
+            err.textContent = 'Network error. Please try again.';
+            err.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2-circle"></i> Verify & Update Email';
+        }
+    }
+</script>
+

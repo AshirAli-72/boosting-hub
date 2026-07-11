@@ -1,0 +1,1225 @@
+@page "/admin/reports"
+@model BoostingHub.frontend.Pages.Admin.Reports.IndexModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Reports Hub";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+            <span>Boosting Hub</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/admin-panel" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="/admin/reports" class="sidebar-link active"><i class="bi bi-bar-chart-line"></i> Reports Hub</a>
+            <a href="/admin/in-progress" class="sidebar-link"><i class="bi bi-hourglass-split"></i> In Progress</a>
+            <a href="/admin/completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
+            <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
+            <a href="/admin/proof-review" class="sidebar-link"><i class="bi bi-shield-check"></i> Proof Review</a>
+            <div class="sidebar-divider"></div>
+            <a href="/admin/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
+            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </aside>
+    <main class="admin-main">
+        <div class="admin-header">
+            <h3><i class="bi bi-bar-chart-line-fill text-primary"></i> Reports Hub</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> Admin
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-content">
+            <div class="mb-4">
+                <p style="color:var(--text-secondary,rgba(241,245,249,0.6));margin:0;font-size:0.9rem;">
+                    Global platform-wide analytics — click <strong>Report Hub</strong> on any card to explore detailed reports.
+                </p>
+            </div>
+
+            <!-- ── Report Cards Row ──────────────────────────────────────────── -->
+            <div class="row g-4 mb-2">
+
+                <!-- Revenue Card -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="report-hub-card" onclick="openHub('revenueHub')">
+                        <div class="rhc-header" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);">
+                            <div class="rhc-icon"><i class="bi bi-currency-dollar"></i></div>
+                            <div class="rhc-badge">Revenue</div>
+                        </div>
+                        <div class="rhc-body">
+                            <div class="rhc-stat-row">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Total Revenue</span>
+                                    <span class="rhc-stat-desc">All-time approved income</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Avg Order</span>
+                                    <span class="rhc-stat-desc">Per order average</span>
+                                </div>
+                            </div>
+                            <div class="rhc-stat-row mt-2">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Approved</span>
+                                    <span class="rhc-stat-desc">Successfully closed</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Pending</span>
+                                    <span class="rhc-stat-desc">Awaiting approval</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rhc-footer">
+                            <button class="rhc-btn" type="button"><i class="bi bi-bar-chart-line"></i> Report Hub</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Card -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="report-hub-card" onclick="openHub('usersHub')">
+                        <div class="rhc-header" style="background:linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%);">
+                            <div class="rhc-icon"><i class="bi bi-people-fill"></i></div>
+                            <div class="rhc-badge">Users</div>
+                        </div>
+                        <div class="rhc-body">
+                            <div class="rhc-stat-row">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Total Users</span>
+                                    <span class="rhc-stat-desc">All registered accounts</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Verified</span>
+                                    <span class="rhc-stat-desc">Email-confirmed users</span>
+                                </div>
+                            </div>
+                            <div class="rhc-stat-row mt-2">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Active</span>
+                                    <span class="rhc-stat-desc">Currently active</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Locked</span>
+                                    <span class="rhc-stat-desc">Suspended accounts</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rhc-footer">
+                            <button class="rhc-btn" type="button"><i class="bi bi-people"></i> Report Hub</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Card -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="report-hub-card" onclick="openHub('tasksHub')">
+                        <div class="rhc-header" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);">
+                            <div class="rhc-icon"><i class="bi bi-list-task"></i></div>
+                            <div class="rhc-badge">Tasks</div>
+                        </div>
+                        <div class="rhc-body">
+                            <div class="rhc-stat-row">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Total Tasks</span>
+                                    <span class="rhc-stat-desc">All generated tasks</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Completed</span>
+                                    <span class="rhc-stat-desc">Successfully finished</span>
+                                </div>
+                            </div>
+                            <div class="rhc-stat-row mt-2">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Active</span>
+                                    <span class="rhc-stat-desc">Open for workers</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Pending Proofs</span>
+                                    <span class="rhc-stat-desc">Awaiting review</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rhc-footer">
+                            <button class="rhc-btn" type="button"><i class="bi bi-check2-all"></i> Report Hub</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Card -->
+                <div class="col-xl-3 col-md-6">
+                    <div class="report-hub-card" onclick="openHub('ordersHub')">
+                        <div class="rhc-header" style="background:linear-gradient(135deg,#0D9488 0%,#0F766E 100%);">
+                            <div class="rhc-icon"><i class="bi bi-cart-check-fill"></i></div>
+                            <div class="rhc-badge">Orders</div>
+                        </div>
+                        <div class="rhc-body">
+                            <div class="rhc-stat-row">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Total Orders</span>
+                                    <span class="rhc-stat-desc">All client orders</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Approved</span>
+                                    <span class="rhc-stat-desc">Delivered orders</span>
+                                </div>
+                            </div>
+                            <div class="rhc-stat-row mt-2">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Pending</span>
+                                    <span class="rhc-stat-desc">Queued for processing</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">In Progress</span>
+                                    <span class="rhc-stat-desc">Currently active</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rhc-footer">
+                            <button class="rhc-btn" type="button"><i class="bi bi-cart3"></i> Report Hub</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /row -->
+
+            <!-- ══════════════════════════════════════════════════════════ -->
+            <!-- REVENUE HUB PANEL                                         -->
+            <!-- ══════════════════════════════════════════════════════════ -->
+            <div id="revenueHub" class="report-hub-panel" style="display:none;">
+                <div class="rhp-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rhp-icon-badge" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Revenue Report Hub</h5>
+                            <small style="color:var(--text-muted);">Filter and analyse revenue data</small>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="printHub('revenueHub')">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="closeHub('revenueHub')">
+                            <i class="bi bi-x-lg"></i> Close
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="rhp-filters">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Date From</label>
+                            <input type="date" id="rev-from" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Date To</label>
+                            <input type="date" id="rev-to" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Status</label>
+                            <select id="rev-status" class="form-select form-select-sm">
+                                <option value="all">All Statuses</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary btn-sm w-100" onclick="applyRevenueFilter()">
+                                <i class="bi bi-funnel"></i> Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Summary Stats -->
+                <div class="row g-3 mb-4 mt-1">
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-currency-dollar"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Revenue</span>
+                                <span class="stat-value" style="color:#fff;" id="rev-stat-total">$@Model.TotalRevenue.ToString("N2")</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Approved Orders</span>
+                                <span class="stat-value" style="color:#fff;" id="rev-stat-approved">@Model.OrdersCompleted</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass-split"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Pending Orders</span>
+                                <span class="stat-value" style="color:#fff;" id="rev-stat-pending">@Model.OrdersPending</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#8B5CF6 0%,#6D28D9 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calculator"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Avg Order Value</span>
+                                <span class="stat-value" style="color:#fff;" id="rev-stat-avg">$@Model.AvgOrderValue.ToString("N2")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0 chart-card chart-line">
+                            <div class="card-body">
+                                <h6 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Daily Revenue (Last 7 Days)</h6>
+                                <canvas id="revLineChart" style="width:100%!important;height:260px!important;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 chart-card chart-pie">
+                            <div class="card-body">
+                                <h6 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Order Status</h6>
+                                <canvas id="revPieChart" style="width:100%!important;max-width:300px!important;height:260px!important;margin:0 auto;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Detail Table -->
+                <div class="row g-4 mt-1 no-print-charts">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom" style="border-color:var(--border-subtle)!important;">
+                                    <h6 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>Approved Orders — Detail</h6>
+                                    <span class="badge bg-success">@Model.OrdersCompleted records</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="admin-table mb-0 align-middle" id="revTable">
+                                        <thead class="admin-thead">
+                                            <tr>
+                                                <th>#</th><th>Client</th><th>Platform</th><th>Service</th><th>Budget</th><th>Status</th><th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var o in Model.RevenueTableData)
+                                            {
+                                                <tr>
+                                                    <td>@o.Id</td>
+                                                    <td>@(o.FullName ?? o.Email ?? "—")</td>
+                                                    <td>@o.Platform</td>
+                                                    <td>@o.Service</td>
+                                                    <td class="fw-semibold">$@o.Budget.ToString("N2")</td>
+                                                    <td><span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 rounded-pill px-2">@o.Status</span></td>
+                                                    <td>@o.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                                </tr>
+                                            }
+                                            @if (!Model.RevenueTableData.Any())
+                                            {
+                                                <tr><td colspan="7" class="text-center text-muted py-4">No approved orders found</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /revenueHub -->
+
+            <!-- ══════════════════════════════════════════════════════════ -->
+            <!-- USERS HUB PANEL                                           -->
+            <!-- ══════════════════════════════════════════════════════════ -->
+            <div id="usersHub" class="report-hub-panel" style="display:none;">
+                <div class="rhp-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rhp-icon-badge" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Users Report Hub</h5>
+                            <small style="color:var(--text-muted);">User registration and activity analytics</small>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="printHub('usersHub')">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="closeHub('usersHub')">
+                            <i class="bi bi-x-lg"></i> Close
+                        </button>
+                    </div>
+                </div>
+                <!-- Filters -->
+                <div class="rhp-filters">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Registered From</label>
+                            <input type="date" id="usr-from" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Registered To</label>
+                            <input type="date" id="usr-to" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Status</label>
+                            <select id="usr-status" class="form-select form-select-sm">
+                                <option value="all">All Users</option>
+                                <option value="verified">Verified Only</option>
+                                <option value="unverified">Unverified Only</option>
+                                <option value="locked">Locked Only</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary btn-sm w-100" onclick="applyUsersFilter()">
+                                <i class="bi bi-funnel"></i> Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Users Stats -->
+                <div class="row g-3 mb-4 mt-1">
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-people-fill"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Users</span>
+                                <span class="stat-value" style="color:#fff;">@Model.TotalUsers</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-envelope-check"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Verified</span>
+                                <span class="stat-value" style="color:#fff;">@Model.VerifiedUsers</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-person-check"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Active</span>
+                                <span class="stat-value" style="color:#fff;">@Model.ActiveUsers</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#EF4444 0%,#B91C1C 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-shield-exclamation"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Locked</span>
+                                <span class="stat-value" style="color:#fff;">@Model.LockedUsers</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0 chart-card chart-line">
+                            <div class="card-body">
+                                <h6 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Daily Registrations (Last 7 Days)</h6>
+                                <canvas id="usrLineChart" style="width:100%!important;height:260px!important;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 chart-card chart-pie">
+                            <div class="card-body">
+                                <h6 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> User Status</h6>
+                                <canvas id="usrPieChart" style="width:100%!important;max-width:300px!important;height:260px!important;margin:0 auto;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Detail Table -->
+                <div class="row g-4 mt-1 no-print-charts">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom" style="border-color:var(--border-subtle)!important;">
+                                    <h6 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>Registered Users — Detail</h6>
+                                    <span class="badge bg-primary">@Model.TotalUsers records</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="admin-table mb-0 align-middle" id="usrTable">
+                                        <thead class="admin-thead">
+                                            <tr>
+                                                <th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Email Verified</th><th>Status</th><th>Joined</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var u in Model.UsersTableData)
+                                            {
+                                                <tr>
+                                                    <td>@u.Id</td>
+                                                    <td class="fw-medium">@(u.Name ?? "—")</td>
+                                                    <td>@(u.Email ?? "—")</td>
+                                                    <td>@(u.Phone ?? "—")</td>
+                                                    <td>
+                                                        @if (u.EmailVerifiedAt != null)
+                                                        {
+                                                            <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 rounded-pill px-2">Verified</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-25 rounded-pill px-2">Pending</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @if (u.Status == 1)
+                                                        {
+                                                            <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-25 rounded-pill px-2">Active</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-danger bg-opacity-15 text-danger border border-danger border-opacity-25 rounded-pill px-2">Locked</span>
+                                                        }
+                                                    </td>
+                                                    <td>@u.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                                </tr>
+                                            }
+                                            @if (!Model.UsersTableData.Any())
+                                            {
+                                                <tr><td colspan="7" class="text-center text-muted py-4">No users found</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /usersHub -->
+
+            <!-- ══════════════════════════════════════════════════════════ -->
+            <!-- TASKS HUB PANEL                                           -->
+            <!-- ══════════════════════════════════════════════════════════ -->
+            <div id="tasksHub" class="report-hub-panel" style="display:none;">
+                <div class="rhp-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rhp-icon-badge" style="background:linear-gradient(135deg,#10B981,#059669);">
+                            <i class="bi bi-list-task"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Tasks Report Hub</h5>
+                            <small style="color:var(--text-muted);">Task completion and proof analytics</small>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="printHub('tasksHub')">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="closeHub('tasksHub')">
+                            <i class="bi bi-x-lg"></i> Close
+                        </button>
+                    </div>
+                </div>
+                <div class="rhp-filters">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Date From</label>
+                            <input type="date" id="tsk-from" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Date To</label>
+                            <input type="date" id="tsk-to" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Proof Status</label>
+                            <select id="tsk-proof" class="form-select form-select-sm">
+                                <option value="all">All Proofs</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary btn-sm w-100" onclick="applyTasksFilter()">
+                                <i class="bi bi-funnel"></i> Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3 mb-4 mt-1">
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-list-task"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Tasks</span>
+                                <span class="stat-value" style="color:#fff;">@Model.TotalTasks</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-lightning-charge"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Active Tasks</span>
+                                <span class="stat-value" style="color:#fff;">@Model.ActiveTasks</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#0D9488 0%,#0F766E 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check2-all"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Completed</span>
+                                <span class="stat-value" style="color:#fff;">@Model.CompletedTasks</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-shield-exclamation"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Pending Proofs</span>
+                                <span class="stat-value" style="color:#fff;">@Model.PendingProofs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0 chart-card chart-line">
+                            <div class="card-body">
+                                <h6 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Daily Completions (Last 7 Days)</h6>
+                                <canvas id="tskLineChart" style="width:100%!important;height:260px!important;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 chart-card chart-pie">
+                            <div class="card-body">
+                                <h6 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Proof Status</h6>
+                                <canvas id="tskPieChart" style="width:100%!important;max-width:300px!important;height:260px!important;margin:0 auto;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks Detail Table -->
+                <div class="row g-4 mt-1 no-print-charts">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom" style="border-color:var(--border-subtle)!important;">
+                                    <h6 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>Generated Tasks — Detail</h6>
+                                    <span class="badge bg-success">@Model.TotalTasks records</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="admin-table mb-0 align-middle" id="tskTable">
+                                        <thead class="admin-thead">
+                                            <tr>
+                                                <th>#</th><th>Platform</th><th>Service</th><th>Slots</th><th>Reward</th><th>Status</th><th>Created</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var t in Model.TasksTableData)
+                                            {
+                                                <tr>
+                                                    <td>@t.Id</td>
+                                                    <td>@t.Platform</td>
+                                                    <td>@t.Service</td>
+                                                    <td>@t.Quantity</td>
+                                                    <td class="fw-semibold">$@t.Reward.ToString("N2")</td>
+                                                    <td>
+                                                        @{
+                                                            var tBadge = t.Status == "Active" ? "success" : t.Status == "Completed" ? "primary" : "secondary";
+                                                        }
+                                                        <span class="badge bg-@tBadge bg-opacity-15 text-@tBadge border border-@tBadge border-opacity-25 rounded-pill px-2">@t.Status</span>
+                                                    </td>
+                                                    <td>@t.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                                </tr>
+                                            }
+                                            @if (!Model.TasksTableData.Any())
+                                            {
+                                                <tr><td colspan="7" class="text-center text-muted py-4">No tasks found</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /tasksHub -->
+
+            <!-- ══════════════════════════════════════════════════════════ -->
+            <!-- ORDERS HUB PANEL                                          -->
+            <!-- ══════════════════════════════════════════════════════════ -->
+            <div id="ordersHub" class="report-hub-panel" style="display:none;">
+                <div class="rhp-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rhp-icon-badge" style="background:linear-gradient(135deg,#0D9488,#0F766E);">
+                            <i class="bi bi-cart-check-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Orders Report Hub</h5>
+                            <small style="color:var(--text-muted);">Order volume and status breakdown</small>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="printHub('ordersHub')">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="closeHub('ordersHub')">
+                            <i class="bi bi-x-lg"></i> Close
+                        </button>
+                    </div>
+                </div>
+                <div class="rhp-filters">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Date From</label>
+                            <input type="date" id="ord-from" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Date To</label>
+                            <input type="date" id="ord-to" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label rhp-label">Status</label>
+                            <select id="ord-status" class="form-select form-select-sm">
+                                <option value="all">All Statuses</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary btn-sm w-100" onclick="applyOrdersFilter()">
+                                <i class="bi bi-funnel"></i> Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3 mb-4 mt-1">
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#0D9488 0%,#0F766E 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-cart-check-fill"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Orders</span>
+                                <span class="stat-value" style="color:#fff;">@Model.TotalOrders</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Approved</span>
+                                <span class="stat-value" style="color:#fff;">@Model.OrdersCompleted</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass-split"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">Pending</span>
+                                <span class="stat-value" style="color:#fff;">@Model.OrdersPending</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
+                            <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-arrow-repeat"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label" style="color:rgba(255,255,255,0.75);">In Progress</span>
+                                <span class="stat-value" style="color:#fff;">@Model.OrdersInProgress</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0 chart-card chart-line">
+                            <div class="card-body">
+                                <h6 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Daily Orders (Last 7 Days)</h6>
+                                <canvas id="ordLineChart" style="width:100%!important;height:260px!important;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm border-0 chart-card chart-pie">
+                            <div class="card-body">
+                                <h6 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Order Status</h6>
+                                <canvas id="ordPieChart" style="width:100%!important;max-width:300px!important;height:260px!important;margin:0 auto;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Detail Table -->
+                <div class="row g-4 mt-1 no-print-charts">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-0">
+                                <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom" style="border-color:var(--border-subtle)!important;">
+                                    <h6 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>All Orders — Detail</h6>
+                                    <span class="badge bg-info">@Model.TotalOrders records</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="admin-table mb-0 align-middle" id="ordTable">
+                                        <thead class="admin-thead">
+                                            <tr>
+                                                <th>#</th><th>Client</th><th>Platform</th><th>Service</th><th>Budget</th><th>Status</th><th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var o in Model.OrdersTableData)
+                                            {
+                                                <tr>
+                                                    <td>@o.Id</td>
+                                                    <td>@(o.FullName ?? o.Email ?? "—")</td>
+                                                    <td>@o.Platform</td>
+                                                    <td>@o.Service</td>
+                                                    <td class="fw-semibold">$@o.Budget.ToString("N2")</td>
+                                                    <td>
+                                                        @{
+                                                            var oBadge = o.Status == "Approved" ? "success" : o.Status == "Pending" ? "warning" : o.Status == "in_progress" ? "info" : "danger";
+                                                            var oLabel = o.Status == "in_progress" ? "In Progress" : o.Status;
+                                                        }
+                                                        <span class="badge bg-@oBadge bg-opacity-15 text-@oBadge border border-@oBadge border-opacity-25 rounded-pill px-2">@oLabel</span>
+                                                    </td>
+                                                    <td>@o.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                                </tr>
+                                            }
+                                            @if (!Model.OrdersTableData.Any())
+                                            {
+                                                <tr><td colspan="7" class="text-center text-muted py-4">No orders found</td></tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /ordersHub -->
+
+        </div><!-- /admin-content -->
+    </main>
+</div><!-- /admin-layout -->
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+.rhc-stat-desc { font-size: 0.8rem; color: var(--text-muted); display: block; line-height: 1.4; }
+/* ── Report Hub Cards ── */
+.report-hub-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+.report-hub-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-glow), var(--shadow-card); }
+.rhc-header {
+    padding: 18px 20px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.rhc-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: rgba(255,255,255,0.2); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+}
+.rhc-badge {
+    background: rgba(255,255,255,0.18); color: #fff;
+    padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+}
+.rhc-body { padding: 16px 20px 10px; }
+.rhc-stat-row { display: flex; gap: 16px; }
+.rhc-stat { flex: 1; }
+.rhc-stat-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; }
+.rhc-stat-value { font-size: 1.15rem; font-weight: 800; color: var(--text-primary); display: block; line-height: 1.3; }
+.rhc-footer { padding: 10px 20px 16px; }
+.rhc-btn {
+    width: 100%; padding: 9px 0; border-radius: 10px;
+    background: var(--primary); color: #fff; border: none;
+    font-weight: 600; font-size: 0.85rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.rhc-btn:hover { background: var(--primary-dark); box-shadow: 0 4px 12px var(--primary-glow); }
+
+/* ── Report Hub Panel ── */
+.report-hub-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 18px;
+    padding: 0 0 28px;
+    margin-top: 8px;
+    box-shadow: var(--shadow-card);
+    animation: slideDown 0.25s ease;
+}
+@@keyframes slideDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+.rhp-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border-subtle);
+}
+.rhp-icon-badge {
+    width: 46px; height: 46px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.3rem; flex-shrink: 0;
+}
+.rhp-filters {
+    padding: 18px 28px;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.rhp-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.report-hub-panel .row.g-3, .report-hub-panel .row.g-4 { padding: 0 28px; }
+
+/* ── Print styles ── */
+@@media print {
+    /* Hide everything except the active hub's table */
+    .admin-sidebar, .admin-header, .report-hub-card,
+    .rhp-filters, .rhp-header, .row.g-4.mb-4,
+    .chart-card, canvas, .no-print-charts .chart-card,
+    script { display: none !important; }
+
+    /* Show ONLY the active panel's table section */
+    .report-hub-panel { display: none !important; }
+    .report-hub-panel.printing {
+        display: block !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #fff !important;
+    }
+    .report-hub-panel.printing .row.g-4 { padding: 0 !important; }
+    .report-hub-panel.printing canvas,
+    .report-hub-panel.printing .chart-card { display: none !important; }
+    .report-hub-panel.printing .no-print-charts { display: block !important; }
+
+    .admin-main { margin-left: 0 !important; }
+    body, html { background: #fff !important; color: #000 !important; font-size: 12px !important; }
+
+    /* ── Print header injected via JS ── */
+    .print-report-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #7C3AED;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+    }
+    .print-report-header .prt-brand { font-size: 1.1rem; font-weight: 800; color: #7C3AED; }
+    .print-report-header .prt-meta  { font-size: 0.75rem; color: #64748b; text-align: right; }
+
+    /* ── Print summary stats row ── */
+    .print-stats-row {
+        display: flex !important;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+    .print-stat-box {
+        flex: 1;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 14px;
+        background: #f8fafc;
+    }
+    .print-stat-box .ps-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; display: block; }
+    .print-stat-box .ps-value { font-size: 1rem; font-weight: 800; color: #1e293b; display: block; }
+
+    /* ── Print table ── */
+    .admin-table { width: 100% !important; border-collapse: collapse !important; font-size: 11px !important; }
+    .admin-table th { background: #7C3AED !important; color: #fff !important; padding: 8px 10px !important; text-align: left; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .admin-table td { padding: 7px 10px !important; border-bottom: 1px solid #e2e8f0 !important; color: #334155 !important; }
+    .admin-table tr:nth-child(even) td { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge { border: 1px solid #cbd5e1 !important; background: #f1f5f9 !important; color: #475569 !important; font-size: 10px !important; padding: 2px 6px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    /* Print footer */
+    .print-footer {
+        display: block !important;
+        text-align: center;
+        margin-top: 24px;
+        font-size: 0.7rem;
+        color: #94a3b8;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 8px;
+    }
+
+    @@page { margin: 18mm 14mm; }
+}
+</style>
+
+<script>
+    // ── Server data ──────────────────────────────────────────────────────────
+    var revLineLabels  = @Html.Raw(JsonSerializer.Serialize(Model.OrderTrendLabels));
+    var revLineData    = @Html.Raw(JsonSerializer.Serialize(Model.OrderTrendData));
+    var usrLineLabels  = @Html.Raw(JsonSerializer.Serialize(Model.UserTrendLabels));
+    var usrLineData    = @Html.Raw(JsonSerializer.Serialize(Model.UserTrendData));
+    var tskLineLabels  = @Html.Raw(JsonSerializer.Serialize(Model.TaskTrendLabels));
+    var tskLineData    = @Html.Raw(JsonSerializer.Serialize(Model.TaskTrendData));
+
+    var charts = {};
+
+    function isLight() { return document.body.classList.contains('light-mode'); }
+
+    // ── Open / Close hub panels ───────────────────────────────────────────────
+    function openHub(id) {
+        // Close all others first
+        ['revenueHub','usersHub','tasksHub','ordersHub'].forEach(function(h) {
+            if (h !== id) document.getElementById(h).style.display = 'none';
+        });
+        var el = document.getElementById(id);
+        el.style.display = 'block';
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Init chart for this hub on first open
+        if (id === 'revenueHub' && !charts.revLine)  initRevenueCharts();
+        if (id === 'usersHub'   && !charts.usrLine)  initUsersCharts();
+        if (id === 'tasksHub'   && !charts.tskLine)  initTasksCharts();
+        if (id === 'ordersHub'  && !charts.ordLine)  initOrdersCharts();
+    }
+
+    function closeHub(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function printHub(id) {
+        var hubTitles = {
+            revenueHub: 'Revenue Report',
+            usersHub:   'Users Report',
+            tasksHub:   'Tasks Report',
+            ordersHub:  'Orders Report'
+        };
+
+        // Stats to show per hub
+        var hubStats = {
+            revenueHub: [
+                { label: 'Total Revenue',   value: '$@Model.TotalRevenue.ToString("N2")' },
+                { label: 'Total Orders',    value: '@Model.TotalOrders' },
+                { label: 'Approved Orders', value: '@Model.OrdersCompleted' },
+                { label: 'Pending Orders',  value: '@Model.OrdersPending' },
+                { label: 'Avg Order Value', value: '$@Model.AvgOrderValue.ToString("N2")' }
+            ],
+            usersHub: [
+                { label: 'Total Users',    value: '@Model.TotalUsers' },
+                { label: 'Verified',       value: '@Model.VerifiedUsers' },
+                { label: 'Active',         value: '@Model.ActiveUsers' },
+                { label: 'Locked',         value: '@Model.LockedUsers' }
+            ],
+            tasksHub: [
+                { label: 'Total Tasks',    value: '@Model.TotalTasks' },
+                { label: 'Active Tasks',   value: '@Model.ActiveTasks' },
+                { label: 'Completed',      value: '@Model.CompletedTasks' },
+                { label: 'Pending Proofs', value: '@Model.PendingProofs' },
+                { label: 'Approved Proofs',value: '@Model.ApprovedProofs' }
+            ],
+            ordersHub: [
+                { label: 'Total Orders',   value: '@Model.TotalOrders' },
+                { label: 'Approved',       value: '@Model.OrdersCompleted' },
+                { label: 'Pending',        value: '@Model.OrdersPending' },
+                { label: 'In Progress',    value: '@Model.OrdersInProgress' },
+                { label: 'Total Revenue',  value: '$@Model.TotalRevenue.ToString("N2")' }
+            ]
+        };
+
+        var panel = document.getElementById(id);
+        panel.classList.add('printing');
+
+        // Build and inject print header
+        var now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+        var statsHtml = (hubStats[id] || []).map(function(s) {
+            return '<div class="print-stat-box"><span class="ps-label">' + s.label + '</span><span class="ps-value">' + s.value + '</span></div>';
+        }).join('');
+
+        var headerEl = document.createElement('div');
+        headerEl.className = 'print-report-header';
+        headerEl.id = '__printHeader';
+        headerEl.innerHTML =
+            '<div class="prt-brand"><i class="bi bi-rocket-takeoff"></i> Boosting Hub &nbsp;|&nbsp; ' + (hubTitles[id] || 'Report') + '</div>' +
+            '<div class="prt-meta">Generated: ' + now + '<br>Boosting Hub &mdash; Admin Panel</div>';
+
+        var statsEl = document.createElement('div');
+        statsEl.className = 'print-stats-row';
+        statsEl.id = '__printStats';
+        statsEl.innerHTML = statsHtml;
+
+        var footerEl = document.createElement('div');
+        footerEl.className = 'print-footer';
+        footerEl.id = '__printFooter';
+        footerEl.innerHTML = 'Boosting Hub &bull; ' + (hubTitles[id] || 'Report') + ' &bull; Generated ' + now + ' &bull; Confidential';
+
+        panel.insertBefore(statsEl, panel.firstChild);
+        panel.insertBefore(headerEl, panel.firstChild);
+        panel.appendChild(footerEl);
+
+        window.print();
+
+        // Clean up
+        panel.classList.remove('printing');
+        document.getElementById('__printHeader').remove();
+        document.getElementById('__printStats').remove();
+        document.getElementById('__printFooter').remove();
+    }
+
+    // ── Shared chart factory ─────────────────────────────────────────────────
+    function makeLineChart(canvasId, labels, data, color) {
+        return new Chart(document.getElementById(canvasId), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{ label: '', data: data,
+                    borderColor: color, backgroundColor: color.replace('1)', '0.12)').replace('#', 'rgba(').replace(/([0-9a-f]{2})/gi, function(m){ return parseInt(m,16)+','; }).slice(0,-1)+'0.12)',
+                    fill: true, tension: 0.4,
+                    pointBackgroundColor: color, pointRadius: 4 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+    }
+
+    function makePieChart(canvasId, labels, data, colors) {
+        return new Chart(document.getElementById(canvasId), {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '65%',
+                plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#334155' : 'rgba(241,245,249,0.65)', padding: 14 } } }
+            }
+        });
+    }
+</script>
+
+<script>
+    // ── Revenue charts ────────────────────────────────────────────────────────
+    function initRevenueCharts() {
+        charts.revLine = makeLineChart('revLineChart', revLineLabels, revLineData, '#3B82F6');
+        charts.revPie  = makePieChart('revPieChart',
+            ['Approved', 'Pending', 'Rejected'],
+            [@Model.OrdersCompleted, @Model.OrdersPending, @Model.TotalOrders - @Model.OrdersCompleted - @Model.OrdersPending],
+            ['#10B981','#F59E0B','#EF4444']);
+    }
+
+    function applyRevenueFilter() {
+        var from   = document.getElementById('rev-from').value;
+        var to     = document.getElementById('rev-to').value;
+        var status = document.getElementById('rev-status').value;
+        // Client-side visual feedback – server-side filtering can be wired via AJAX
+        console.log('Revenue filter:', from, to, status);
+        // TODO: fetch filtered data via AJAX and update charts.revLine / charts.revPie
+    }
+
+    // ── Users charts ──────────────────────────────────────────────────────────
+    function initUsersCharts() {
+        charts.usrLine = makeLineChart('usrLineChart', usrLineLabels, usrLineData, '#7C3AED');
+        charts.usrPie  = makePieChart('usrPieChart',
+            ['Active', 'Locked', 'Unverified'],
+            [@Model.ActiveUsers, @Model.LockedUsers, @Model.TotalUsers - @Model.VerifiedUsers],
+            ['#10B981','#EF4444','#F59E0B']);
+    }
+
+    function applyUsersFilter() {
+        var from   = document.getElementById('usr-from').value;
+        var to     = document.getElementById('usr-to').value;
+        var status = document.getElementById('usr-status').value;
+        console.log('Users filter:', from, to, status);
+    }
+
+    // ── Tasks charts ──────────────────────────────────────────────────────────
+    function initTasksCharts() {
+        charts.tskLine = makeLineChart('tskLineChart', tskLineLabels, tskLineData, '#10B981');
+        charts.tskPie  = makePieChart('tskPieChart',
+            ['Pending Proofs', 'Approved Proofs', 'Rejected Proofs'],
+            [@Model.PendingProofs, @Model.ApprovedProofs, @Model.RejectedProofs],
+            ['#F59E0B','#10B981','#EF4444']);
+    }
+
+    function applyTasksFilter() {
+        var from  = document.getElementById('tsk-from').value;
+        var to    = document.getElementById('tsk-to').value;
+        var proof = document.getElementById('tsk-proof').value;
+        console.log('Tasks filter:', from, to, proof);
+    }
+
+    // ── Orders charts ─────────────────────────────────────────────────────────
+    function initOrdersCharts() {
+        charts.ordLine = makeLineChart('ordLineChart', revLineLabels, revLineData, '#0D9488');
+        charts.ordPie  = makePieChart('ordPieChart',
+            ['Approved', 'Pending', 'In Progress'],
+            [@Model.OrdersCompleted, @Model.OrdersPending, @Model.OrdersInProgress],
+            ['#10B981','#F59E0B','#3B82F6']);
+    }
+
+    function applyOrdersFilter() {
+        var from   = document.getElementById('ord-from').value;
+        var to     = document.getElementById('ord-to').value;
+        var status = document.getElementById('ord-status').value;
+        console.log('Orders filter:', from, to, status);
+    }
+
+    // ── Profile dropdown ──────────────────────────────────────────────────────
+    function toggleProfileMenu() {
+        var menu = document.getElementById('profileMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+    document.addEventListener('click', function(e) {
+        var pd = document.getElementById('profileDropdown');
+        if (pd && !pd.contains(e.target)) {
+            var m = document.getElementById('profileMenu');
+            if (m) m.style.display = 'none';
+        }
+    });
+
+    // ── Theme change: update open charts ─────────────────────────────────────
+    var themeObserver = new MutationObserver(function() {
+        Object.values(charts).forEach(function(ch) {
+            if (!ch) return;
+            var light = isLight();
+            if (ch.config.type === 'line') {
+                ch.options.scales.x.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
+                ch.options.scales.x.grid.color  = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+                ch.options.scales.y.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
+                ch.options.scales.y.grid.color  = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            } else {
+                ch.options.plugins.legend.labels.color = light ? '#334155' : 'rgba(241,245,249,0.65)';
+            }
+            ch.update();
+        });
+    });
+    themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+</script>
+}

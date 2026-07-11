@@ -1,0 +1,98 @@
+@inject IReportService ReportService
+
+<div class="report-hub-card">
+    <div class="report-hub-header">
+        <div class="report-hub-icon" style="background:linear-gradient(135deg,#7C3AED,#5B21B6);">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div>
+            <div class="report-hub-title">Users Report</div>
+            <div class="report-hub-subtitle">Registration & account status</div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="report-metrics-grid">
+            <div class="report-metric">
+                <span class="report-metric-label">Total Users</span>
+                <span class="report-metric-value" style="color:#A78BFA;">@TotalUsers</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Verified</span>
+                <span class="report-metric-value" style="color:#10B981;">@VerifiedUsers</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Unverified</span>
+                <span class="report-metric-value" style="color:#F59E0B;">@UnverifiedUsers</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Active</span>
+                <span class="report-metric-value" style="color:#10B981;">@ActiveUsers</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Locked</span>
+                <span class="report-metric-value" style="color:#EF4444;">@LockedUsers</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Joined Today</span>
+                <span class="report-metric-value" style="color:#3B82F6;">@JoinedToday</span>
+            </div>
+        </div>
+
+        @if (DailyRegistrations.Any())
+        {
+            <div class="mt-3">
+                <div class="report-chart-label">Registrations (Last 7 Days)</div>
+                <div class="report-bar-chart">
+                    @{ var maxVal = DailyRegistrations.Values.Any() ? DailyRegistrations.Values.Max() : 1; }
+                    @foreach (var kvp in DailyRegistrations)
+                    {
+                        var pct = maxVal > 0 ? (double)kvp.Value / (double)maxVal * 100 : 0;
+                        <div class="report-bar-item">
+                            <div class="report-bar-label">@kvp.Key</div>
+                            <div class="report-bar-track">
+                                <div class="report-bar-fill" style="width:@pct.ToString("F0")%;background:linear-gradient(90deg,#7C3AED,#5B21B6);"></div>
+                            </div>
+                            <div class="report-bar-val">@kvp.Value</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private int TotalUsers;
+    private int VerifiedUsers;
+    private int UnverifiedUsers;
+    private int ActiveUsers;
+    private int LockedUsers;
+    private int JoinedToday;
+    private Dictionary<string, int> DailyRegistrations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var data = await ReportService.GetUsersReportAsync();
+            TotalUsers          = data.TotalUsers;
+            VerifiedUsers       = data.VerifiedUsers;
+            UnverifiedUsers     = data.UnverifiedUsers;
+            ActiveUsers         = data.ActiveUsers;
+            LockedUsers         = data.LockedUsers;
+            JoinedToday         = data.JoinedToday;
+            DailyRegistrations  = data.DailyRegistrations;
+        }
+        catch { }
+        finally { isLoading = false; }
+    }
+}

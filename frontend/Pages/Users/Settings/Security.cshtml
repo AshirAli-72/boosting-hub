@@ -80,12 +80,26 @@
                                 <div class="admin-card-body">
                                     <form method="post" asp-page-handler="UpdateProfile">
                                         <div class="input-group-custom mb-3">
-                                            <label asp-for="UpdateProfile.Email" class="form-label">Email Address</label>
-                                            <div class="input-icon-wrapper">
-                                                <input asp-for="UpdateProfile.Email" class="form-control" type="email" placeholder="Enter your email" />
-                                                <i class="input-icon bi bi-envelope"></i>
+                                            <label class="form-label">Email Address</label>
+                                            <div class="d-flex gap-2">
+                                                <div class="input-icon-wrapper flex-grow-1">
+                                                    <input type="email" id="newEmailInput" class="form-control" placeholder="Enter new email" value="@Model.CurrentUserEmail" />
+                                                    <i class="input-icon bi bi-envelope"></i>
+                                                </div>
+                                                <button type="button" class="btn btn-outline-primary btn-sm px-3" id="sendOtpBtn" onclick="sendEmailOtp()">
+                                                    <i class="bi bi-send"></i> Send OTP
+                                                </button>
                                             </div>
-                                            <span asp-validation-for="UpdateProfile.Email" class="text-danger small"></span>
+                                            <div id="otpSection" style="display:none;" class="mt-2">
+                                                <div class="d-flex gap-2">
+                                                    <input type="text" id="otpInput" class="form-control form-control-sm" placeholder="Enter 6-digit OTP" maxlength="6" style="letter-spacing:0.15em;font-size:1.1rem;" />
+                                                    <button type="button" class="btn btn-success btn-sm px-3" onclick="verifyEmailOtp()">
+                                                        <i class="bi bi-check-lg"></i> Verify
+                                                    </button>
+                                                </div>
+                                                <small class="text-muted">OTP expires in 5 minutes. <a href="#" onclick="sendEmailOtp();return false;">Resend</a></small>
+                                            </div>
+                                            <div id="emailOtpMsg" class="mt-1"></div>
                                         </div>
                                         <div class="input-group-custom mb-3">
                                             <label asp-for="UpdateProfile.Name" class="form-label">Full Name</label>
@@ -177,6 +191,70 @@
                 if (m) m.style.display = 'none';
             }
         });
+
+        function sendEmailOtp() {
+            var email = document.getElementById('newEmailInput').value.trim();
+            if (!email || email.indexOf('@@') === -1) {
+                showOtpMsg('Please enter a valid email address.', 'danger');
+                return;
+            }
+            var btn = document.getElementById('sendOtpBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            fetch('/api/email-update/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' },
+                body: JSON.stringify({ newEmail: email })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send"></i> Resend OTP';
+                if (data.success) {
+                    document.getElementById('otpSection').style.display = 'block';
+                    showOtpMsg(data.message, 'success');
+                } else {
+                    showOtpMsg(data.message, 'danger');
+                }
+            })
+            .catch(function() {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send"></i> Send OTP';
+                showOtpMsg('Request failed. Please try again.', 'danger');
+            });
+        }
+
+        function verifyEmailOtp() {
+            var otp = document.getElementById('otpInput').value.trim();
+            if (otp.length !== 6) {
+                showOtpMsg('Please enter the 6-digit OTP.', 'danger');
+                return;
+            }
+            fetch('/api/email-update/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ otp: otp })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    showOtpMsg(data.message, 'success');
+                    document.getElementById('otpSection').style.display = 'none';
+                    document.getElementById('sendOtpBtn').innerHTML = '<i class="bi bi-check-circle"></i> Verified';
+                    document.getElementById('sendOtpBtn').disabled = true;
+                    document.getElementById('newEmailInput').disabled = true;
+                    setTimeout(function() { window.location.href = '/logout'; }, 2500);
+                } else {
+                    showOtpMsg(data.message, 'danger');
+                }
+            })
+            .catch(function() { showOtpMsg('Verification failed. Please try again.', 'danger'); });
+        }
+
+        function showOtpMsg(msg, type) {
+            var el = document.getElementById('emailOtpMsg');
+            el.innerHTML = '<div class="alert alert-' + type + ' py-2 px-3 mb-0 small">' + msg + '</div>';
+        }
 
         // Initialize tabs correctly if they have issues with bootstrap
         var triggerTabList = [].slice.call(document.querySelectorAll('#settingsTab button'))
