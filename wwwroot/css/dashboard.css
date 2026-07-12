@@ -326,6 +326,130 @@ body.light-mode .admin-page .btn-close {
 .dash-description { font-size: 0.9rem; color: var(--text-muted); }
 .stat-label-upper { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 
+/* ── Dark theme text visibility fixes ── */
+/* Ensure labels, form text, and card text are always readable */
+.form-label,
+label {
+    color: var(--text-secondary) !important;
+}
+.input-group-custom .form-label,
+.input-group-custom label {
+    color: var(--text-secondary) !important;
+}
+/* tab navigation text */
+.nav-tabs .nav-link {
+    color: var(--text-secondary) !important;
+}
+/* table text in dark mode */
+.admin-table td,
+.admin-table th {
+    color: var(--text-secondary) !important;
+}
+.admin-thead th {
+    color: var(--text-primary) !important;
+}
+/* card body text */
+.card-body,
+.card-body p,
+.card-body span:not(.badge):not(.report-badge):not(.stat-value):not(.stat-label) {
+    color: var(--text-secondary);
+}
+/* text-muted override for dark mode */
+body:not(.light-mode) .text-muted {
+    color: var(--text-muted) !important;
+}
+/* small helper text in forms */
+body:not(.light-mode) small.text-muted,
+body:not(.light-mode) .form-text {
+    color: var(--text-secondary) !important;
+}
+/* Alert text in dark mode */
+body:not(.light-mode) .alert {
+    color: inherit;
+}
+body:not(.light-mode) .alert-success {
+    background: rgba(16,185,129,0.15) !important;
+    border-color: rgba(16,185,129,0.3) !important;
+    color: #6ee7b7 !important;
+}
+body:not(.light-mode) .alert-danger {
+    background: rgba(239,68,68,0.15) !important;
+    border-color: rgba(239,68,68,0.3) !important;
+    color: #fca5a5 !important;
+}
+body:not(.light-mode) .alert-warning {
+    background: rgba(245,158,11,0.15) !important;
+    border-color: rgba(245,158,11,0.3) !important;
+    color: #fcd34d !important;
+}
+body:not(.light-mode) .alert-info {
+    background: rgba(59,130,246,0.15) !important;
+    border-color: rgba(59,130,246,0.3) !important;
+    color: #93c5fd !important;
+}
+/* Select option text in dark mode */
+body:not(.light-mode) .form-select option {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
+/* Heading / h5 / h6 inside cards */
+body:not(.light-mode) h5,
+body:not(.light-mode) h6 {
+    color: var(--text-primary) !important;
+}
+/* Navigation link text that may appear gray */
+body:not(.light-mode) .nav-link:not(.active) {
+    color: var(--text-secondary) !important;
+}
+/* Profile menu text */
+body:not(.light-mode) .profile-menu-item {
+    color: var(--text-secondary) !important;
+}
+/* Sidebar text secondary color in dark */
+body:not(.light-mode) .sidebar-link {
+    color: rgba(241,245,249,0.65) !important;
+}
+body:not(.light-mode) .sidebar-link.active {
+    color: #fff !important;
+}
+body:not(.light-mode) .sidebar-link:hover {
+    color: #A78BFA !important;
+}
+/* Fix badge text visibility — bg-opacity-15 on dark bg is nearly invisible */
+body:not(.light-mode) .badge.bg-success.bg-opacity-15 {
+    background: rgba(16,185,129,0.25) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16,185,129,0.4) !important;
+}
+body:not(.light-mode) .badge.bg-warning.bg-opacity-15 {
+    background: rgba(245,158,11,0.25) !important;
+    color: #fcd34d !important;
+    border-color: rgba(245,158,11,0.4) !important;
+}
+body:not(.light-mode) .badge.bg-danger.bg-opacity-15 {
+    background: rgba(239,68,68,0.25) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(239,68,68,0.4) !important;
+}
+body:not(.light-mode) .badge.bg-primary.bg-opacity-15 {
+    background: rgba(124,58,237,0.25) !important;
+    color: #c4b5fd !important;
+    border-color: rgba(124,58,237,0.4) !important;
+}
+body:not(.light-mode) .badge.bg-info.bg-opacity-15 {
+    background: rgba(59,130,246,0.25) !important;
+    color: #93c5fd !important;
+    border-color: rgba(59,130,246,0.4) !important;
+}
+body:not(.light-mode) .badge.bg-secondary.bg-opacity-15 {
+    background: rgba(100,116,139,0.25) !important;
+    color: #cbd5e1 !important;
+    border-color: rgba(100,116,139,0.4) !important;
+}
+/* OTP small text */
+body:not(.light-mode) #otpSection small {
+    color: var(--text-secondary) !important;
+}
 /* ── Responsive ── */
 @media (max-width: 768px) {
     .admin-sidebar { width: 64px; }
@@ -428,27 +552,49 @@ body, .admin-sidebar, .admin-header, .admin-content, .admin-card, .stat-card,
    PROFESSIONAL PRINT STYLES
    ════════════════════════════════════════════════════════════════ */
 @media print {
-    /* Hide everything by default */
-    body * { visibility: hidden; }
+    .no-print, .admin-sidebar, .admin-header, .chart-card, canvas,
+    .row.g-3, .stat-card, .row.g-4, .card.shadow-sm.border-0 > .card-body > .d-flex,
+    .print-report-header, .print-footer, .print-table-title { display: none !important; }
+    .admin-main { margin-left: 0 !important; }
+    .admin-content { padding: 0 !important; background: #fff !important; }
+    body, html { background: #fff !important; color: #1E293B !important; }
 
-    /* Show only the panel marked as printing */
-    .report-hub-panel.printing,
-    .report-hub-panel.printing * { visibility: visible; }
-
-    /* Position the printing panel to fill the page */
-    .report-hub-panel.printing {
-        position: fixed !important;
-        top: 0 !important; left: 0 !important;
-        width: 100vw !important;
-        height: auto !important;
-        margin: 0 !important; padding: 20px 30px !important;
-        background: #fff !important;
-        color: #1E293B !important;
-        box-shadow: none !important;
-        border: none !important;
-        z-index: 99999 !important;
-        overflow: visible !important;
+    .print-report-header {
+        display: flex !important;
+        justify-content: space-between; align-items: flex-start;
+        border-bottom: 3px solid #7C3AED !important;
+        padding-bottom: 12px !important; margin-bottom: 16px !important;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
     }
+    .prt-brand { font-size: 16px; font-weight: 800; color: #7C3AED !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .prt-meta { font-size: 10px; color: #64748B !important; text-align: right; }
+
+    .print-table-title {
+        display: block !important;
+        font-size: 13px; font-weight: 700; color: #1E293B;
+        padding: 10px 0 8px; border-bottom: 1px solid #E2E8F0;
+        margin-bottom: 4px;
+    }
+
+    .admin-table { width: 100% !important; border-collapse: collapse !important; font-size: 11px !important; }
+    .admin-table th {
+        background: #7C3AED !important; color: #fff !important;
+        padding: 8px 10px !important; font-size: 10px !important;
+        text-transform: uppercase; letter-spacing: 0.04em;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .admin-table td { padding: 7px 10px !important; border-bottom: 1px solid #E2E8F0 !important; color: #334155 !important; font-size: 11px !important; background: #fff !important; }
+    .admin-table tr:nth-child(even) td { background: #F8FAFC !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .print-footer {
+        display: block !important;
+        margin-top: 24px; padding-top: 10px;
+        border-top: 1px solid #E2E8F0;
+        font-size: 9px; color: #94A3B8; text-align: center;
+    }
+
+    @@page { margin: 15mm; size: A4 portrait; }
+}
 
     /* Force white background, dark text */
     .report-hub-panel.printing .stat-card,

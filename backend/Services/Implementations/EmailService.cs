@@ -24,37 +24,28 @@ public class EmailService : IEmailService
         var fromEmail = _config["Email:FromEmail"] ?? "noreply@boostinghub.com";
         var fromName = _config["Email:FromName"] ?? "Boosting Hub";
 
-        if (!string.IsNullOrEmpty(smtpHost))
-        {
-            try
-            {
-                using var client = new SmtpClient(smtpHost, int.Parse(smtpPortStr))
-                {
-                    Credentials = new NetworkCredential(smtpUser, smtpPass),
-                    EnableSsl = true
-                };
-                var mailMsg = new MailMessage
-                {
-                    From = new MailAddress(fromEmail, fromName),
-                    Subject = subject,
-                    Body = body,
-                    IsBodyHtml = true
-                };
-                mailMsg.To.Add(to);
-                await client.SendMailAsync(mailMsg);
-                _logger.LogInformation("Email sent to {To}: {Subject}", to, subject);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to send email to {To}: {Subject}. Body:\n{Body}", to, subject, body);
-            }
-        }
-        else
+        if (string.IsNullOrEmpty(smtpHost))
         {
             _logger.LogWarning("SMTP not configured. Email NOT sent to {To}: {Subject}", to, subject);
-            _logger.LogWarning("--- Email Body Preview ---\n{Body}\n--- End ---", body);
-            await Task.CompletedTask;
+            throw new InvalidOperationException("SMTP host is not configured. Please check appsettings.json.");
         }
+
+        using var client = new SmtpClient(smtpHost, int.Parse(smtpPortStr))
+        {
+            Credentials = new NetworkCredential(smtpUser, smtpPass),
+            EnableSsl = true,
+            Timeout = 30000
+        };
+        using var mailMsg = new MailMessage
+        {
+            From = new MailAddress(fromEmail, fromName),
+            Subject = subject,
+            Body = body,
+            IsBodyHtml = true
+        };
+        mailMsg.To.Add(to);
+        await client.SendMailAsync(mailMsg);
+        _logger.LogInformation("Email sent to {To}: {Subject}", to, subject);
     }
 
     public async Task SendWelcomeEmailAsync(string to, string? name)

@@ -120,6 +120,7 @@ builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IProofVerificationService, ProofVerificationService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddHttpClient("ProofVerification", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(10);

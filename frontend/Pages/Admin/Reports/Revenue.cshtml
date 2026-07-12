@@ -1,0 +1,337 @@
+@page "/admin/reports/revenue"
+@model BoostingHub.frontend.Pages.Admin.Reports.RevenueModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Revenue Report";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+        <div class="admin-header">
+            <div class="d-flex align-items-center gap-3">
+                <h3 class="mb-0"><i class="bi bi-currency-dollar text-primary"></i> Revenue Report</h3>
+            </div>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> Admin
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-content" id="reportContent">
+
+            <!-- Action Buttons -->
+            <div class="d-flex align-items-center gap-2 mb-4 no-print">
+                <a href="/admin/reports" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+                <button class="btn btn-sm btn-outline-primary" onclick="printReport()">
+                    <i class="bi bi-printer"></i> Print
+                </button>
+            </div>
+
+            <!-- Print Header (hidden on screen) -->
+            <div class="print-report-header" id="printHeader">
+                <div class="prt-brand"><i class="bi bi-rocket-takeoff"></i> Boosting Hub &nbsp;|&nbsp; Revenue Report</div>
+                <div class="prt-meta" id="printMeta"></div>
+            </div>
+
+            <!-- Stats -->
+            <div class="row g-3 mb-4 print-stats-row" id="printStats">
+                <div class="col-md-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-currency-dollar"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Revenue</span>
+                            <span class="stat-value" style="color:#fff;">$@Model.TotalRevenue.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Approved Orders</span>
+                            <span class="stat-value" style="color:#fff;">@Model.OrdersCompleted</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Pending Orders</span>
+                            <span class="stat-value" style="color:#fff;">@Model.OrdersPending</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#8B5CF6 0%,#6D28D9 100%);border:none;">
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calculator"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Avg Order Value</span>
+                            <span class="stat-value" style="color:#fff;">$@Model.AvgOrderValue.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card shadow-sm border-0 mb-4 no-print">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label report-filter-label">Date From</label>
+                            <input type="date" id="rev-from" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label report-filter-label">Date To</label>
+                            <input type="date" id="rev-to" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label report-filter-label">Status</label>
+                            <select id="rev-status" class="form-select form-select-sm">
+                                <option value="all">All Statuses</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary btn-sm w-100" onclick="applyFilter()">
+                                <i class="bi bi-funnel"></i> Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts (hidden on print) -->
+            <div class="row g-4 mb-4 no-print">
+                <div class="col-md-8">
+                    <div class="card shadow-sm border-0 chart-card chart-line">
+                        <div class="card-body">
+                            <h6 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Daily Revenue (Last 7 Days)</h6>
+                            <canvas id="revLineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 chart-card chart-pie">
+                        <div class="card-body">
+                            <h6 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Order Status</h6>
+                            <canvas id="revPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Table -->
+            <div class="card shadow-sm border-0" id="reportTable">
+                <div class="card-body p-0">
+                    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom no-print" style="border-color:var(--border-subtle)!important;">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>Approved Orders — Detail</h6>
+                        <span class="badge bg-success">@Model.OrdersCompleted records</span>
+                    </div>
+                    <div class="print-table-title">Approved Orders — Detail</div>
+                    <div class="table-responsive">
+                        <table class="admin-table mb-0 align-middle" id="revTable">
+                            <thead class="admin-thead">
+                                <tr>
+                                    <th>#</th><th>Client</th><th>Platform</th><th>Service</th><th>Budget</th><th>Status</th><th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var o in Model.RevenueTableData)
+                                {
+                                    <tr>
+                                        <td>@o.Id</td>
+                                        <td>@(o.FullName ?? o.Email ?? "—")</td>
+                                        <td>@o.Platform</td>
+                                        <td>@o.Service</td>
+                                        <td class="fw-semibold">$@o.Budget.ToString("N2")</td>
+                                        <td><span class="report-badge report-badge-success">@o.Status</span></td>
+                                        <td>@o.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    </tr>
+                                }
+                                @if (!Model.RevenueTableData.Any())
+                                {
+                                    <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted);">No approved orders found</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Print Footer -->
+            <div class="print-footer" id="printFooter">
+                Boosting Hub &bull; Revenue Report &bull; <span id="printDate"></span> &bull; Confidential
+            </div>
+
+        </div><!-- /admin-content -->
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+.report-filter-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+/* Status badges with solid readable colors */
+.report-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 700; white-space: nowrap;
+}
+.report-badge-success  { background: #10B981; color: #fff; }
+.report-badge-warning  { background: #F59E0B; color: #1a1a1a; }
+.report-badge-danger   { background: #EF4444; color: #fff; }
+.report-badge-info     { background: #3B82F6; color: #fff; }
+.report-badge-secondary{ background: #64748B; color: #fff; }
+
+/* Print elements hidden on screen */
+.print-report-header, .print-footer, .print-table-title { display: none; }
+
+@@media print {
+    .no-print, .admin-sidebar, .admin-header { display: none !important; }
+    .row.g-3, .stat-card, .print-stats-row { display: none !important; }
+    .admin-main { margin-left: 0 !important; }
+    .admin-content { padding: 0 !important; background: #fff !important; }
+    body, html { background: #fff !important; color: #1E293B !important; }
+
+    .print-report-header {
+        display: flex !important;
+        justify-content: space-between; align-items: flex-start;
+        border-bottom: 3px solid #3B82F6;
+        padding-bottom: 12px; margin-bottom: 16px;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .prt-brand { font-size: 16px; font-weight: 800; color: #3B82F6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .prt-meta { font-size: 10px; color: #64748B !important; text-align: right; }
+
+    .print-stats-row .stat-card {
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+        break-inside: avoid;
+    }
+    .print-stats-row { margin-bottom: 16px !important; }
+
+    .print-table-title {
+        display: block !important;
+        font-size: 13px; font-weight: 700; color: #1E293B;
+        padding: 10px 0 8px; border-bottom: 1px solid #E2E8F0;
+        margin-bottom: 4px;
+    }
+
+    .admin-table { width: 100% !important; border-collapse: collapse !important; font-size: 11px !important; }
+    .admin-table th {
+        background: #3B82F6 !important; color: #fff !important;
+        padding: 8px 10px !important; font-size: 10px !important;
+        text-transform: uppercase; letter-spacing: 0.04em;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    .admin-table td { padding: 7px 10px !important; border-bottom: 1px solid #E2E8F0 !important; color: #334155 !important; font-size: 11px !important; background: #fff !important; }
+    .admin-table tr:nth-child(even) td { background: #F8FAFC !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .report-badge { font-size: 9px !important; padding: 2px 6px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    .print-footer {
+        display: block !important;
+        margin-top: 24px; padding-top: 10px;
+        border-top: 1px solid #E2E8F0;
+        font-size: 9px; color: #94A3B8; text-align: center;
+    }
+
+    @@page { margin: 15mm; size: A4 portrait; }
+}
+</style>
+<script>
+    var revLineLabels = @Html.Raw(JsonSerializer.Serialize(Model.OrderTrendLabels));
+    var revLineData   = @Html.Raw(JsonSerializer.Serialize(Model.OrderTrendData));
+
+    function isLight() { return document.body.classList.contains('light-mode'); }
+
+    var revLine = new Chart(document.getElementById('revLineChart'), {
+        type: 'line',
+        data: {
+            labels: revLineLabels,
+            datasets: [{ label: 'Revenue Orders', data: revLineData,
+                borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.12)',
+                fill: true, tension: 0.4, pointBackgroundColor: '#3B82F6', pointRadius: 4 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } },
+                y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+
+    var revPie = new Chart(document.getElementById('revPieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Approved', 'Pending', 'Other'],
+            datasets: [{ data: [@Model.OrdersCompleted, @Model.OrdersPending, @Model.TotalOrders - @Model.OrdersCompleted - @Model.OrdersPending],
+                backgroundColor: ['#10B981','#F59E0B','#EF4444'], borderWidth: 0, hoverOffset: 6 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '65%',
+            plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#334155' : 'rgba(241,245,249,0.65)', padding: 14 } } }
+        }
+    });
+
+    function applyFilter() {
+        var from   = document.getElementById('rev-from').value;
+        var to     = document.getElementById('rev-to').value;
+        var status = document.getElementById('rev-status').value;
+        // Filter table rows client-side
+        var rows = document.querySelectorAll('#revTable tbody tr');
+        rows.forEach(function(row) {
+            var dateCell = row.cells[6] ? row.cells[6].textContent.trim() : '';
+            var statusCell = row.cells[5] ? row.cells[5].textContent.trim() : '';
+            var rowDate = dateCell ? new Date(dateCell) : null;
+            var fromDate = from ? new Date(from) : null;
+            var toDate = to ? new Date(to + 'T23:59:59') : null;
+            var matchDate = (!fromDate || (rowDate && rowDate >= fromDate)) && (!toDate || (rowDate && rowDate <= toDate));
+            var matchStatus = status === 'all' || statusCell === status;
+            row.style.display = (matchDate && matchStatus) ? '' : 'none';
+        });
+    }
+
+    function printReport() {
+        var now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+        document.getElementById('printMeta').innerHTML = 'Generated: ' + now + '<br>Boosting Hub — Admin Panel';
+        document.getElementById('printDate').textContent = now;
+        window.print();
+    }
+
+    function toggleProfileMenu() {
+        var menu = document.getElementById('profileMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+    document.addEventListener('click', function(e) {
+        var pd = document.getElementById('profileDropdown');
+        if (pd && !pd.contains(e.target)) {
+            var m = document.getElementById('profileMenu');
+            if (m) m.style.display = 'none';
+        }
+    });
+
+    new MutationObserver(function() {
+        var light = isLight();
+        [revLine].forEach(function(ch) {
+            if (!ch) return;
+            ch.options.scales.x.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
+            ch.options.scales.x.grid.color  = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            ch.options.scales.y.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
+            ch.options.scales.y.grid.color  = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            ch.update();
+        });
+        revPie.options.plugins.legend.labels.color = light ? '#334155' : 'rgba(241,245,249,0.65)';
+        revPie.update();
+    }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+</script>
+}

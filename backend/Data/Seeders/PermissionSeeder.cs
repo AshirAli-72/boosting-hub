@@ -7,7 +7,16 @@ public static class PermissionSeeder
 {
     public static async Task SeedAsync(ApplicationDbContext db)
     {
-        var existingSlugs = await db.Permissions.Select(p => p.Slugs).ToHashSetAsync();
+        var existingSlugs = new HashSet<string>();
+        try
+        {
+            existingSlugs = (await db.Permissions.Select(p => p.Slugs).ToHashSetAsync())!;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[PermissionSeeder] Could not read permissions table: {ex.Message}. Skipping seed.");
+            return;
+        }
 
         var permissions = new List<Permission>
         {
@@ -57,7 +66,7 @@ public static class PermissionSeeder
 
         foreach (var permission in permissions)
         {
-            if (!existingSlugs.Contains(permission.Slugs))
+            if (permission.Slugs != null && !existingSlugs.Contains(permission.Slugs))
             {
                 permission.CreatedAt = DateTime.UtcNow;
                 db.Permissions.Add(permission);

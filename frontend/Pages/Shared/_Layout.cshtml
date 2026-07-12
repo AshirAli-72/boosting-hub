@@ -22,7 +22,6 @@
     }
     else if (ViewData["BodyClass"]?.ToString() == "user-dashboard-page")
     {
-        <link rel="stylesheet" href="~/css/auth.css" />
         <link rel="stylesheet" href="~/css/dashboard.css" />
     }
     @await RenderSectionAsync("Styles", required: false)
@@ -66,7 +65,7 @@
                 <div class="hero-bg-glow-2"></div>
                 <div class="hero-grid">
                     <div>
-                        <div class="hero-badge"><i class="bi bi-lightning-fill"></i> Trusted by 10,000+ creators</div>
+                        <div class="hero-badge"><i class="bi bi-lightning-fill"></i> Trusted by @((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+ creators</div>
                         <h1 class="hero-title">
                             Grow Your Social<br>
                             <span class="hero-title-gradient">Engagement</span><br>
@@ -85,8 +84,8 @@
                             </a>
                         </div>
                         <div class="hero-stats">
-                            <div class="hero-stat"><h3>10K+</h3><p>Happy Clients</p></div>
-                            <div class="hero-stat"><h3>1M+</h3><p>Orders Completed</p></div>
+                            <div class="hero-stat"><h3>@(((ViewData["LandingTotalUsers"] as int? ?? 0) / 1000.0).ToString("0.#"))K+</h3><p>Happy Clients</p></div>
+                            <div class="hero-stat"><h3>@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</h3><p>Orders Completed</p></div>
                             <div class="hero-stat"><h3>99.9%</h3><p>Uptime Guarantee</p></div>
                         </div>
                     </div>
@@ -171,8 +170,8 @@
                     <p class="section-subtitle section-subtitle-dark">Join thousands of satisfied content creators who trust Boosting Hub for their social media growth.</p>
                 </div>
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-number">10,000+</div><div class="stat-label">Active Clients</div></div>
-                    <div class="stat-card"><div class="stat-number">1,000,000+</div><div class="stat-label">Orders Fulfilled</div></div>
+                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Active Clients</div></div>
+                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Orders Fulfilled</div></div>
                     <div class="stat-card"><div class="stat-number">50+</div><div class="stat-label">Countries Served</div></div>
                     <div class="stat-card"><div class="stat-number">4.9/5</div><div class="stat-label">Average Rating</div></div>
                 </div>
@@ -214,37 +213,27 @@
                             <div class="inquiry-grid">
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Platform <span>*</span></label>
-                                    <div class="dropdown-checkbox">
-                                        <button type="button" class="dropdown-checkbox-btn" id="platform-btn" onclick="toggleDropdown('platform-menu', this)">
-                                            <span id="platform-label">Select Platform(s)</span>
-                                            <i class="bi bi-chevron-down"></i>
-                                        </button>
-                                        <div class="dropdown-checkbox-menu" id="platform-menu">
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="platform" value="Instagram" onchange="updateDD('platform')"> <i class="bi bi-instagram" style="color:#E1306C;"></i> Instagram</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="platform" value="YouTube" onchange="updateDD('platform')"> <i class="bi bi-youtube" style="color:#FF0000;"></i> YouTube</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="platform" value="TikTok" onchange="updateDD('platform')"> <i class="bi bi-tiktok"></i> TikTok</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="platform" value="Twitter" onchange="updateDD('platform')"> <i class="bi bi-twitter-x"></i> Twitter / X</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="platform" value="Facebook" onchange="updateDD('platform')"> <i class="bi bi-facebook" style="color:#1877F2;"></i> Facebook</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="platform" value="LinkedIn" onchange="updateDD('platform')"> <i class="bi bi-linkedin" style="color:#0A66C2;"></i> LinkedIn</label>
-                                        </div>
-                                    </div>
+                                    <select id="iq-platform" required style="width:100%;padding:10px 14px;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;outline:none;">
+                                        <option value="" disabled selected>Select a Platform</option>
+                                        <option value="Instagram"><i class="bi bi-instagram"></i> Instagram</option>
+                                        <option value="YouTube">YouTube</option>
+                                        <option value="TikTok">TikTok</option>
+                                        <option value="Twitter">Twitter / X</option>
+                                        <option value="Facebook">Facebook</option>
+                                        <option value="LinkedIn">LinkedIn</option>
+                                    </select>
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Service Type <span>*</span></label>
-                                    <div class="dropdown-checkbox">
-                                        <button type="button" class="dropdown-checkbox-btn" id="service-btn" onclick="toggleDropdown('service-menu', this)">
-                                            <span id="service-label">Select Service(s)</span>
-                                            <i class="bi bi-chevron-down"></i>
-                                        </button>
-                                        <div class="dropdown-checkbox-menu" id="service-menu">
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="service" value="Followers" onchange="updateDD('service')"> <i class="bi bi-person-plus-fill"></i> Followers</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="service" value="Likes" onchange="updateDD('service')"> <i class="bi bi-hand-thumbs-up-fill"></i> Likes</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="service" value="Views" onchange="updateDD('service')"> <i class="bi bi-eye-fill"></i> Views</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="service" value="Comments" onchange="updateDD('service')"> <i class="bi bi-chat-fill"></i> Comments</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="service" value="Shares" onchange="updateDD('service')"> <i class="bi bi-share-fill"></i> Shares</label>
-                                            <label class="dropdown-checkbox-item"><input type="checkbox" name="service" value="Subscribers" onchange="updateDD('service')"> <i class="bi bi-bell-fill"></i> Subscribers</label>
-                                        </div>
-                                    </div>
+                                    <select id="iq-service" required style="width:100%;padding:10px 14px;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;outline:none;">
+                                        <option value="" disabled selected>Select a Service</option>
+                                        <option value="Followers">Followers</option>
+                                        <option value="Likes">Likes</option>
+                                        <option value="Views">Views</option>
+                                        <option value="Comments">Comments</option>
+                                        <option value="Shares">Shares</option>
+                                        <option value="Subscribers">Subscribers</option>
+                                    </select>
                                 </div>
                                 <div class="inquiry-field">
                                     <label>Quantity <span>*</span></label>
@@ -365,9 +354,61 @@
                 </nav>
             </header>
         }
-        <main>
-            @RenderBody()
-        </main>
+        var rp = Context.Request.Path.Value?.ToLower() ?? "";
+        var isAdm = ViewData["BodyClass"]?.ToString() == "admin-page";
+        var isUsr = ViewData["BodyClass"]?.ToString() == "user-dashboard-page";
+        @if (isAdm || isUsr)
+        {
+            <div class="admin-layout">
+                @if (isAdm)
+                {
+                    <aside class="admin-sidebar">
+                        <div class="sidebar-brand">
+                            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+                            <span>Boosting Hub</span>
+                        </div>
+                        <nav class="sidebar-nav">
+                            <a href="/admin-panel" class="sidebar-link @(rp == "/admin-panel" ? "active" : "")"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                            <a href="/admin/reports" class="sidebar-link @(rp.StartsWith("/admin/reports") ? "active" : "")"><i class="bi bi-bar-chart-line"></i> Reports</a>
+                            <a href="/admin/in-progress" class="sidebar-link @(rp == "/admin/in-progress" ? "active" : "")"><i class="bi bi-hourglass-split"></i> In Progress</a>
+                            <a href="/admin/completed" class="sidebar-link @(rp == "/admin/completed" ? "active" : "")"><i class="bi bi-check2-all"></i> Completed</a>
+                            <a href="/admin/inquiries" class="sidebar-link @(rp == "/admin/inquiries" ? "active" : "")"><i class="bi bi-inbox"></i> Client Requirements</a>
+                            <a href="/admin/proof-review" class="sidebar-link @(rp == "/admin/proof-review" ? "active" : "")"><i class="bi bi-shield-check"></i> Proof Review</a>
+                            <div class="sidebar-divider"></div>
+                            <a href="/admin/settings" class="sidebar-link @(rp.StartsWith("/admin/settings") || rp.StartsWith("/admin/roles") || rp.StartsWith("/admin/users") ? "active" : "")"><i class="bi bi-gear"></i> Settings</a>
+                            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        </nav>
+                    </aside>
+                }
+                else if (isUsr)
+                {
+                    <aside class="admin-sidebar user-sidebar">
+                        <div class="sidebar-brand">
+                            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
+                            <span>Boosting Hub</span>
+                        </div>
+                        <nav class="sidebar-nav">
+                            <a href="/dashboard" class="sidebar-link @(rp == "/dashboard" ? "active" : "")"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                            <a href="/tasks" class="sidebar-link @(rp == "/tasks" ? "active" : "")"><i class="bi bi-list-task"></i> Available Tasks</a>
+                            <a href="/my-tasks" class="sidebar-link @(rp == "/my-tasks" ? "active" : "")"><i class="bi bi-check2-square"></i> My Tasks</a>
+                            <a href="/wallet" class="sidebar-link @(rp == "/wallet" ? "active" : "")"><i class="bi bi-wallet2"></i> Wallet</a>
+                            <a href="/user/settings" class="sidebar-link @(rp.StartsWith("/user/settings") || rp == "/settings" || rp.StartsWith("/user/accounts") ? "active" : "")"><i class="bi bi-gear"></i> Settings</a>
+                            <div class="sidebar-divider"></div>
+                            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                        </nav>
+                    </aside>
+                }
+                <main class="admin-main">
+                    @RenderBody()
+                </main>
+            </div>
+        }
+        else
+        {
+            <main>
+                @RenderBody()
+            </main>
+        }
     }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -383,13 +424,10 @@
         async function submitInquiry(e) {
             e.preventDefault();
 
-            // Gather platforms
-            const platforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(cb => cb.value);
-            if (platforms.length === 0) { alert('Please select at least one Platform.'); return; }
-
-            // Gather services
-            const services = Array.from(document.querySelectorAll('input[name="service"]:checked')).map(cb => cb.value);
-            if (services.length === 0) { alert('Please select at least one Service Type.'); return; }
+            var platform = document.getElementById('iq-platform').value;
+            var service = document.getElementById('iq-service').value;
+            if (!platform) { alert('Please select a Platform.'); return; }
+            if (!service) { alert('Please select a Service Type.'); return; }
 
             const qty = parseInt(document.getElementById('iq-qty').value);
             const url = document.getElementById('iq-url').value;
@@ -410,8 +448,8 @@
                     body: JSON.stringify({
                         fullName: name,
                         email: email,
-                        platform: platforms.join(', '),
-                        service: services.join(', '),
+                        platform: platform,
+                        service: service,
                         quantity: qty,
                         socialMediaUrl: url,
                         budget: budget,
@@ -421,10 +459,14 @@
                 });
                 const data = await resp.json();
                 if (resp.ok) {
-                    document.getElementById('inquiryForm').style.display = 'none';
-                    var errEl = document.getElementById('inquiryError');
-                    if (errEl) errEl.style.display = 'none';
                     document.getElementById('inquirySuccess').style.display = 'flex';
+                    document.getElementById('inquiryError').style.display = 'none';
+                    document.getElementById('inquiryForm').reset();
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-send"></i> Submit Requirements';
+                    setTimeout(function() {
+                        document.getElementById('inquirySuccess').style.display = 'none';
+                    }, 5000);
                 } else {
                     var errEl = document.getElementById('inquiryError');
                     if (errEl) { errEl.style.display = 'block'; document.getElementById('inquiryErrorText').textContent = data.message || 'Submission failed.'; }
@@ -437,27 +479,6 @@
                 btn.innerHTML = '<i class="bi bi-send"></i> Submit Requirements';
             }
         }
-        function toggleDropdown(menuId, btn) {
-            var menu = document.getElementById(menuId);
-            var isOpen = menu.classList.contains('open');
-            document.querySelectorAll('.dropdown-checkbox-menu.open').forEach(function(m) { m.classList.remove('open'); });
-            document.querySelectorAll('.dropdown-checkbox-btn.open').forEach(function(b) { b.classList.remove('open'); });
-            if (!isOpen) { menu.classList.add('open'); if (btn) btn.classList.add('open'); }
-        }
-        function updateDD(prefix) {
-            var checked = document.querySelectorAll('input[name="' + prefix + '"]:checked');
-            var label = document.getElementById(prefix + '-label');
-            if (checked.length === 0) { label.textContent = 'Select ' + (prefix === 'platform' ? 'Platform' : 'Service') + '(s)'; }
-            else { label.textContent = checked.length + ' selected'; }
-            if (checked.length > 0) { document.getElementById(prefix + '-btn').classList.add('has-value'); }
-            else { document.getElementById(prefix + '-btn').classList.remove('has-value'); }
-        }
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.dropdown-checkbox')) {
-                document.querySelectorAll('.dropdown-checkbox-menu.open').forEach(function(m) { m.classList.remove('open'); });
-                document.querySelectorAll('.dropdown-checkbox-btn.open').forEach(function(b) { b.classList.remove('open'); });
-            }
-        });
         document.addEventListener('DOMContentLoaded', () => {
             if (document.documentElement.classList.contains('light-mode')) {
                 document.body.classList.add('light-mode');

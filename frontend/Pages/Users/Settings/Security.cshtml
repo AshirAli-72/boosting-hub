@@ -6,35 +6,6 @@
     var isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
 }
 
-<div class="admin-layout">
-    <aside class="admin-sidebar @(!isAdmin ? "user-sidebar" : "")">
-        <div class="sidebar-brand">
-            <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
-            <span>Boosting Hub</span>
-        </div>
-        <nav class="sidebar-nav">
-            @if (isAdmin)
-            {
-                <a href="/admin-panel" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                <a href="/admin/in-progress" class="sidebar-link"><i class="bi bi-hourglass-split"></i> In Progress</a>
-                <a href="/admin/completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
-                <a href="/admin/inquiries" class="sidebar-link"><i class="bi bi-inbox"></i> Client Requirements</a>
-                <div class="sidebar-divider"></div>
-                <a href="/user/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
-            }
-            else
-            {
-                <a href="/dashboard" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
-                <a href="/tasks" class="sidebar-link"><i class="bi bi-list-task"></i> Available Tasks</a>
-                <a href="/my-tasks" class="sidebar-link"><i class="bi bi-check2-square"></i> My Tasks</a>
-                <a href="/wallet" class="sidebar-link"><i class="bi bi-wallet2"></i> Wallet</a>
-                <a href="/user/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
-            }
-            <div class="sidebar-divider"></div>
-            <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
-        </nav>
-    </aside>
-    <main class="admin-main">
         <div class="admin-header">
             <div class="d-flex align-items-center gap-3">
                 <a href="/user/settings" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
@@ -81,14 +52,9 @@
                                     <form method="post" asp-page-handler="UpdateProfile">
                                         <div class="input-group-custom mb-3">
                                             <label class="form-label">Email Address</label>
-                                            <div class="d-flex gap-2">
-                                                <div class="input-icon-wrapper flex-grow-1">
-                                                    <input type="email" id="newEmailInput" class="form-control" placeholder="Enter new email" value="@Model.CurrentUserEmail" />
-                                                    <i class="input-icon bi bi-envelope"></i>
-                                                </div>
-                                                <button type="button" class="btn btn-outline-primary btn-sm px-3" id="sendOtpBtn" onclick="sendEmailOtp()">
-                                                    <i class="bi bi-send"></i> Send OTP
-                                                </button>
+                                            <div class="input-icon-wrapper">
+                                                <input type="email" id="newEmailInput" class="form-control" placeholder="Enter new email" value="@Model.CurrentUserEmail" onchange="handleEmailChange()" />
+                                                <i class="input-icon bi bi-envelope"></i>
                                             </div>
                                             <div id="otpSection" style="display:none;" class="mt-2">
                                                 <div class="d-flex gap-2">
@@ -97,7 +63,7 @@
                                                         <i class="bi bi-check-lg"></i> Verify
                                                     </button>
                                                 </div>
-                                                <small class="text-muted">OTP expires in 5 minutes. <a href="#" onclick="sendEmailOtp();return false;">Resend</a></small>
+                                                <small style="color:var(--text-secondary);">OTP expires in 5 minutes. <a href="#" onclick="sendEmailOtp();return false;">Resend</a></small>
                                             </div>
                                             <div id="emailOtpMsg" class="mt-1"></div>
                                         </div>
@@ -117,7 +83,7 @@
                                             </div>
                                             <span asp-validation-for="UpdateProfile.Phone" class="text-danger small"></span>
                                         </div>
-                                        <button type="submit" class="btn btn-auth w-100"><i class="bi bi-save"></i> Save Changes</button>
+                                        <button type="submit" class="btn btn-auth w-100" id="saveProfileBtn" onclick="return checkEmailBeforeSave(event)"><i class="bi bi-save"></i> Save Changes</button>
                                     </form>
                                 </div>
                             </div>
@@ -168,10 +134,59 @@
                 </div>
             </div>
         </div>
-    </main>
-</div>
 
-@section Scripts {
+@section Styles {
+<style>
+    .input-icon-wrapper { position: relative; }
+    .input-icon-wrapper .input-icon {
+        position: absolute; left: 16px; top: 50%;
+        transform: translateY(-50%);
+        color: #94A3B8; font-size: 1.1rem;
+        z-index: 4; pointer-events: none; transition: color 0.2s;
+    }
+    .input-icon-wrapper .form-control {
+        padding-left: 46px; height: 50px;
+        border: 2px solid #E2E8F0; border-radius: 12px;
+        font-size: 0.95rem; transition: all 0.25s;
+        background: #fff;
+    }
+    .input-icon-wrapper .form-control:focus {
+        border-color: #7C3AED;
+        box-shadow: 0 0 0 4px rgba(124,58,237,0.10);
+    }
+    .input-icon-wrapper .form-control:focus ~ .input-icon { color: #7C3AED; }
+    .input-group-custom .form-label {
+        font-weight: 600; font-size: 0.875rem; color: #475569; margin-bottom: 6px;
+    }
+    .btn-auth {
+        height: 50px; border-radius: 12px;
+        font-weight: 600; font-size: 1rem;
+        background: linear-gradient(135deg, #7C3AED 0%, #0D9488 100%);
+        border: none; color: #fff;
+        transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .btn-auth:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(124,58,237,0.35);
+        color: #fff;
+    }
+    .btn-auth:active { transform: translateY(0); }
+    .input-validation-error {
+        border-color: #EF4444 !important;
+        box-shadow: 0 0 0 4px rgba(239,68,68,0.10) !important;
+    }
+    .input-validation-error ~ .input-icon { color: #EF4444 !important; }
+    .field-validation-error {
+        display: block; color: #EF4444; font-size: 0.8rem; margin-top: 4px;
+    }
+    .auth-alert {
+        border-radius: 12px; padding: 14px 16px;
+        border: none; font-size: 0.9rem; margin-bottom: 20px;
+    }
+    .auth-alert-success { background: #F0FDF4; color: #166534; border-left: 4px solid #10B981; }
+    .auth-alert-danger  { background: #FEF2F2; color: #991B1B; border-left: 4px solid #EF4444; }
+</style>
+}
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/site.js"></script>
     <script>
@@ -192,15 +207,43 @@
             }
         });
 
+        var _originalEmail = '@Model.CurrentUserEmail';
+        var _emailVerified = false;
+
+        function handleEmailChange() {
+            var current = document.getElementById('newEmailInput').value.trim();
+            // Reset verified state if email changed again
+            if (current !== _originalEmail) {
+                _emailVerified = false;
+                document.getElementById('otpSection').style.display = 'none';
+                document.getElementById('emailOtpMsg').innerHTML = '';
+            }
+        }
+
+        function checkEmailBeforeSave(e) {
+            var newEmail = document.getElementById('newEmailInput').value.trim();
+            if (newEmail === _originalEmail) {
+                // Email unchanged — submit normally
+                return true;
+            }
+            // Email changed — need OTP verification first
+            if (_emailVerified) {
+                return true;
+            }
+            e.preventDefault();
+            sendEmailOtp();
+            return false;
+        }
+
         function sendEmailOtp() {
             var email = document.getElementById('newEmailInput').value.trim();
             if (!email || email.indexOf('@@') === -1) {
                 showOtpMsg('Please enter a valid email address.', 'danger');
                 return;
             }
-            var btn = document.getElementById('sendOtpBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            var saveBtn = document.getElementById('saveProfileBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending OTP…';
             fetch('/api/email-update/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' },
@@ -208,8 +251,8 @@
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-send"></i> Resend OTP';
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-save"></i> Save Changes';
                 if (data.success) {
                     document.getElementById('otpSection').style.display = 'block';
                     showOtpMsg(data.message, 'success');
@@ -218,8 +261,8 @@
                 }
             })
             .catch(function() {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-send"></i> Send OTP';
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-save"></i> Save Changes';
                 showOtpMsg('Request failed. Please try again.', 'danger');
             });
         }
@@ -239,9 +282,8 @@
             .then(function(data) {
                 if (data.success) {
                     showOtpMsg(data.message, 'success');
+                    _emailVerified = true;
                     document.getElementById('otpSection').style.display = 'none';
-                    document.getElementById('sendOtpBtn').innerHTML = '<i class="bi bi-check-circle"></i> Verified';
-                    document.getElementById('sendOtpBtn').disabled = true;
                     document.getElementById('newEmailInput').disabled = true;
                     setTimeout(function() { window.location.href = '/logout'; }, 2500);
                 } else {
@@ -256,7 +298,7 @@
             el.innerHTML = '<div class="alert alert-' + type + ' py-2 px-3 mb-0 small">' + msg + '</div>';
         }
 
-        // Initialize tabs correctly if they have issues with bootstrap
+        // Initialize tabs correctly
         var triggerTabList = [].slice.call(document.querySelectorAll('#settingsTab button'))
         triggerTabList.forEach(function (triggerEl) {
             var tabTrigger = new bootstrap.Tab(triggerEl)

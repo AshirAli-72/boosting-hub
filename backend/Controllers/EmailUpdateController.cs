@@ -54,47 +54,46 @@ public class EmailUpdateController : ControllerBase
         var otpData = new OtpCacheEntry { Otp = otp, NewEmail = req.NewEmail.Trim().ToLower(), Attempts = 0 };
         _cache.Set(cacheKey, otpData, TimeSpan.FromMinutes(5));
 
-        // Send OTP email
+        var user = await _db.Users.FindAsync(userId);
+        var userName = user?.Name ?? "User";
+
+        var emailHtml = $"""
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+            <body style="margin:0;padding:0;background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+              <table role="presentation" style="width:100%;border-collapse:collapse;">
+                <tr><td style="padding:40px 16px;">
+                  <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);border-collapse:collapse;overflow:hidden;">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#7C3AED,#0D9488);padding:28px 40px;text-align:center;">
+                        <h1 style="margin:0;font-size:20px;font-weight:700;color:#fff;">Boosting Hub</h1>
+                      </td>
+                    </tr>
+                    <tr><td style="padding:36px 40px 28px;">
+                      <p style="font-size:15px;color:#64748B;margin:0 0 6px;">Hello {userName},</p>
+                      <h2 style="font-size:18px;font-weight:700;color:#1E293B;margin:0 0 16px;">Email Change Verification</h2>
+                      <p style="font-size:15px;color:#1E293B;line-height:1.7;margin:0 0 24px;">Your one-time verification code for changing your email address is:</p>
+                      <div style="text-align:center;margin:0 0 24px;">
+                        <span style="display:inline-block;padding:14px 36px;font-size:2rem;font-weight:800;letter-spacing:10px;background:#F1F5F9;border-radius:12px;color:#7C3AED;border:2px dashed #7C3AED;font-family:monospace;">{otp}</span>
+                      </div>
+                      <p style="font-size:13px;color:#64748B;text-align:center;margin:0 0 8px;">This code expires in <strong>5 minutes</strong>. Do not share it with anyone.</p>
+                      <p style="font-size:13px;color:#94A3B8;text-align:center;margin:0;">If you did not request this, you can safely ignore this email.</p>
+                    </td></tr>
+                    <tr>
+                      <td style="padding:18px 40px;background:#F8FAFC;border-top:1px solid #E2E8F0;text-align:center;">
+                        <p style="margin:0;font-size:12px;color:#94A3B8;">&copy; 2026 Boosting Hub. All rights reserved.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
+            """;
+
         try
         {
-            var user = await _db.Users.FindAsync(userId);
-            var userName = user?.Name ?? "User";
-
-            var emailHtml = $"""
-                <!DOCTYPE html>
-                <html>
-                <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-                <body style="margin:0;padding:0;background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
-                  <table role="presentation" style="width:100%;border-collapse:collapse;">
-                    <tr><td style="padding:40px 16px;">
-                      <table role="presentation" style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);border-collapse:collapse;overflow:hidden;">
-                        <tr>
-                          <td style="background:linear-gradient(135deg,#7C3AED,#0D9488);padding:28px 40px;text-align:center;">
-                            <h1 style="margin:0;font-size:20px;font-weight:700;color:#fff;">Boosting Hub</h1>
-                          </td>
-                        </tr>
-                        <tr><td style="padding:36px 40px 28px;">
-                          <p style="font-size:15px;color:#64748B;margin:0 0 6px;">Hello {userName},</p>
-                          <h2 style="font-size:18px;font-weight:700;color:#1E293B;margin:0 0 16px;">Email Change Verification</h2>
-                          <p style="font-size:15px;color:#1E293B;line-height:1.7;margin:0 0 24px;">Your one-time verification code for changing your email address is:</p>
-                          <div style="text-align:center;margin:0 0 24px;">
-                            <span style="display:inline-block;padding:14px 36px;font-size:2rem;font-weight:800;letter-spacing:10px;background:#F1F5F9;border-radius:12px;color:#7C3AED;border:2px dashed #7C3AED;font-family:monospace;">{otp}</span>
-                          </div>
-                          <p style="font-size:13px;color:#64748B;text-align:center;margin:0 0 8px;">This code expires in <strong>5 minutes</strong>. Do not share it with anyone.</p>
-                          <p style="font-size:13px;color:#94A3B8;text-align:center;margin:0;">If you did not request this, you can safely ignore this email.</p>
-                        </td></tr>
-                        <tr>
-                          <td style="padding:18px 40px;background:#F8FAFC;border-top:1px solid #E2E8F0;text-align:center;">
-                            <p style="margin:0;font-size:12px;color:#94A3B8;">&copy; 2026 Boosting Hub. All rights reserved.</p>
-                          </td>
-                        </tr>
-                      </table>
-                    </td></tr>
-                  </table>
-                </body>
-                </html>
-                """;
-
             await _emailService.SendEmailAsync(
                 req.NewEmail.Trim(),
                 "Boosting Hub – Email Change OTP",
@@ -103,7 +102,8 @@ public class EmailUpdateController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to send OTP email to {Email}", req.NewEmail);
+            _logger.LogError(ex, "Failed to send OTP email to {Email} for user {UserId}", req.NewEmail, userId);
+            return StatusCode(500, new { success = false, message = "Failed to send OTP email. Please check your email address and try again. If the problem persists, contact support." });
         }
 
         _logger.LogInformation("Email change OTP sent to {Email} for user {UserId}", req.NewEmail, userId);
