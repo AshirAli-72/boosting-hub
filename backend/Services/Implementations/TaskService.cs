@@ -97,6 +97,7 @@ public class TaskService : ITaskService
             TargetQuantity = t.Quantity,
             CompletedQuantity = completedCounts.GetValueOrDefault(t.Id, 0),
             RewardAmount = t.Reward,
+            Currency = t.Currency,
             UserStatus = userId.HasValue ? userStatusMap.GetValueOrDefault(t.Id, "Not Accepted") : "Not Accepted",
             Status = t.Status,
             CreatedAt = t.CreatedAt,
@@ -188,6 +189,7 @@ public class TaskService : ITaskService
             TargetQuantity = task.Quantity,
             CompletedQuantity = completedCount,
             RewardAmount = task.Reward,
+            Currency = task.Currency,
             Description = task.Order?.Description ?? string.Empty,
             UserStatus = userStatus,
             Status = task.Status,
@@ -241,9 +243,13 @@ public class TaskService : ITaskService
                 .Select(a => a.TaskId)
                 .ToListAsync();
 
-            var proofs = await _db.TaskProofs
+            var proofsList = await _db.TaskProofs
                 .Where(p => p.UserId == userId)
-                .ToDictionaryAsync(p => p.TaskId);
+                .OrderByDescending(p => p.Date)
+                .ToListAsync();
+            var proofs = proofsList
+                .GroupBy(p => p.TaskId)
+                .ToDictionary(g => g.Key, g => g.First());
 
             var completions = await _db.TaskCompletes
                 .Where(tc => tc.UserId == userId)
@@ -285,6 +291,7 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
+                        Currency = t.Currency,
                         Status = proof.VerificationStatus == "Rejected" ? "Rejected" : "Submitted",
                         ProofUrl = proof.ProofUrl,
                         ProofType = proof.ProofType,
@@ -303,6 +310,7 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
+                        Currency = t.Currency,
                         Status = comp.Status,
                         ProofUrl = proof?.ProofUrl,
                         ProofType = proof?.ProofType,
@@ -320,6 +328,7 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
+                        Currency = t.Currency,
                         Status = "Pending"
                     });
                 }
@@ -453,14 +462,20 @@ public class TaskService : ITaskService
 
             await _db.SaveChangesAsync();
 
-            await _walletService.CreditRewardAsync(proof.UserId, proof.Task.Reward, proof.TaskId, proof.Id);
+            await _walletService.CreditRewardAsync(proof.UserId, proof.Task.Reward, proof.TaskId, proof.Id, proof.Task.Currency);
+
+            var wallet = await _walletService.GetWalletByUserIdAsync(proof.UserId);
+            var displayCurrency = wallet?.Currency ?? "USD";
+            var displayAmount = wallet != null
+                ? WalletService.ConvertCurrencyStatic(proof.Task.Reward, proof.Task.Currency, displayCurrency)
+                : proof.Task.Reward;
 
             _db.Notifications.Add(new Notification
             {
                 UserId = proof.UserId,
                 Type = "ProofApproved",
                 Title = "Proof Approved",
-                Message = $"Your proof for task #{proof.TaskId} has been approved. ${proof.Task.Reward} credited to your wallet.",
+                Message = $"Your proof for task #{proof.TaskId} has been approved. {displayCurrency} {displayAmount:F2} credited to your wallet.",
                 Data = $"{{\"proofId\":{proofId},\"taskId\":{proof.TaskId}}}",
                 CreatedAt = DateTime.UtcNow
             });
@@ -469,7 +484,7 @@ public class TaskService : ITaskService
             _logger.LogInformation("Proof {ProofId} approved; task {TaskId} completed for user {UserId}, reward {Reward} credited",
                 proofId, proof.TaskId, proof.UserId, proof.Task.Reward);
 
-            return Result.Success($"Proof approved! ${proof.Task.Reward} credited to worker's wallet.");
+            return Result.Success($"Proof approved! {displayCurrency} {displayAmount:F2} credited to worker's wallet.");
         }
         catch (Exception ex)
         {

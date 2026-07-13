@@ -1,4 +1,5 @@
 using BoostingHub.backend.Data;
+using BoostingHub.backend.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,22 +13,48 @@ public class IndexModel : PageModel
     public int TotalUsers { get; set; }
     public int TotalOrders { get; set; }
     public decimal TotalRevenue { get; set; }
+    public List<User> RecentUsers { get; set; } = new();
 
     public async Task OnGetAsync()
     {
-        var adminUserIds = await _db.UserHasRoles
-            .Where(ur => ur.Role!.RoleTitle.Contains("Admin"))
-            .Select(ur => ur.UserId)
+        var adminRoleIds = await _db.Roles
+            .Where(r => r.RoleTitle.Contains("Admin"))
+            .Select(r => r.Id)
             .ToListAsync();
 
-        TotalUsers = await _db.Users.CountAsync(u => !adminUserIds.Contains(u.Id));
+        var adminUserIds = await _db.UserHasRoles
+            .Where(ur => adminRoleIds.Contains(ur.RoleId))
+            .Select(ur => ur.UserId)
+            .Distinct()
+            .ToListAsync();
+
+        var seederEmails = new[] { "admin@gmail.com" };
+
+        TotalUsers = await _db.Users
+            .Where(u => !adminUserIds.Contains(u.Id) && !seederEmails.Contains(u.Email!) && u.EmailVerifiedAt != null)
+            .CountAsync();
+
         TotalOrders = await _db.Orders.CountAsync();
         TotalRevenue = await _db.Orders
             .Where(o => o.Status == "Approved")
             .SumAsync(o => o.Budget);
 
+        RecentUsers = await _db.Users
+            .Where(u => !adminUserIds.Contains(u.Id) && !seederEmails.Contains(u.Email!) && u.EmailVerifiedAt != null)
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(8)
+            .Select(u => new User
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Email = u.Email,
+                CreatedAt = u.CreatedAt
+            })
+            .ToListAsync();
+
         ViewData["LandingTotalUsers"] = TotalUsers;
         ViewData["LandingTotalOrders"] = TotalOrders;
         ViewData["LandingTotalRevenue"] = TotalRevenue;
+        ViewData["RecentUsers"] = RecentUsers;
     }
 }

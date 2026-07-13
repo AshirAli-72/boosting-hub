@@ -74,20 +74,24 @@ public class WalletService : IWalletService
         await _db.SaveChangesAsync();
     }
 
-    public async Task CreditRewardAsync(int userId, decimal amount, int taskId, int proofId)
+    public async Task CreditRewardAsync(int userId, decimal amount, int taskId, int proofId, string taskCurrency = "USD")
     {
         var wallet = await GetOrCreateWalletAsync(userId);
+
+        var convertedAmount = ConvertCurrency(amount, taskCurrency, wallet.Currency);
         var balanceBefore = wallet.TotalBalance;
-        wallet.TotalBalance += amount;
+        wallet.TotalBalance += convertedAmount;
 
         _db.Transactions.Add(new Transaction
         {
             WalletId = wallet.Id,
             UserId = userId,
             Type = "credit",
-            Amount = amount,
+            Amount = convertedAmount,
             BalanceAfter = wallet.TotalBalance,
-            Description = $"Reward earned for completing task #{taskId}",
+            Description = taskCurrency != wallet.Currency
+                ? $"Reward earned for completing task #{taskId} ({taskCurrency} {amount:F2} → {wallet.Currency} {convertedAmount:F2})"
+                : $"Reward earned for completing task #{taskId}",
             ReferenceType = "TaskReward",
             ReferenceId = taskId,
             Status = "Completed",
@@ -96,8 +100,26 @@ public class WalletService : IWalletService
 
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("Credited {Amount} to wallet {WalletId} for task {TaskId} (proof {ProofId})",
-            amount, wallet.Id, taskId, proofId);
+        _logger.LogInformation("Credited {Amount} {Currency} to wallet {WalletId} for task {TaskId} (proof {ProofId})",
+            convertedAmount, wallet.Currency, wallet.Id, taskId, proofId);
+    }
+
+    public static decimal ConvertCurrencyStatic(decimal amount, string fromCurrency, string toCurrency) =>
+        ConvertCurrency(amount, fromCurrency, toCurrency);
+
+    private static decimal ConvertCurrency(decimal amount, string fromCurrency, string toCurrency)
+    {
+        if (string.Equals(fromCurrency, toCurrency, StringComparison.OrdinalIgnoreCase))
+            return amount;
+
+        const decimal PkrPerUsd = 285m;
+
+        return (fromCurrency.ToUpper(), toCurrency.ToUpper()) switch
+        {
+            ("USD", "PKR") => Math.Round(amount * PkrPerUsd, 2),
+            ("PKR", "USD") => Math.Round(amount / PkrPerUsd, 2),
+            _ => amount
+        };
     }
 
     private async Task<Wallet> GetOrCreateWalletAsync(int userId)

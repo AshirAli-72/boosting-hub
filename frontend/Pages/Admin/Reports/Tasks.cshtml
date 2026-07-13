@@ -154,7 +154,7 @@
                                         <td>@t.Platform</td>
                                         <td>@t.Service</td>
                                         <td>@t.Quantity</td>
-                                        <td class="fw-semibold">$@t.Reward.ToString("N2")</td>
+                                        <td class="fw-semibold">@GetCurrencySymbol(t.Currency)@t.Reward.ToString("N2")</td>
                                         <td>
                                             @{
                                                 var tClass = t.Status == "Active" ? "report-badge-success" : t.Status == "Completed" ? "report-badge-info" : "report-badge-secondary";
@@ -263,4 +263,16 @@
         if (pd && !pd.contains(e.target)) { var m = document.getElementById('profileMenu'); if (m) m.style.display = 'none'; }
     });
 </script>
+}
+
+@functions {
+    static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
+    {
+        "PKR" => "₨",
+        "EUR" => "€",
+        "GBP" => "£",
+        "INR" => "₹",
+        "BDT" => "৳",
+        _ => "$"
+    };
 }

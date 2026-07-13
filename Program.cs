@@ -66,9 +66,6 @@ builder.Services.AddRazorPages(options =>
 });
 builder.Services.AddHttpContextAccessor();
 
-// In-memory cache (for OTP storage)
-builder.Services.AddMemoryCache();
-
 // Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

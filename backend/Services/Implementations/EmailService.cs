@@ -1,6 +1,7 @@
-using System.Net;
-using System.Net.Mail;
 using BoostingHub.backend.Services.Interfaces;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 
 namespace BoostingHub.backend.Services.Implementations;
 
@@ -20,31 +21,38 @@ public class EmailService : IEmailService
         var smtpHost = _config["Email:SmtpHost"] ?? "";
         var smtpPortStr = _config["Email:SmtpPort"] ?? "587";
         var smtpUser = _config["Email:SmtpUser"] ?? "";
-        var smtpPass = _config["Email:SmtpPass"] ?? "";
+        var smtpPass = (_config["Email:SmtpPass"] ?? "").Replace(" ", "");
         var fromEmail = _config["Email:FromEmail"] ?? "noreply@boostinghub.com";
         var fromName = _config["Email:FromName"] ?? "Boosting Hub";
 
         if (string.IsNullOrEmpty(smtpHost))
         {
             _logger.LogWarning("SMTP not configured. Email NOT sent to {To}: {Subject}", to, subject);
-            throw new InvalidOperationException("SMTP host is not configured. Please check appsettings.json.");
+            throw new InvalidOperationException("SMTP host is not configured.");
         }
 
-        using var client = new SmtpClient(smtpHost, int.Parse(smtpPortStr))
+        if (string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpPass))
         {
-            Credentials = new NetworkCredential(smtpUser, smtpPass),
-            EnableSsl = true,
-            Timeout = 30000
-        };
-        using var mailMsg = new MailMessage
-        {
-            From = new MailAddress(fromEmail, fromName),
-            Subject = subject,
-            Body = body,
-            IsBodyHtml = true
-        };
-        mailMsg.To.Add(to);
-        await client.SendMailAsync(mailMsg);
+            _logger.LogWarning("SMTP credentials not configured. Email NOT sent to {To}: {Subject}", to, subject);
+            throw new InvalidOperationException("SMTP credentials are not configured.");
+        }
+
+        var port = int.Parse(smtpPortStr);
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(fromName, fromEmail));
+        message.To.Add(MailboxAddress.Parse(to));
+        message.Subject = subject;
+
+        var bodyBuilder = new BodyBuilder { HtmlBody = body };
+        message.Body = bodyBuilder.ToMessageBody();
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync(smtpHost, port, SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(smtpUser, smtpPass);
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
+
         _logger.LogInformation("Email sent to {To}: {Subject}", to, subject);
     }
 

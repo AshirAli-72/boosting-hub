@@ -102,7 +102,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="d-flex flex-column gap-2">
-                                    <div><strong>Your Reward:</strong> <span class="text-success fw-bold fs-5">$@(selectedTask.RewardAmount.ToString("F2"))</span></div>
+                                    <div><strong>Your Reward:</strong> <span class="text-success fw-bold fs-5">@GetCurrencySymbol(selectedTask.Currency)@(selectedTask.RewardAmount.ToString("F2"))</span></div>
                                     <div><strong>Slots:</strong> <span>@(selectedTask.TargetQuantity - selectedTask.CompletedQuantity) open / @selectedTask.CompletedQuantity completed</span></div>
                                     <div><strong>Status:</strong> <span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;">@selectedTask.Status</span></div>
                                     <div><strong>My Status:</strong>
@@ -264,4 +264,14 @@
     }
 
     private bool HasActiveFilters() => !string.IsNullOrEmpty(filter.Search) || !string.IsNullOrEmpty(filter.Platform);
+
+    private static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
+    {
+        "PKR" => "\u20A8",
+        "EUR" => "\u20AC",
+        "GBP" => "\u00A3",
+        "INR" => "\u20B9",
+        "BDT" => "\u09F3",
+        _ => "$"
+    };
 }

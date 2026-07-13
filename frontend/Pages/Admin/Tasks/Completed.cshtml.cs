@@ -16,6 +16,16 @@ public class CompletedModel : PageModel
 
     public List<TaskItem> Tasks { get; set; } = new();
 
+    public string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
+    {
+        "PKR" => "₨",
+        "EUR" => "€",
+        "GBP" => "£",
+        "INR" => "₹",
+        "BDT" => "৳",
+        _ => "$"
+    };
+
     public class TaskItem
     {
         public int Id { get; set; }
@@ -24,6 +34,7 @@ public class CompletedModel : PageModel
         public int Quantity { get; set; }
         public int CompletedCount { get; set; }
         public decimal Reward { get; set; }
+        public string Currency { get; set; } = "USD";
         public DateTime CreatedAt { get; set; }
     }
 
@@ -51,6 +62,7 @@ public class CompletedModel : PageModel
                     Quantity = t.Quantity,
                     CompletedCount = done,
                     Reward = t.Reward,
+                    Currency = t.Currency,
                     CreatedAt = t.CreatedAt
                 };
             })

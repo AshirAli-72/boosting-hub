@@ -44,23 +44,25 @@ public class AuthenticationService : IAuthenticationService
         if (await _db.Users.AnyAsync(u => u.Phone == dto.Phone, ct))
             return Result.Failure<AuthResponseDto>("Phone number already registered", "DUPLICATE_PHONE");
 
+        var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
+        var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
+        var verificationLink = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/verify-email?token={Uri.EscapeDataString(token)}";
+
         var smtpConfigured = !string.IsNullOrEmpty(_config["Email:SmtpHost"]);
         if (smtpConfigured)
         {
-            var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
-            var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
-
-            var verificationLink = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/verify-email?token={Uri.EscapeDataString(token)}";
-            await _emailService.SendEmailVerificationAsync(dto.Email, verificationLink, dto.Name);
-
-            return Result.Success<AuthResponseDto>(new AuthResponseDto(), "Please check your email to verify your account");
+            try
+            {
+                await _emailService.SendEmailVerificationAsync(dto.Email, verificationLink, dto.Name);
+                return Result.Success<AuthResponseDto>(new AuthResponseDto(), "Please check your email to verify your account");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send verification email to {Email}. Falling back to link.", dto.Email);
+            }
         }
 
-        // Dev mode — no SMTP configured; show verification link on screen
-        var passwordHash2 = _passwordHasher.HashPassword(new User(), dto.Password);
-        var token2 = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash2);
-        var devVerificationLink = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/verify-email?token={Uri.EscapeDataString(token2)}";
-        return Result.Success(new AuthResponseDto { VerificationLink = devVerificationLink }, "Please check your email to verify your account");
+        return Result.Success(new AuthResponseDto { VerificationLink = verificationLink }, "Please check your email to verify your account");
     }
 
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginDto dto, HttpContext httpContext, CancellationToken ct = default)

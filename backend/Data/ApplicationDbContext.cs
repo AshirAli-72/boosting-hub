@@ -228,5 +228,6 @@ public class ApplicationDbContext : DbContext
             e.HasOne(a => a.User).WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.NoAction);
             e.HasIndex(a => a.UserId);
         });
+
     }
 }

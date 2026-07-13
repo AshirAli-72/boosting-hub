@@ -574,11 +574,49 @@
 }
 .footer-social a:hover { background: rgba(124,58,237,0.15); color: #A78BFA; }
 
+/* ── Users Grid (Recently Joined) ── */
+.users-grid {
+    max-width: 1280px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+.user-joined-card {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px; border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(8px);
+    transition: all 0.25s;
+}
+.user-joined-card:hover {
+    background: rgba(124,58,237,0.08);
+    border-color: rgba(124,58,237,0.2);
+    transform: translateY(-2px);
+}
+.user-joined-avatar {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700; color: #fff;
+    flex-shrink: 0; letter-spacing: 0.02em;
+}
+.user-joined-info { flex: 1; min-width: 0; }
+.user-joined-info h4 {
+    margin: 0; font-size: 0.88rem; font-weight: 600; color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.user-joined-info p {
+    margin: 2px 0 0; font-size: 0.75rem; color: rgba(255,255,255,0.45);
+}
+.user-joined-badge {
+    color: #10B981; font-size: 1rem; flex-shrink: 0;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
     .features-grid { grid-template-columns: repeat(2,1fr); }
     .stats-grid    { grid-template-columns: repeat(2,1fr); }
     .footer-grid   { grid-template-columns: repeat(2,1fr); }
+    .users-grid    { grid-template-columns: repeat(2,1fr); }
 }
 @media (max-width: 768px) {
     .header-nav, .header-cta { display: none; }
@@ -597,6 +635,7 @@
     .features-grid { grid-template-columns: 1fr; }
     .stats-grid    { grid-template-columns: 1fr; }
     .footer-grid   { grid-template-columns: 1fr; }
+    .users-grid    { grid-template-columns: 1fr; }
     .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
     .inquiry-grid  { grid-template-columns: 1fr; }
 }

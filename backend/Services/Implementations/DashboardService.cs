@@ -77,7 +77,7 @@ public class DashboardService : IDashboardService
 
         return new UserDashboardDto
         {
-            UserName = user?.Name ?? "User",
+            UserName = !string.IsNullOrEmpty(user?.Name) ? user!.Name : user?.Email ?? "User",
             UserEmail = user?.Email ?? "",
             UserStatus = user?.Status == 1 ? "Active" : "Locked",
             TotalTasks = totalAvailable,

@@ -55,7 +55,8 @@ public class RegisterModel : PageModel
         {
             IsSuccess = true;
             Message = result.Message;
-            VerificationLink = result.Data?.VerificationLink;
+            if (!string.IsNullOrEmpty(result.Data?.VerificationLink))
+                VerificationLink = result.Data.VerificationLink;
             return Page();
         }
 

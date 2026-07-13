@@ -157,12 +157,6 @@ public partial class ProofVerificationService : IProofVerificationService
 
     public async Task<ProofVerificationResult> CheckDuplicateAsync(string proofUrl, int taskId, int userId)
     {
-        var urlExists = await _db.TaskProofs.AnyAsync(p =>
-            p.ProofUrl == proofUrl &&
-            p.VerificationStatus != "Rejected");
-        if (urlExists)
-            return Fail("This proof URL has already been submitted for another task");
-
         var existingActiveProof = await _db.TaskProofs.AnyAsync(p =>
             p.UserId == userId &&
             p.TaskId == taskId &&

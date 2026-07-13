@@ -31,7 +31,7 @@
             </div>
 
             <!-- ── Report Cards Row ── -->
-            <div class="row g-4">
+            <div class="row g-4 report-cards-row">
 
                 <!-- Revenue Card -->
                 <div class="col-lg-3 col-md-6">
@@ -177,53 +177,6 @@
         </div><!-- /admin-content -->
 
 @section Scripts {
-<style>
-/* ── Report Hub Cards ── */
-.report-hub-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: var(--shadow-card);
-    transition: transform 0.25s, box-shadow 0.25s;
-}
-.report-hub-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-glow), var(--shadow-card); }
-.rhc-header {
-    padding: 18px 20px 14px;
-    display: flex; align-items: center; justify-content: space-between;
-}
-.rhc-icon {
-    width: 44px; height: 44px; border-radius: 12px;
-    background: rgba(255,255,255,0.2); color: #fff;
-    display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-}
-.rhc-badge {
-    background: rgba(255,255,255,0.18); color: #fff;
-    padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.06em;
-}
-.rhc-body { padding: 16px 20px 10px; }
-.rhc-stat-row { display: flex; gap: 16px; }
-.rhc-stat { flex: 1; }
-.rhc-stat-label {
-    font-size: 0.72rem; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.05em; display: block;
-}
-.rhc-stat-value {
-    font-size: 1.15rem; font-weight: 800; color: var(--text-primary);
-    display: block; line-height: 1.3;
-}
-.rhc-footer { padding: 10px 20px 16px; }
-.rhc-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; padding: 9px 0; border-radius: 10px;
-    background: var(--primary); color: #fff; border: none;
-    font-weight: 600; font-size: 0.85rem; cursor: pointer;
-    text-decoration: none;
-    transition: background 0.2s, box-shadow 0.2s;
-}
-.rhc-btn:hover { background: var(--primary-dark); box-shadow: 0 4px 12px var(--primary-glow); color: #fff; }
-</style>
 <script>
     function toggleProfileMenu() {
         var menu = document.getElementById('profileMenu');

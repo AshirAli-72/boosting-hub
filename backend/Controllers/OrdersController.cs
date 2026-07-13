@@ -83,6 +83,7 @@ public class OrdersController : ControllerBase
                     Quantity = quantity,
                     Url = order.SocialMediaUrl ?? string.Empty,
                     Reward = rewardPerCompletion,
+                    Currency = order.Currency,
                     CreatedAt = DateTime.UtcNow,
                     Status = "Active"
                 };

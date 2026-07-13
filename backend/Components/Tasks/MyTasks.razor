@@ -39,7 +39,7 @@
                 <div class="task-card @(task.Status == "Completed" ? "task-card-completed" : task.Status == "Submitted" ? "task-card-accepted" : "")" @key="@task.TaskId">
                     <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
                         <span class="task-platform-badge"><i class="bi bi-globe2 me-1"></i>@task.Platform</span>
-                        <span class="fw-bold fs-5" style="color:var(--success);">$@task.Reward.ToString("F2")</span>
+                        <span class="fw-bold fs-5" style="color:var(--success);">@GetCurrencySymbol(task.Currency)@task.Reward.ToString("F2")</span>
                     </div>
                     <div class="task-title">@task.Service</div>
                     @if (!string.IsNullOrEmpty(task.Url))
@@ -129,9 +129,14 @@
                                 <i class="bi bi-upload me-1"></i>Resubmit
                             </button>
                         }
-                        else
+                        else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
                         {
-                            <span style="color:var(--success);"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                            <span class="d-flex align-items-center gap-2">
+                                <span style="color:var(--success);"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                <span class="badge" style="background:rgba(16,185,129,0.12);color:#10B981;font-size:0.72rem;border-radius:20px;padding:4px 10px;">
+                                    <i class="bi bi-wallet2 me-1"></i>@GetCurrencySymbol(task.Currency)@task.Reward.ToString("F2") earned
+                                </span>
+                            </span>
                         }
                         <span class="text-muted small">#@task.TaskId</span>
                     </div>
@@ -173,4 +178,14 @@
             isLoading = false;
         }
     }
+
+    private static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
+    {
+        "PKR" => "₨",
+        "EUR" => "\u20AC",
+        "GBP" => "\u00A3",
+        "INR" => "\u20B9",
+        "BDT" => "\u09F3",
+        _ => "$"
+    };
 }

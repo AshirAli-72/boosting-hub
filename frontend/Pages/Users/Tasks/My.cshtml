@@ -54,21 +54,21 @@
             overlay.id = 'proof-overlay';
             overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
             overlay.innerHTML = [
-                '<div style="background:#fff;border-radius:12px;width:440px;max-width:92vw;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);color:#000;">',
+                '<div style="background:var(--bg-card,#1e293b);border:1px solid var(--border-muted,rgba(255,255,255,0.1));border-radius:12px;width:440px;max-width:92vw;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);color:var(--text-primary,#f1f5f9);">',
                 '  <h5 style="margin:0 0 20px 0;"><i class="bi bi-upload text-primary me-2"></i>Submit Proof</h5>',
-                '  <div id="pf-error" style="display:none;color:#EF4444;padding:10px 14px;background:#fef2f2;border-radius:6px;margin-bottom:16px;font-size:0.9rem;"></div>',
+                '  <div id="pf-error" style="display:none;color:var(--danger,#EF4444);padding:10px 14px;background:rgba(248,113,113,0.12);border-radius:6px;margin-bottom:16px;font-size:0.9rem;"></div>',
                 '  <div style="margin-bottom:16px;">',
-                '    <label style="display:block;margin-bottom:6px;font-weight:500;">Proof URL <span style="color:#EF4444;">*</span></label>',
-                '    <input type="url" id="pf-url" class="form-control" placeholder="https://imgur.com/screenshot.png" style="color:#000;background:#fff;" />',
+                '    <label style="display:block;margin-bottom:6px;font-weight:500;color:var(--text-secondary,#94a3b8);">Proof URL <span style="color:var(--danger,#EF4444);">*</span></label>',
+                '    <input type="url" id="pf-url" class="form-control" placeholder="https://imgur.com/screenshot.png" style="color:var(--text-primary,#f1f5f9);background:var(--bg-elevated,rgba(255,255,255,0.05));border:1px solid var(--border-muted,rgba(255,255,255,0.1));" />',
                 '  </div>',
                 '  <div style="margin-bottom:20px;">',
-                '    <label style="display:block;margin-bottom:6px;font-weight:500;">Proof Type</label>',
-                '    <select id="pf-type" class="form-select" style="color:#000;background:#fff;">',
+                '    <label style="display:block;margin-bottom:6px;font-weight:500;color:var(--text-secondary,#94a3b8);">Proof Type</label>',
+                '    <select id="pf-type" class="form-select" style="color:var(--text-primary,#f1f5f9);background:var(--bg-elevated,rgba(255,255,255,0.05));border:1px solid var(--border-muted,rgba(255,255,255,0.1));">',
                 '      <option value="URL">URL</option>',
                 '    </select>',
                 '  </div>',
                 '  <div style="display:flex;justify-content:flex-end;gap:8px;">',
-                '    <button type="button" class="btn btn-secondary" onclick="closeProofForm()">Cancel</button>',
+                '    <button type="button" class="btn btn-secondary" onclick="closeProofForm()" style="background:var(--bg-elevated,rgba(255,255,255,0.08));color:var(--text-primary,#f1f5f9);border:1px solid var(--border-muted,rgba(255,255,255,0.1));">Cancel</button>',
                 '    <button type="button" class="btn btn-primary" id="pf-submit">Submit</button>',
                 '  </div>',
                 '</div>'

@@ -29,13 +29,11 @@
         const savedTheme = localStorage.getItem('theme') || 'dark';
         if (savedTheme === 'light') {
             document.documentElement.classList.add('light-mode');
-            document.addEventListener('DOMContentLoaded', function() {
-                document.body.classList.add('light-mode');
-            });
         }
     </script>
 </head>
-<body class="@ViewData["BodyClass"]">
+<body class="@ViewData["BodyClass"]" style="background:#0B1120;color:#f1f5f9;">
+    <script>if(localStorage.getItem('theme')==='light')document.body.classList.add('light-mode');</script>
     @if (ViewData["PageType"]?.ToString() == "landing")
     {
         <header class="landing-header" id="landingHeader">
@@ -170,10 +168,59 @@
                     <p class="section-subtitle section-subtitle-dark">Join thousands of satisfied content creators who trust Boosting Hub for their social media growth.</p>
                 </div>
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Active Clients</div></div>
+                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Users</div></div>
                     <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Orders Fulfilled</div></div>
                     <div class="stat-card"><div class="stat-number">50+</div><div class="stat-label">Countries Served</div></div>
                     <div class="stat-card"><div class="stat-number">4.9/5</div><div class="stat-label">Average Rating</div></div>
+                </div>
+            </section>
+
+            <section class="section" id="users-section">
+                <div class="section-header">
+                    <div class="section-label"><i class="bi bi-people-fill"></i> Our Community</div>
+                    <h2 class="section-title section-title-light">Recently Joined Creators</h2>
+                    <p class="section-subtitle">Real people who registered and are growing their social presence with Boosting Hub.</p>
+                </div>
+                <div class="users-grid">
+                    @{
+                        var recentUsers = ViewData["RecentUsers"] as List<BoostingHub.backend.Models.User> ?? new();
+                        if (recentUsers.Count == 0)
+                        {
+                            <div class="user-joined-card">
+                                <div class="user-joined-avatar" style="background:linear-gradient(135deg,#7C3AED,#0D9488);">BH</div>
+                                <div class="user-joined-info">
+                                    <h4>Be the First!</h4>
+                                    <p>Join our growing community of creators.</p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            foreach (var user in recentUsers)
+                            {
+                                var initials = string.IsNullOrEmpty(user.Name) ? "?" : user.Name.Split(' ').Take(2).Aggregate((a, b) => a[..1] + b[..1]).ToUpper();
+                                var colors = new[] { "#7C3AED,#0D9488", "#3B82F6,#1D4ED8", "#10B981,#059669", "#F59E0B,#D97706", "#EF4444,#B91C1C", "#EC4899,#BE185D", "#6366F1,#4F46E5", "#0D9488,#0F766E" };
+                                var colorIdx = user.Id % colors.Length;
+                                var displayName = user.Name ?? "User";
+                                var timeAgo = (DateTime.UtcNow - user.CreatedAt).TotalDays switch
+                                {
+                                    < 1 => "today",
+                                    < 2 => "yesterday",
+                                    < 7 => $"{(int)(DateTime.UtcNow - user.CreatedAt).TotalDays} days ago",
+                                    < 30 => $"{(int)(DateTime.UtcNow - user.CreatedAt).TotalDays / 7} weeks ago",
+                                    _ => $"since {user.CreatedAt:MMM yyyy}"
+                                };
+                                <div class="user-joined-card">
+                                    <div class="user-joined-avatar" style="background:linear-gradient(135deg,{colors[colorIdx]});">@initials</div>
+                                    <div class="user-joined-info">
+                                        <h4>@displayName</h4>
+                                        <p>Joined @timeAgo</p>
+                                    </div>
+                                    <div class="user-joined-badge"><i class="bi bi-patch-check-fill"></i></div>
+                                </div>
+                            }
+                        }
+                    }
                 </div>
             </section>
 
@@ -480,9 +527,6 @@
             }
         }
         document.addEventListener('DOMContentLoaded', () => {
-            if (document.documentElement.classList.contains('light-mode')) {
-                document.body.classList.add('light-mode');
-            }
             const themeToggleBtn = document.getElementById('themeToggle');
             if (themeToggleBtn) {
                 const icon = themeToggleBtn.querySelector('i');

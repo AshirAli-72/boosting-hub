@@ -3,7 +3,7 @@
 <div class="task-card @(Task.UserStatus == "Accepted" ? "task-card-accepted" : Task.UserStatus == "Completed" ? "task-card-completed" : "") @(IsSelected ? "task-card-selected" : "")" @onclick="OnSelect" role="button" tabindex="0">
     <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
         <span class="task-platform-badge"><i class="bi bi-globe2 me-1"></i>@Task.Platform</span>
-        <span class="text-warning fw-bold fs-5">$@(Task.RewardAmount.ToString("F2"))</span>
+        <span class="text-warning fw-bold fs-5">@GetCurrencySymbol(Task.Currency)@(Task.RewardAmount.ToString("F2"))</span>
     </div>
     <div class="d-flex align-items-center gap-2 mb-2">
         <span class="task-meta-item"><i class="bi bi-tag me-1"></i>@Task.Service</span>
@@ -33,4 +33,14 @@
     [Parameter, EditorRequired] public AvailableTaskDto Task { get; set; } = new();
     [Parameter] public bool IsSelected { get; set; }
     [Parameter] public EventCallback OnSelect { get; set; }
+
+    private static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
+    {
+        "PKR" => "₨",
+        "EUR" => "\u20AC",
+        "GBP" => "\u00A3",
+        "INR" => "\u20B9",
+        "BDT" => "\u09F3",
+        _ => "$"
+    };
 }

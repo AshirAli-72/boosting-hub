@@ -60,22 +60,12 @@
                     <div class="auth-logo-icon text-primary"><i class="bi bi-envelope-check-fill"></i></div>
                     <h3 class="auth-form-title">Check Your Email</h3>
                     <p class="auth-form-subtitle">@Model.Message</p>
-                    @if (!string.IsNullOrEmpty(Model.VerificationLink))
-                    {
-                        <p class="auth-muted-text" style="font-size:0.85rem;margin-bottom:8px;">
-                            No email service configured. Click the link below to verify:
-                        </p>
-                        <a href="@Model.VerificationLink" class="btn btn-auth w-100">
-                            <i class="bi bi-check-circle"></i> Click to Verify Email
-                        </a>
-                        <div style="margin-top:8px;font-size:0.75rem;word-break:break-all;" class="auth-muted-text">
-                            <strong>Or copy this link:</strong><br>
-                            <code style="font-size:0.7rem;">@Model.VerificationLink</code>
-                        </div>
-                    }
-                    @* <div class="text-center auth-muted-text" style="margin-top:16px;">
-                        <a href="/login" class="auth-link">Go to Sign In</a>
-                    </div> *@
+                    <div style="background:var(--bg-elevated);border:1px solid var(--border-muted);border-radius:12px;padding:20px;margin:12px 0;text-align:center;">
+                        <i class="bi bi-envelope-open" style="font-size:2.2rem;color:var(--text-muted);display:block;margin-bottom:10px;"></i>
+                        <p style="font-size:0.9rem;color:var(--text-primary);margin:0 0 6px;font-weight:600;">We've sent a verification link to your email</p>
+                        <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Click the link in the email to verify your account. The link expires in 24 hours.</p>
+                    </div>
+                    <a href="/login" class="btn btn-auth w-100" style="margin-top:12px;"><i class="bi bi-box-arrow-in-right"></i> Go to Sign In</a>
                 }
                 else
                 {

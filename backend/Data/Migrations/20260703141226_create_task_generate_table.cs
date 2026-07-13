@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -22,6 +22,7 @@ namespace BoostingHub.backend.Data.Migrations
                     quantity = table.Column<int>(type: "int", nullable: false),
                     url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     reward = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false, defaultValue: "USD"),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
@@ -35,24 +36,22 @@ namespace BoostingHub.backend.Data.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
             migrationBuilder.CreateIndex(
-            name: "IX_task_generate_order_id",
-            table: "task_generate",
-            column: "order_id");
+                name: "IX_task_generate_order_id",
+                table: "task_generate",
+                column: "order_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_task_generate_status",
                 table: "task_generate",
                 column: "status");
-
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
-            migrationBuilder.DropTable(
-                name: "task_generate");
+            migrationBuilder.DropTable(name: "task_generate");
         }
     }
 }

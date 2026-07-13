@@ -56,10 +56,22 @@
                                             <td>@task.Service</td>
                                             <td>@task.Quantity</td>
                                             <td>@task.CompletedCount</td>
-                                            <td>$@task.Reward.ToString("N2")</td>
+                                            <td>@Model.GetCurrencySymbol(task.Currency)@task.Reward.ToString("N2")</td>
                                             <td>@task.CreatedAt.ToString("yyyy-MM-dd")</td>
                                         </tr>
-                                    }
+}
+
+@functions {
+    static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
+    {
+        "PKR" => "₨",
+        "EUR" => "€",
+        "GBP" => "£",
+        "INR" => "₹",
+        "BDT" => "৳",
+        _ => "$"
+    };
+}
                                 </tbody>
                             </table>
                         </div>
