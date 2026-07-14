@@ -29,9 +29,10 @@ jobs:
       - name: Deploy to Somee via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: ftp://boostinghub.somee.com
+          server: 155.254.244.30
           username: ashir_ali
           password: developer@72
           local-dir: ./publish/
           server-dir: /
+          protocol: ftp
           dry-run: false
