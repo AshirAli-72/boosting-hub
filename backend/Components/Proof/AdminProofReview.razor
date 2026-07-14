@@ -46,6 +46,7 @@
                         <th>Proof URL</th>
                         <th>Submitted</th>
                         <th>Reward</th>
+                        <th>Target URL</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -63,7 +64,12 @@
                                 </a>
                             </td>
                             <td>@p.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                            <td class="fw-bold" style="color:var(--success);">$@p.Reward.ToString("F2")</td>
+                            <td class="fw-bold" style="color:var(--success);">@GetCurrencySymbol(p.Currency)@p.Reward.ToString("F2")</td>
+                            <td>
+                                <a href="@p.TaskUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.TaskUrl">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>View
+                                </a>
+                            </td>
                             <td>
                                 <div class="d-flex gap-2">
                                     <button class="btn btn-sm btn-success" @onclick="() => Approve(p.ProofId)">
@@ -236,4 +242,14 @@
             Logger.LogError(ex, "Failed to reject proof {ProofId}", rejectProofId);
         }
     }
+
+    private string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
+    {
+        "PKR" => "Rs.",
+        "EUR" => "€",
+        "GBP" => "£",
+        "INR" => "₹",
+        "BDT" => "৳",
+        _ => "$"
+    };
 }

@@ -421,6 +421,7 @@ public class TaskService : ITaskService
                 Service = p.Task.Service,
                 TaskUrl = p.Task.Url,
                 Reward = p.Task.Reward,
+                Currency = p.Task.Currency,
                 SubmittedAt = p.Date,
                 VerificationStatus = p.VerificationStatus,
                 RejectReason = p.RejectReason
