@@ -130,8 +130,18 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    if (!db.Database.CanConnect())
+    if (db.Database.CanConnect() && !db.Database.GetPendingMigrations().Any())
+    {
+        // Database exists and is up to date
+    }
+    else if (db.Database.CanConnect())
+    {
         db.Database.Migrate();
+    }
+    else
+    {
+        db.Database.EnsureCreated();
+    }
     await AdminSeeder.SeedAsync(db);
 }
 
@@ -141,7 +151,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseResponseCompression();
 app.UseStaticFiles();
 app.UseRouting();

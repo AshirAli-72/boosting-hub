@@ -10,7 +10,8 @@ public static class PermissionSeeder
         var existingSlugs = new HashSet<string>();
         try
         {
-            existingSlugs = (await db.Permissions.Select(p => p.Slugs).ToHashSetAsync())!;
+            var slugs = await db.Permissions.Select(p => p.Slugs).Where(s => s != null).ToListAsync();
+            existingSlugs = new HashSet<string>(slugs!);
         }
         catch (Exception ex)
         {
