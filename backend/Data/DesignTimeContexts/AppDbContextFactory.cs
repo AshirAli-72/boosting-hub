@@ -9,7 +9,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbCont
     public ApplicationDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        var connectionString = "Server=.\\SQLEXPRESS;Database=boostinghub_db;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true";
+        var connectionString = "Data Source=boostinghubdb.mssql.somee.com;Initial Catalog=boostinghubdb;User ID=ashir_ali_SQLLogin_1;Password=el3dgbdjiu;TrustServerCertificate=True;MultipleActiveResultSets=True";
         optionsBuilder.UseSqlServer(connectionString);
         return new ApplicationDbContext(optionsBuilder.Options);
     }

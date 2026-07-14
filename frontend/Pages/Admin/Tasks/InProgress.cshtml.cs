@@ -40,33 +40,40 @@ namespace BoostingHub.frontend.Pages.Admin.Tasks;
 
     public async Task OnGetAsync()
     {
-        var completedCounts = await _db.TaskCompletes
-            .Where(tc => tc.Status == "Completed")
-            .GroupBy(tc => tc.TaskId)
-            .Select(g => new { TaskId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.TaskId, x => x.Count);
+        try
+        {
+            var completedCounts = await _db.TaskCompletes
+                .Where(tc => tc.Status == "Completed")
+                .GroupBy(tc => tc.TaskId)
+                .Select(g => new { TaskId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.TaskId, x => x.Count);
 
-        var tasks = await _db.TaskGenerates
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync();
+            var tasks = await _db.TaskGenerates
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
 
-        Tasks = tasks
-            .Select(t =>
-            {
-                var done = completedCounts.GetValueOrDefault(t.Id, 0);
-                return new TaskItem
+            Tasks = tasks
+                .Select(t =>
                 {
-                    Id = t.Id,
-                    Platform = t.Platform,
-                    Service = t.Service,
-                    Quantity = t.Quantity,
-                    CompletedCount = done,
-                    Reward = t.Reward,
-                    Currency = t.Currency,
-                    CreatedAt = t.CreatedAt
-                };
-            })
-            .Where(t => t.CompletedCount < t.Quantity)
-            .ToList();
+                    var done = completedCounts.GetValueOrDefault(t.Id, 0);
+                    return new TaskItem
+                    {
+                        Id = t.Id,
+                        Platform = t.Platform,
+                        Service = t.Service,
+                        Quantity = t.Quantity,
+                        CompletedCount = done,
+                        Reward = t.Reward,
+                        Currency = t.Currency,
+                        CreatedAt = t.CreatedAt
+                    };
+                })
+                .Where(t => t.CompletedCount < t.Quantity)
+                .ToList();
+        }
+        catch
+        {
+            Tasks = new List<TaskItem>();
+        }
     }
 }

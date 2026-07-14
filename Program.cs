@@ -127,33 +127,29 @@ builder.Services.AddHttpClient("ProofVerification", client =>
 var app = builder.Build();
 
 // Seed data
-using (var scope = app.Services.CreateScope())
+try
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    if (db.Database.CanConnect() && !db.Database.GetPendingMigrations().Any())
+    using (var scope = app.Services.CreateScope())
     {
-        // Database exists and is up to date
-    }
-    else if (db.Database.CanConnect())
-    {
-        db.Database.Migrate();
-    }
-    else
-    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         db.Database.EnsureCreated();
+        await AdminSeeder.SeedAsync(db);
     }
-    await AdminSeeder.SeedAsync(db);
 }
-
-if (!app.Environment.IsDevelopment())
+catch (Exception ex)
 {
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
+    Console.WriteLine($"[Startup] Database seeding failed: {ex.Message}");
 }
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseHttpsRedirection();
+}
+else
+{
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 app.UseResponseCompression();
 app.UseStaticFiles();

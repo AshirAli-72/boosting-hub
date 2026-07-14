@@ -17,7 +17,7 @@ namespace BoostingHub.backend.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -613,6 +613,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("remember_token");
+
+                    b.Property<DateTime?>("RememberTokenExpiry")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("remember_token_expiry");
 
                     b.Property<int>("Status")
                         .HasColumnType("int")

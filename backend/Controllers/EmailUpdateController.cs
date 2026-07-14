@@ -54,7 +54,8 @@ public class EmailUpdateController : ControllerBase
             return BadRequest(new { success = false, message = "This email is already in use by another account." });
 
         var token = EncodeEmailChangeToken(userId, emailLower);
-        var verificationLink = $"{Request.Scheme}://{Request.Host}/api/email-update/verify?token={Uri.EscapeDataString(token)}";
+        var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
+        var verificationLink = $"{baseUrl}/api/email-update/verify?token={Uri.EscapeDataString(token)}";
 
         var user = await _db.Users.FindAsync(userId);
         var userName = user?.Name ?? "User";

@@ -46,7 +46,8 @@ public class AuthenticationService : IAuthenticationService
 
         var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
         var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
-        var verificationLink = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/verify-email?token={Uri.EscapeDataString(token)}";
+        var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
+        var verificationLink = $"{baseUrl}/verify-email?token={Uri.EscapeDataString(token)}";
 
         var smtpConfigured = !string.IsNullOrEmpty(_config["Email:SmtpHost"]);
         if (smtpConfigured)
@@ -168,14 +169,17 @@ public class AuthenticationService : IAuthenticationService
         user.RememberToken = _hashToken(token);
         await _db.SaveChangesAsync(ct);
 
-        // Since ForgotPassword doesn't take HttpContext easily here, we could use hardcoded host or pass it, but
-        // for simplicity, let's assume we can retrieve HttpContext using IHttpContextAccessor if it were injected.
-        // Wait, I can just use a generic format or we must pass the context. Let's just create a relative link for now, 
-        // or actually, since I didn't change the method signature, I'll just format it using a placeholder host.
-        // Or better, let's just make it relative for now if we can't get absolute, wait no, Email needs absolute.
-        var resetLink = $"https://localhost:7198/Account/ResetPassword?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}"; // Placeholder fallback, ideally configured from appsettings
+        var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
+        var resetLink = $"{baseUrl}/Account/ResetPassword?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
 
-        await _emailService.SendPasswordResetAsync(user.Email!, resetLink, user.Name);
+        try
+        {
+            await _emailService.SendPasswordResetAsync(user.Email!, resetLink, user.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send password reset email to {Email}", user.Email);
+        }
 
         return Result.Success("If the email exists, a reset link has been sent");
     }
@@ -186,12 +190,9 @@ public class AuthenticationService : IAuthenticationService
         if (user == null)
             return Result.Failure("Invalid request", "INVALID_REQUEST");
 
-        if (user.CreatedAt < DateTime.UtcNow)
-            return Result.Failure("Token expired", "TOKEN_EXPIRED");
-
         var tokenHash = _hashToken(dto.Token);
         if (user.RememberToken == null || user.RememberToken != tokenHash)
-            return Result.Failure("Invalid token", "INVALID_TOKEN");
+            return Result.Failure("Invalid or expired reset link", "INVALID_TOKEN");
 
         user.Password = _passwordHasher.HashPassword(user, dto.Password);
         user.RememberToken = null;

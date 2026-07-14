@@ -17,6 +17,13 @@ public class DashboardModel : PageModel
 
     public async Task OnGetAsync()
     {
-        Dashboard = await _dashboardService.GetAdminDashboardAsync();
+        try
+        {
+            Dashboard = await _dashboardService.GetAdminDashboardAsync();
+        }
+        catch
+        {
+            Dashboard = new AdminDashboardDto();
+        }
     }
 }

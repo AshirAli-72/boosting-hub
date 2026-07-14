@@ -93,8 +93,13 @@ public class DashboardService : IDashboardService
 
     public async Task<AdminDashboardDto> GetAdminDashboardAsync()
     {
+        var adminRoleIds = await _db.Roles
+            .Where(r => r.RoleTitle != null && r.RoleTitle.Contains("Admin"))
+            .Select(r => r.Id)
+            .ToListAsync();
+
         var adminUserIds = await _db.UserHasRoles
-            .Where(ur => ur.Role!.RoleTitle.Contains("Admin"))
+            .Where(ur => adminRoleIds.Contains(ur.RoleId))
             .Select(ur => ur.UserId)
             .ToListAsync();
 
