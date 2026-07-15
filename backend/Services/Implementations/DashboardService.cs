@@ -98,14 +98,16 @@ public class DashboardService : IDashboardService
             .Select(r => r.Id)
             .ToListAsync();
 
-        var adminUserIds = await _db.UserHasRoles
-            .Where(ur => adminRoleIds.Contains(ur.RoleId))
-            .Select(ur => ur.UserId)
-            .ToListAsync();
+        var adminUserIds = adminRoleIds.Count > 0
+            ? await _db.UserHasRoles
+                .Where(ur => adminRoleIds.Contains(ur.RoleId))
+                .Select(ur => ur.UserId)
+                .ToListAsync()
+            : new List<int>();
 
-        var users = await _db.Users
-            .Where(u => !adminUserIds.Contains(u.Id))
-            .ToListAsync();
+        var users = adminUserIds.Count > 0
+            ? await _db.Users.Where(u => !adminUserIds.Contains(u.Id)).ToListAsync()
+            : await _db.Users.ToListAsync();
 
         var orders = await _db.Orders.ToListAsync();
         var today = DateTime.UtcNow.Date;
