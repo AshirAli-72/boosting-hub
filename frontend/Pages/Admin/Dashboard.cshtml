@@ -24,6 +24,10 @@
             </div>
         </div>
         <div class="admin-content">
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger" style="word-break: break-all;">@Model.ErrorMessage</div>
+            }
             <div class="row g-4 mb-4">
                 <div class="col-md-3">
                     <div class="stat-card" style="background:linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%);border:none;">

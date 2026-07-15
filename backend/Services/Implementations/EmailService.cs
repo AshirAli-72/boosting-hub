@@ -49,7 +49,8 @@ public class EmailService : IEmailService
 
         using var client = new SmtpClient();
         client.Timeout = 30000;
-        await client.ConnectAsync(smtpHost, port, SecureSocketOptions.StartTls);
+        client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+        await client.ConnectAsync(smtpHost, port, SecureSocketOptions.Auto);
         await client.AuthenticateAsync(smtpUser, smtpPass);
         await client.SendAsync(message);
         await client.DisconnectAsync(true);

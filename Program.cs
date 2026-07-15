@@ -141,16 +141,8 @@ catch (Exception ex)
     Console.WriteLine($"[Startup] Database seeding failed: {ex.Message}");
 }
 
-if (app.Environment.IsDevelopment())
-{
     app.UseDeveloperExceptionPage();
     app.UseHttpsRedirection();
-}
-else
-{
-    app.UseExceptionHandler("/Error");
-    app.UseHsts();
-}
 app.UseResponseCompression();
 app.UseStaticFiles();
 app.UseRouting();

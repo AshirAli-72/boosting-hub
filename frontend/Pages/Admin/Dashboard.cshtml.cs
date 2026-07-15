@@ -15,14 +15,17 @@ public class DashboardModel : PageModel
 
     public AdminDashboardDto Dashboard { get; set; } = new();
 
+    public string? ErrorMessage { get; set; }
+
     public async Task OnGetAsync()
     {
         try
         {
             Dashboard = await _dashboardService.GetAdminDashboardAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            ErrorMessage = ex.Message + " | " + ex.StackTrace;
             Dashboard = new AdminDashboardDto();
         }
     }
