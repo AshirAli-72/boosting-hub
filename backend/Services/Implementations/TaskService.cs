@@ -270,10 +270,8 @@ public class TaskService : ITaskService
             if (allTaskIds.Count == 0)
                 return new List<MyTaskDto>();
 
-            var tasks = await _db.TaskGenerates
-                .AsNoTracking()
-                .Where(t => allTaskIds.Contains(t.Id))
-                .ToListAsync();
+            var allTasks = await _db.TaskGenerates.AsNoTracking().ToListAsync();
+            var tasks = allTasks.Where(t => allTaskIds.Contains(t.Id)).ToList();
 
             var result = new List<MyTaskDto>();
 

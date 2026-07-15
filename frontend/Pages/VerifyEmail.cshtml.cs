@@ -25,16 +25,24 @@ public class VerifyEmailModel : PageModel
         if (string.IsNullOrEmpty(token))
             return LocalRedirect("/register");
 
-        var result = await _authService.VerifyEmailAsync(new VerifyEmailDto { Token = token });
-
-        if (result.IsSuccess)
+        try
         {
-            IsVerified = true;
-            Message = "Your email has been verified. You can now log in.";
+            var result = await _authService.VerifyEmailAsync(new VerifyEmailDto { Token = token });
+
+            if (result.IsSuccess)
+            {
+                IsVerified = true;
+                Message = "Your email has been verified. You can now log in.";
+                return Page();
+            }
+
+            ErrorMessage = result.Message;
             return Page();
         }
-
-        ErrorMessage = result.Message;
-        return Page();
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred during verification. Please try again.";
+            return Page();
+        }
     }
 }

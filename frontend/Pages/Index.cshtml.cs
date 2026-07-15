@@ -19,30 +19,33 @@ public class IndexModel : PageModel
     {
         try
         {
-            var adminRoleIds = await _db.Roles
+            var allRoles = await _db.Roles.ToListAsync();
+            var adminRoleIds = allRoles
                 .Where(r => r.RoleTitle.Contains("Admin"))
                 .Select(r => r.Id)
-                .ToListAsync();
+                .ToHashSet();
 
-            var adminUserIds = await _db.UserHasRoles
+            var allUserRoles = await _db.UserHasRoles.ToListAsync();
+            var adminUserIds = allUserRoles
                 .Where(ur => adminRoleIds.Contains(ur.RoleId))
                 .Select(ur => ur.UserId)
-                .Distinct()
-                .ToListAsync();
+                .ToHashSet();
 
-            var seederEmails = new[] { "admin@gmail.com" };
+            const string seederEmail = "admin@gmail.com";
 
-            TotalUsers = await _db.Users
-                .Where(u => !adminUserIds.Contains(u.Id) && !seederEmails.Contains(u.Email!) && u.EmailVerifiedAt != null)
-                .CountAsync();
+            var allUsers = await _db.Users.ToListAsync();
+            var filteredUsers = allUsers
+                .Where(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail && u.EmailVerifiedAt != null)
+                .ToList();
+
+            TotalUsers = filteredUsers.Count;
 
             TotalOrders = await _db.Orders.CountAsync();
             TotalRevenue = await _db.Orders
                 .Where(o => o.Status == "Approved")
                 .SumAsync(o => o.Budget);
 
-            RecentUsers = await _db.Users
-                .Where(u => !adminUserIds.Contains(u.Id) && !seederEmails.Contains(u.Email!) && u.EmailVerifiedAt != null)
+            RecentUsers = filteredUsers
                 .OrderByDescending(u => u.CreatedAt)
                 .Take(8)
                 .Select(u => new User
@@ -52,7 +55,7 @@ public class IndexModel : PageModel
                     Email = u.Email,
                     CreatedAt = u.CreatedAt
                 })
-                .ToListAsync();
+                .ToList();
         }
         catch
         {

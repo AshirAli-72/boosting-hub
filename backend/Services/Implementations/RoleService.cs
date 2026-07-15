@@ -83,9 +83,9 @@ public class RoleService : IRoleService
 
         await _db.SaveChangesAsync();
 
-        var permissions = await _db.Permissions
-            .Where(p => dto.PermissionIds.Contains(p.Id))
-            .ToListAsync();
+        var permIdsSet1 = dto.PermissionIds.ToHashSet();
+        var allPerms1 = await _db.Permissions.ToListAsync();
+        var permissions = allPerms1.Where(p => permIdsSet1.Contains(p.Id)).ToList();
 
         return Result.Success(new RoleWithPermissionsDto
         {
@@ -134,9 +134,9 @@ public class RoleService : IRoleService
 
         await _db.SaveChangesAsync();
 
-        var permissions = await _db.Permissions
-            .Where(p => dto.PermissionIds.Contains(p.Id))
-            .ToListAsync();
+        var permIdsSet2 = dto.PermissionIds.ToHashSet();
+        var allPerms2 = await _db.Permissions.ToListAsync();
+        var permissions = allPerms2.Where(p => permIdsSet2.Contains(p.Id)).ToList();
 
         return Result.Success(new RoleWithPermissionsDto
         {

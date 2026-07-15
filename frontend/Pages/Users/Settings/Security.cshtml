@@ -2,13 +2,13 @@
 @model BoostingHub.frontend.Pages.Users.Settings.SecurityModel
 @{
     ViewData["Title"] = "Settings";
-    ViewData["BodyClass"] = "user-dashboard-page";
     var isAdmin = HttpContext.Session.GetString("UserRole") == "Admin";
+    ViewData["BodyClass"] = isAdmin ? "admin-page" : "user-dashboard-page";
 }
 
         <div class="admin-header">
             <div class="d-flex align-items-center gap-3">
-                <a href="/user/settings" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+                <a href="@(isAdmin ? "/admin/settings" : "/user/settings")" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
                 <h3 class="mb-0"><i class="bi bi-gear text-primary"></i> Settings</h3>
             </div>
             <div class="admin-header-right">
@@ -192,7 +192,7 @@
             var params = new URLSearchParams(window.location.search);
             if (params.get('email_verified') === '1') {
                 document.addEventListener('DOMContentLoaded', function() { showToast('Email verified and updated successfully!', 'success'); });
-                window.history.replaceState({}, '', '/settings');
+                window.history.replaceState({}, '', '@(isAdmin ? "/admin/settings" : "/settings")');
             }
         })();
 

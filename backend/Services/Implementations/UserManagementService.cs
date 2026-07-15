@@ -72,7 +72,9 @@ public class UserManagementService : IUserManagementService
 
         await _db.SaveChangesAsync();
 
-        var roles = await _db.Roles.Where(r => dto.RoleIds.Contains(r.Id)).ToListAsync();
+        var roleIdsSet = dto.RoleIds.ToHashSet();
+        var allRoles = await _db.Roles.ToListAsync();
+        var roles = allRoles.Where(r => roleIdsSet.Contains(r.Id)).ToList();
 
         return Result.Success(new UserWithRolesDto
         {

@@ -1,5 +1,6 @@
 using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace BoostingHub.frontend.Pages.Admin;
@@ -17,8 +18,12 @@ public class DashboardModel : PageModel
 
     public string? ErrorMessage { get; set; }
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
+        var role = HttpContext.Session.GetString("UserRole");
+        if (role != "Admin")
+            return RedirectToPage("/Account/Login");
+
         try
         {
             Dashboard = await _dashboardService.GetAdminDashboardAsync();
@@ -28,5 +33,7 @@ public class DashboardModel : PageModel
             ErrorMessage = ex.Message + " | " + ex.StackTrace;
             Dashboard = new AdminDashboardDto();
         }
+
+        return Page();
     }
 }

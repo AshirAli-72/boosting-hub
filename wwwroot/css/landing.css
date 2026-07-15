@@ -126,6 +126,19 @@
     cursor: pointer;
     padding: 4px;
 }
+.mobile-nav-cta {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+@media (max-width: 768px) {
+    .mobile-nav-cta { display: flex; }
+    .mobile-nav-cta .btn-ghost,
+    .mobile-nav-cta .btn-primary-solid { width: 100%; justify-content: center; }
+}
 
 /* ── Hero ── */
 .hero {
@@ -627,15 +640,40 @@
         background: rgba(15,15,26,0.98); backdrop-filter: blur(16px);
         padding: 20px 32px; gap: 4px;
     }
-    .hero-grid { grid-template-columns: 1fr; gap: 40px; text-align: center; }
-    .hero-subtitle { margin: 0 auto 36px; }
-    .hero-stats  { justify-content: center; }
+    .header-nav.open + .header-cta-mobile { display: flex; }
+    .hero { padding: 100px 20px 60px; min-height: auto; }
+    .hero-grid { grid-template-columns: 1fr; gap: 30px; text-align: center; }
+    .hero-subtitle { margin: 0 auto 28px; font-size: 1rem; }
+    .hero-stats  { justify-content: center; flex-wrap: wrap; gap: 24px; }
+    .hero-stat h3 { font-size: 1.4rem; }
     .hero-actions { justify-content: center; }
     .hero-visual { display: none; }
     .features-grid { grid-template-columns: 1fr; }
-    .stats-grid    { grid-template-columns: 1fr; }
+    .stats-grid    { grid-template-columns: repeat(2,1fr); }
     .footer-grid   { grid-template-columns: 1fr; }
     .users-grid    { grid-template-columns: 1fr; }
     .footer-bottom { flex-direction: column; gap: 16px; text-align: center; }
     .inquiry-grid  { grid-template-columns: 1fr; }
+    .inquiry-form-card { padding: 24px 16px; }
+    .section { padding: 60px 16px; }
+    .section-light { padding: 60px 16px; }
+    .inquiry-section { padding: 40px 16px; }
+    .cta-section { padding: 60px 16px; }
+    .landing-footer { padding: 40px 16px 24px; }
+    .footer-grid { gap: 28px; }
+    .btn-cta { padding: 14px 32px; font-size: 0.95rem; }
+}
+@media (max-width: 480px) {
+    .header-inner { padding: 0 16px; }
+    .hero { padding: 80px 16px 40px; }
+    .hero-title { font-size: 1.8rem; letter-spacing: -0.8px; }
+    .hero-badge { font-size: 0.7rem; padding: 4px 12px; }
+    .hero-actions { flex-direction: column; align-items: center; }
+    .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
+    .hero-stats { gap: 16px; }
+    .hero-stat h3 { font-size: 1.2rem; }
+    .stats-grid { grid-template-columns: 1fr; gap: 16px; }
+    .stat-card { padding: 28px 16px; }
+    .section-title { font-size: 1.6rem; }
+    .feature-card { padding: 24px 20px; }
 }

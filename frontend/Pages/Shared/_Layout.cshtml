@@ -46,6 +46,10 @@
                     <a href="#features">Features</a>
                     <a href="#stats">Stats</a>
                     <a href="#get-started">Get Started</a>
+                    <div class="mobile-nav-cta">
+                        <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Login</a>
+                        <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus"></i> Get Started</a>
+                    </div>
                 </nav>
                 <div class="header-cta" id="headerCta">
                     <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Login</a>
@@ -168,10 +172,10 @@
                     <p class="section-subtitle section-subtitle-dark">Join thousands of satisfied content creators who trust Boosting Hub for their social media growth.</p>
                 </div>
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Users</div></div>
+                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Active Users</div></div>
                     <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Orders Fulfilled</div></div>
-                    <div class="stat-card"><div class="stat-number">50+</div><div class="stat-label">Countries Served</div></div>
-                    <div class="stat-card"><div class="stat-number">4.9/5</div><div class="stat-label">Average Rating</div></div>
+                    <div class="stat-card"><div class="stat-number">$@((ViewData["LandingTotalRevenue"] as decimal? ?? 0).ToString("N0"))</div><div class="stat-label">Total Revenue</div></div>
+                    <div class="stat-card"><div class="stat-number">99.9%</div><div class="stat-label">Uptime Guarantee</div></div>
                 </div>
             </section>
 
@@ -445,6 +449,10 @@
                         </nav>
                     </aside>
                 }
+                <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+                <button class="sidebar-mobile-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle menu">
+                    <i class="bi bi-list"></i>
+                </button>
                 <main class="admin-main">
                     @RenderBody()
                 </main>
@@ -547,6 +555,16 @@
                 });
             }
         });
+    </script>
+    <script>
+        function toggleSidebar() {
+            var sidebar = document.querySelector('.admin-sidebar');
+            var overlay = document.getElementById('sidebarOverlay');
+            if (sidebar && overlay) {
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('open');
+            }
+        }
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

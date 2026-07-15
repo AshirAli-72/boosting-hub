@@ -93,23 +93,23 @@ public class DashboardService : IDashboardService
 
     public async Task<AdminDashboardDto> GetAdminDashboardAsync()
     {
-        var adminRoleIds = await _db.Roles
+        var allRoles = await _db.Roles.ToListAsync();
+        var adminRoleIds = allRoles
             .Where(r => r.RoleTitle != null && r.RoleTitle.Contains("Admin"))
             .Select(r => r.Id)
-            .ToListAsync();
+            .ToHashSet();
 
+        var allUserRoles = await _db.UserHasRoles.ToListAsync();
         var adminUserIds = adminRoleIds.Count > 0
-            ? await _db.UserHasRoles
-                .Where(ur => adminRoleIds.Contains(ur.RoleId))
-                .Select(ur => ur.UserId)
-                .ToListAsync()
-            : new List<int>();
+            ? allUserRoles.Where(ur => adminRoleIds.Contains(ur.RoleId)).Select(ur => ur.UserId).ToHashSet()
+            : new HashSet<int>();
 
-        var seederEmails = new[] { "admin@gmail.com" };
+        const string seederEmail = "admin@gmail.com";
 
-        var users = await _db.Users
-            .Where(u => !adminUserIds.Contains(u.Id) && !seederEmails.Contains(u.Email))
-            .ToListAsync();
+        var allUsers = await _db.Users.ToListAsync();
+        var users = allUsers
+            .Where(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail)
+            .ToList();
 
         var orders = await _db.Orders.ToListAsync();
         var today = DateTime.UtcNow.Date;

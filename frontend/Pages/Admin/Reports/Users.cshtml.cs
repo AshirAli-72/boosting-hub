@@ -25,18 +25,25 @@ public class UsersReportModel : PageModel
         if (role != "Admin")
             return RedirectToPage("/Account/Login");
 
-        var adminUserIds = await _db.UserHasRoles
-            .Where(ur => ur.Role!.RoleTitle.Contains("Admin"))
+        var allRoles = await _db.Roles.ToListAsync();
+        var adminRoleIds = allRoles
+            .Where(r => r.RoleTitle != null && r.RoleTitle.Contains("Admin"))
+            .Select(r => r.Id)
+            .ToHashSet();
+
+        var allUserRoles = await _db.UserHasRoles.ToListAsync();
+        var adminUserIds = allUserRoles
+            .Where(ur => adminRoleIds.Contains(ur.RoleId))
             .Select(ur => ur.UserId)
-            .ToListAsync();
+            .ToHashSet();
 
         var since = DateTime.UtcNow.Date.AddDays(-6);
 
-        var allUsers = await _db.Users
+        var allUsersRaw = await _db.Users.AsNoTracking().ToListAsync();
+        var allUsers = allUsersRaw
             .Where(u => !adminUserIds.Contains(u.Id))
-            .AsNoTracking()
             .OrderByDescending(u => u.CreatedAt)
-            .ToListAsync();
+            .ToList();
 
         TotalUsers    = allUsers.Count;
         VerifiedUsers = allUsers.Count(u => u.EmailVerifiedAt != null);

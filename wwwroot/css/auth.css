@@ -253,9 +253,19 @@
 /* ── Responsive ── */
 @media (max-width: 768px) {
     .auth-container { flex-direction: column; min-height: auto; max-width: 440px; }
-    .auth-brand { padding: 32px 24px; min-height: 200px; }
-    .auth-brand h2 { font-size: 1.5rem; }
+    .auth-brand { padding: 28px 20px; min-height: 160px; }
+    .auth-brand h2 { font-size: 1.4rem; }
     .auth-brand p  { display: none; }
-    .auth-form { padding: 32px 24px; }
-    .auth-form-title { font-size: 1.5rem; }
+    .auth-form { padding: 28px 20px; }
+    .auth-form-title { font-size: 1.4rem; }
+}
+@media (max-width: 480px) {
+    .auth-page { padding: 12px; }
+    .auth-container { max-width: 100%; border-radius: 16px; }
+    .auth-brand { padding: 20px 16px; min-height: 120px; border-radius: 16px 16px 0 0; }
+    .auth-form { padding: 24px 16px; }
+    .auth-form-title { font-size: 1.25rem; }
+    .input-icon-wrapper .form-control,
+    .input-icon-wrapper .form-select { height: 46px; font-size: 0.9rem; }
+    .btn-auth { height: 46px; font-size: 0.95rem; }
 }

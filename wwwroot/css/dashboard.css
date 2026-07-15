@@ -452,12 +452,67 @@ body:not(.light-mode) #otpSection small {
 }
 /* ── Responsive ── */
 @media (max-width: 768px) {
-    .admin-sidebar { width: 64px; }
+    .admin-sidebar { width: 260px; transform: translateX(-100%); transition: transform 0.3s ease; }
+    .admin-sidebar.open { transform: translateX(0); }
     .admin-sidebar .sidebar-brand span,
-    .admin-sidebar .sidebar-link span { display: none; }
-    .admin-sidebar .sidebar-link { justify-content: center; padding: 10px; }
-    .admin-main  { margin-left: 64px; }
-    .admin-content { padding: 20px 16px; }
+    .admin-sidebar .sidebar-link span { display: inline !important; }
+    .admin-sidebar .sidebar-link { justify-content: flex-start; padding: 11px 14px; }
+    .admin-main  { margin-left: 0 !important; }
+    .admin-content { padding: 16px 12px; }
+    .admin-header { padding: 14px 12px; flex-wrap: wrap; }
+    .admin-header h3 { font-size: 1rem; }
+    .stat-value { font-size: 1.2rem; }
+    .stat-card { padding: 16px 14px; gap: 12px; }
+    .stat-icon { width: 42px; height: 42px; font-size: 1.1rem; }
+    .chart-card.chart-line canvas { height: 220px !important; min-height: 220px; max-height: 220px; }
+    .chart-card.chart-pie canvas { height: 240px !important; }
+    .admin-user-badge { padding: 4px 10px; font-size: 0.8rem; }
+    .custom-tabs { gap: 8px; flex-wrap: wrap; }
+    .custom-tabs .nav-link { font-size: 0.85rem; padding: 10px 12px; white-space: nowrap; }
+    .admin-card-body { padding: 16px; }
+    .admin-card-header { padding: 14px 16px; }
+    .admin-table td, .admin-table th { padding: 10px 12px; font-size: 0.8rem; }
+    .rhc-stat-row { flex-direction: column; gap: 8px; }
+    .report-metrics-grid { grid-template-columns: repeat(2, 1fr); padding: 12px 14px; }
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+    backdrop-filter: blur(4px);
+}
+.sidebar-overlay.open {
+    display: block;
+}
+
+/* Sidebar mobile toggle button */
+.sidebar-mobile-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 200;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #7C3AED, #0D9488);
+    color: #fff;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(124,58,237,0.4);
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+.sidebar-mobile-toggle:hover { transform: scale(1.08); }
+
+@media (max-width: 768px) {
+    .sidebar-mobile-toggle { display: flex; }
 }
 
 /* ── Custom Tabs for Settings ── */
@@ -574,16 +629,37 @@ body, .admin-sidebar, .admin-header, .admin-content, .admin-card, .stat-card,
     grid-template-columns: repeat(4, 1fr) !important;
     gap: 16px !important;
 }
+.admin-content .row.g-4:has(.stat-card) {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 16px !important;
+}
 .admin-content .row.g-3:has(.stat-card) > [class*="col-"] {
+    flex: none !important;
+    max-width: none !important;
+    width: auto !important;
+}
+.admin-content .row.g-4:has(.stat-card) > [class*="col-"] {
     flex: none !important;
     max-width: none !important;
     width: auto !important;
 }
 @media (max-width: 1200px) {
     .admin-content .row.g-3:has(.stat-card) { grid-template-columns: repeat(2, 1fr) !important; }
+    .admin-content .row.g-4:has(.stat-card) { grid-template-columns: repeat(2, 1fr) !important; }
+    .report-cards-row { grid-template-columns: repeat(2, 1fr) !important; }
+    .report-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 992px) {
+    .admin-content .row.g-3:has(.stat-card) { grid-template-columns: repeat(2, 1fr) !important; }
+    .admin-content .row.g-4:has(.stat-card) { grid-template-columns: repeat(2, 1fr) !important; }
+    .report-cards-row { grid-template-columns: repeat(2, 1fr) !important; }
 }
 @media (max-width: 768px) {
     .admin-content .row.g-3:has(.stat-card) { grid-template-columns: 1fr !important; }
+    .admin-content .row.g-4:has(.stat-card) { grid-template-columns: 1fr !important; }
+    .report-cards-row { grid-template-columns: 1fr !important; }
+    .report-metrics-grid { grid-template-columns: 1fr; }
 }
 .rhc-header {
     padding: 18px 20px 14px;

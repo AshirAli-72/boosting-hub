@@ -6,6 +6,77 @@
     ViewData["BodyClass"] = "auth-page-body";
 }
 
+<style>
+    .verify-card {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+    .verify-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+        font-size: 2.2rem;
+        animation: verifyPop 0.5s ease-out;
+    }
+    @@keyframes verifyPop {
+        0% { transform: scale(0); opacity: 0; }
+        60% { transform: scale(1.15); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .verify-icon-success {
+        background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04));
+        color: #10B981;
+        box-shadow: 0 8px 32px rgba(16,185,129,0.15);
+    }
+    .verify-icon-error {
+        background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04));
+        color: #EF4444;
+        box-shadow: 0 8px 32px rgba(239,68,68,0.15);
+    }
+    .verify-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 0.5rem;
+    }
+    .verify-subtitle {
+        color: #64748B;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 1.75rem;
+    }
+    .verify-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+    .badge-success {
+        background: rgba(16,185,129,0.1);
+        color: #059669;
+    }
+    .badge-error {
+        background: rgba(239,68,68,0.1);
+        color: #DC2626;
+    }
+    .verify-divider {
+        width: 48px;
+        height: 3px;
+        border-radius: 3px;
+        margin: 0 auto 1.5rem;
+    }
+    .divider-success { background: linear-gradient(90deg, #10B981, #34D399); }
+    .divider-error { background: linear-gradient(90deg, #EF4444, #F87171); }
+</style>
+
 <div class="auth-page">
     <div class="auth-container">
         <div class="auth-brand">
@@ -23,21 +94,37 @@
 
                 @if (Model.IsVerified)
                 {
-                    <div class="auth-logo-icon text-success"><i class="bi bi-check-circle-fill"></i></div>
-                    <h3 class="auth-form-title">Email Verified!</h3>
-                    <p class="auth-form-subtitle">@Model.Message</p>
-                    <a href="/login" class="btn btn-auth w-100 mt-3">
-                        <i class="bi bi-box-arrow-in-right"></i> Login to Your Account
-                    </a>
+                    <div class="verify-card">
+                        <div class="verify-icon verify-icon-success">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                        <div class="verify-divider divider-success"></div>
+                        <span class="verify-badge badge-success">
+                            <i class="bi bi-patch-check-fill"></i> Verified
+                        </span>
+                        <h3 class="verify-title">Email Verified!</h3>
+                        <p class="verify-subtitle">@Model.Message</p>
+                        <a href="/login" class="btn btn-auth w-100">
+                            <i class="bi bi-box-arrow-in-right"></i> Login to Your Account
+                        </a>
+                    </div>
                 }
                 else
                 {
-                    <div class="auth-logo-icon text-danger"><i class="bi bi-x-circle-fill"></i></div>
-                    <h3 class="auth-form-title">Verification Failed</h3>
-                    <p class="auth-form-subtitle">@Model.ErrorMessage</p>
-                    <a href="/register" class="btn btn-auth w-100">
-                        <i class="bi bi-person-plus"></i> Register Again
-                    </a>
+                    <div class="verify-card">
+                        <div class="verify-icon verify-icon-error">
+                            <i class="bi bi-x-lg"></i>
+                        </div>
+                        <div class="verify-divider divider-error"></div>
+                        <span class="verify-badge badge-error">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Failed
+                        </span>
+                        <h3 class="verify-title">Verification Failed</h3>
+                        <p class="verify-subtitle">@Model.ErrorMessage</p>
+                        <a href="/register" class="btn btn-auth w-100">
+                            <i class="bi bi-person-plus"></i> Register Again
+                        </a>
+                    </div>
                 }
 
             </div>
