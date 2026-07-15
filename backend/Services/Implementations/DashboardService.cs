@@ -105,9 +105,11 @@ public class DashboardService : IDashboardService
                 .ToListAsync()
             : new List<int>();
 
-        var users = adminUserIds.Count > 0
-            ? await _db.Users.Where(u => !adminUserIds.Contains(u.Id)).ToListAsync()
-            : await _db.Users.ToListAsync();
+        var seederEmails = new[] { "admin@gmail.com" };
+
+        var users = await _db.Users
+            .Where(u => !adminUserIds.Contains(u.Id) && !seederEmails.Contains(u.Email))
+            .ToListAsync();
 
         var orders = await _db.Orders.ToListAsync();
         var today = DateTime.UtcNow.Date;
