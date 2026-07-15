@@ -26,6 +26,12 @@ jobs:
       - name: Publish
         run: dotnet publish -c Release --no-build -o ./publish
 
+      - name: Stop IIS (upload app_offline.htm)
+        run: |
+          echo "<html><body><h1>Deploying...</h1></body></html>" > app_offline.htm
+          curl --ftp-create-dirs -T app_offline.htm ftp://155.254.244.30/www.boostinghub.somee.com/app_offline.htm --user ashir_ali:developer@72
+          sleep 5
+
       - name: Deploy to Somee via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -36,3 +42,8 @@ jobs:
           server-dir: /www.boostinghub.somee.com/
           protocol: ftp
           dry-run: false
+
+      - name: Start IIS (delete app_offline.htm)
+        if: always()
+        run: |
+          curl -Q "DELE app_offline.htm" ftp://155.254.244.30/www.boostinghub.somee.com/ --user ashir_ali:developer@72 || true
