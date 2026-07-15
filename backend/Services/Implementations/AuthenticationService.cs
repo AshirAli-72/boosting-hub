@@ -47,7 +47,9 @@ public class AuthenticationService : IAuthenticationService
         var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
         var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
 
-        var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
+        var host = httpContext.Request.Host.Value ?? _config["App:Domain"] ?? "boostinghub.somee.com";
+        var scheme = host.Contains("localhost") ? "http" : "https";
+        var baseUrl = $"{scheme}://{host}";
         var verificationLink = $"{baseUrl}/verify-email?token={Uri.EscapeDataString(token)}";
 
         try
@@ -165,7 +167,9 @@ public class AuthenticationService : IAuthenticationService
         user.RememberToken = _hashToken(token);
         await _db.SaveChangesAsync(ct);
 
-        var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
+        var domain = _config["App:Domain"] ?? "boostinghub.somee.com";
+        var scheme = domain.Contains("localhost") ? "http" : "https";
+        var baseUrl = $"{scheme}://{domain}";
         var resetLink = $"{baseUrl}/Account/ResetPassword?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(token)}";
 
         try

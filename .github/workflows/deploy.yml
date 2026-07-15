@@ -33,6 +33,6 @@ jobs:
           username: ashir_ali
           password: developer@72
           local-dir: ./publish/
-          server-dir: /
+          server-dir: /www.boostinghub.somee.com/
           protocol: ftp
           dry-run: false
