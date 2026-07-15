@@ -17,9 +17,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Install lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
       - name: Restore dependencies
         run: dotnet restore
 
@@ -29,6 +26,24 @@ jobs:
       - name: Publish
         run: dotnet publish -c Release --no-build -o ./publish
 
-      - name: Deploy to Somee via lftp
+      - name: Stop IIS (upload app_offline.htm)
         run: |
-          lftp -c "set ssl:verify-certificate no; set net:timeout 30; open ftp://ashir_ali:developer@72@155.254.244.30; mirror -R --verbose --ignore-time --parallel=5 ./publish/ /www.boostinghub.somee.com/"
+          echo "<html><body><h1>Deploying...</h1></body></html>" > app_offline.htm
+          curl --ftp-create-dirs -T app_offline.htm "ftp://155.254.244.30/www.boostinghub.somee.com/app_offline.htm" --user ashir_ali:developer@72
+          sleep 5
+
+      - name: Deploy to Somee via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: 155.254.244.30
+          username: ashir_ali
+          password: developer@72
+          local-dir: ./publish/
+          server-dir: /www.boostinghub.somee.com/
+          protocol: ftp
+          dry-run: false
+
+      - name: Start IIS (delete app_offline.htm)
+        if: always()
+        run: |
+          curl -Q "CWD www.boostinghub.somee.com" -Q "DELE app_offline.htm" "ftp://155.254.244.30/" --user ashir_ali:developer@72 || true
