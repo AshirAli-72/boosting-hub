@@ -12,7 +12,7 @@ public class IndexModel : PageModel
 
     public int TotalUsers { get; set; }
     public int TotalOrders { get; set; }
-    public decimal TotalRevenue { get; set; }
+    public int CompletedTasks { get; set; }
     public List<User> RecentUsers { get; set; } = new();
 
     public async Task OnGetAsync()
@@ -41,9 +41,9 @@ public class IndexModel : PageModel
             TotalUsers = filteredUsers.Count;
 
             TotalOrders = await _db.Orders.CountAsync();
-            TotalRevenue = await _db.Orders
-                .Where(o => o.Status == "Approved")
-                .SumAsync(o => o.Budget);
+
+            var allTaskCompletes = await _db.TaskCompletes.ToListAsync();
+            CompletedTasks = allTaskCompletes.Count(tc => tc.Status == "Completed");
 
             RecentUsers = filteredUsers
                 .OrderByDescending(u => u.CreatedAt)
@@ -61,13 +61,13 @@ public class IndexModel : PageModel
         {
             TotalUsers = 0;
             TotalOrders = 0;
-            TotalRevenue = 0;
+            CompletedTasks = 0;
             RecentUsers = new List<User>();
         }
 
         ViewData["LandingTotalUsers"] = TotalUsers;
         ViewData["LandingTotalOrders"] = TotalOrders;
-        ViewData["LandingTotalRevenue"] = TotalRevenue;
+        ViewData["LandingCompletedTasks"] = CompletedTasks;
         ViewData["RecentUsers"] = RecentUsers;
     }
 }

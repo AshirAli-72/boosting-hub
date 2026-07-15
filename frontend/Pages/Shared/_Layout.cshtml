@@ -86,9 +86,8 @@
                             </a>
                         </div>
                         <div class="hero-stats">
-                            <div class="hero-stat"><h3>@(((ViewData["LandingTotalUsers"] as int? ?? 0) / 1000.0).ToString("0.#"))K+</h3><p>Happy Clients</p></div>
-                            <div class="hero-stat"><h3>@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</h3><p>Orders Completed</p></div>
-                            <div class="hero-stat"><h3>99.9%</h3><p>Uptime Guarantee</p></div>
+                            <div class="hero-stat"><h3>@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</h3><p>Clients</p></div>
+                            <div class="hero-stat"><h3>@((ViewData["LandingCompletedTasks"] as int? ?? 0).ToString("N0"))+</h3><p>Orders Completed</p></div>
                         </div>
                     </div>
                     <div class="hero-visual">
@@ -172,10 +171,9 @@
                     <p class="section-subtitle section-subtitle-dark">Join thousands of satisfied content creators who trust Boosting Hub for their social media growth.</p>
                 </div>
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Active Users</div></div>
-                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Orders Fulfilled</div></div>
-                    <div class="stat-card"><div class="stat-number">$@((ViewData["LandingTotalRevenue"] as decimal? ?? 0).ToString("N0"))</div><div class="stat-label">Total Revenue</div></div>
-                    <div class="stat-card"><div class="stat-number">99.9%</div><div class="stat-label">Uptime Guarantee</div></div>
+                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Users</div></div>
+                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Orders</div></div>
+                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingCompletedTasks"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Completed Orders</div></div>
                 </div>
             </section>
 

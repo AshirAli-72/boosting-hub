@@ -362,7 +362,7 @@
 /* ── Stats ── */
 .section-light { background: #F8FAFC; padding: 100px 32px; }
 .stats-grid {
-    display: grid; grid-template-columns: repeat(4,1fr); gap: 32px;
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 32px;
     max-width: 1280px; margin: 0 auto;
 }
 .stat-card {
