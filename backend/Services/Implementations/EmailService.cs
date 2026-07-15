@@ -39,6 +39,8 @@ public class EmailService : IEmailService
 
         var port = int.Parse(smtpPortStr);
 
+        _logger.LogInformation("SMTP DEBUG: host={Host} port={Port} user={User} passLen={PassLen}", smtpHost, port, smtpUser, smtpPass.Length);
+
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(fromName, fromEmail));
         message.To.Add(MailboxAddress.Parse(to));
@@ -49,9 +51,10 @@ public class EmailService : IEmailService
 
         using var client = new SmtpClient();
         client.Timeout = 30000;
-        client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-        await client.ConnectAsync(smtpHost, port, SecureSocketOptions.Auto);
+        await client.ConnectAsync(smtpHost, port, SecureSocketOptions.StartTls);
+        _logger.LogInformation("SMTP DEBUG: Connected to {Host}, authenticating...", smtpHost);
         await client.AuthenticateAsync(smtpUser, smtpPass);
+        _logger.LogInformation("SMTP DEBUG: Authenticated, sending...");
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
 

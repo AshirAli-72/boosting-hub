@@ -46,24 +46,20 @@ public class AuthenticationService : IAuthenticationService
 
         var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
         var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
+
         var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
         var verificationLink = $"{baseUrl}/verify-email?token={Uri.EscapeDataString(token)}";
 
-        var smtpConfigured = !string.IsNullOrEmpty(_config["Email:SmtpHost"]);
-        if (smtpConfigured)
+        try
         {
-            try
-            {
-                await _emailService.SendEmailVerificationAsync(dto.Email, verificationLink, dto.Name);
-                return Result.Success<AuthResponseDto>(new AuthResponseDto(), "Please check your email to verify your account");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send verification email to {Email}. Falling back to link.", dto.Email);
-            }
+            await _emailService.SendEmailVerificationAsync(dto.Email, verificationLink, dto.Name);
+            return Result.Success<AuthResponseDto>(new AuthResponseDto(), "Please check your email to verify your account");
         }
-
-        return Result.Success(new AuthResponseDto { VerificationLink = verificationLink }, "Please check your email to verify your account");
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "SMTP FAILED for {Email}: {Message}", dto.Email, ex.Message);
+            return Result.Failure<AuthResponseDto>($"Email send failed: {ex.Message}", "EMAIL_SEND_FAILED");
+        }
     }
 
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginDto dto, HttpContext httpContext, CancellationToken ct = default)
