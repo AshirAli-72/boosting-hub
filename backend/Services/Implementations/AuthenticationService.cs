@@ -47,9 +47,10 @@ public class AuthenticationService : IAuthenticationService
         var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
         var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
 
-        var host = httpContext.Request.Host.Value ?? _config["App:Domain"] ?? "boostinghub.somee.com";
-        var scheme = host.Contains("localhost") ? "http" : "https";
-        var baseUrl = $"{scheme}://{host}";
+        var host = httpContext.Request.Host.Value ?? "";
+        var isLocal = host.Contains("localhost");
+        var scheme = isLocal ? "http" : "https";
+        var baseUrl = isLocal ? $"{scheme}://{host}" : $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
         var verificationLink = $"{baseUrl}/verify-email?token={Uri.EscapeDataString(token)}";
 
         try
