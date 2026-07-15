@@ -17,6 +17,9 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
       - name: Restore dependencies
         run: dotnet restore
 
