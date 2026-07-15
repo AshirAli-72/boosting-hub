@@ -193,23 +193,26 @@
 .print-report-header, .print-footer, .print-table-title { display: none; }
 @@media print {
     .no-print, .admin-sidebar, .admin-header { display: none !important; }
-    .row.g-3, .stat-card { display: none !important; }
     .admin-main { margin-left: 0 !important; }
     .admin-content { padding: 0 !important; background: #fff !important; }
     body, html { background: #fff !important; color: #1E293B !important; }
-    .print-report-header { display: flex !important; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #10B981; padding-bottom: 12px; margin-bottom: 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .prt-brand { font-size: 16px; font-weight: 800; color: #10B981 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .prt-meta { font-size: 10px; color: #64748B !important; text-align: right; }
-    .print-table-title { display: block !important; font-size: 13px; font-weight: 700; color: #1E293B; padding: 10px 0 8px; border-bottom: 1px solid #E2E8F0; margin-bottom: 4px; }
-    .row.g-3 { margin-bottom: 16px !important; }
-    .stat-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; break-inside: avoid; }
-    .admin-table { width: 100% !important; border-collapse: collapse !important; font-size: 11px !important; }
-    .admin-table th { background: #10B981 !important; color: #fff !important; padding: 8px 10px !important; font-size: 10px !important; text-transform: uppercase; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .admin-table td { padding: 7px 10px !important; border-bottom: 1px solid #E2E8F0 !important; color: #334155 !important; font-size: 11px !important; background: #fff !important; }
-    .admin-table tr:nth-child(even) td { background: #F8FAFC !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .report-badge { font-size: 9px !important; padding: 2px 6px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .print-footer { display: block !important; margin-top: 24px; padding-top: 10px; border-top: 1px solid #E2E8F0; font-size: 9px; color: #94A3B8; text-align: center; }
-    @@page { margin: 15mm; size: A4 portrait; }
+    .print-report-header { display: flex !important; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 10px; margin-bottom: 16px; }
+    .prt-brand { font-size: 16px; font-weight: 700; color: #1E293B !important; }
+    .prt-meta { font-size: 9px; color: #64748B !important; text-align: right; }
+    .print-table-title { display: block !important; font-size: 12px; font-weight: 700; color: #1E293B; padding: 8px 0 6px; border-bottom: 1px solid #CBD5E1; margin-bottom: 0; }
+    .admin-table { width: 100% !important; border-collapse: collapse !important; border: 1px solid #CBD5E1 !important; font-size: 9px !important; }
+    .admin-table thead, .admin-thead { background: #F1F5F9 !important; }
+    .admin-table th { background: #F1F5F9 !important; color: #475569 !important; padding: 6px 8px !important; font-size: 8px !important; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 2px solid #CBD5E1 !important; border-right: 1px solid #E2E8F0 !important; }
+    .admin-table th:last-child { border-right: none !important; }
+    .admin-table td { padding: 5px 8px !important; border-bottom: 1px solid #E2E8F0 !important; border-right: 1px solid #E2E8F0 !important; color: #334155 !important; font-size: 9px !important; background: #fff !important; }
+    .admin-table td:last-child { border-right: none !important; }
+    .admin-table tr:nth-child(even) td { background: #F8FAFC !important; }
+    .admin-table tr:last-child td { border-bottom: 2px solid #CBD5E1 !important; }
+    .report-badge { font-size: 7px !important; padding: 1px 5px !important; border-radius: 3px !important; background: #E2E8F0 !important; color: #475569 !important; }
+    .print-footer { display: block !important; margin-top: 20px; padding-top: 8px; border-top: 1px solid #CBD5E1; font-size: 8px; color: #94A3B8; text-align: center; }
+    .row.g-3, .stat-card { display: none !important; }
+    .row.g-4 { display: none !important; }
+    @@page { margin: 12mm 15mm; size: A4 portrait; }
 }
 </style>
 <script>
