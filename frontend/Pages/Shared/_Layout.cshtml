@@ -585,12 +585,6 @@
                 document.querySelectorAll('.iq-sel.open').forEach(function(el) { el.classList.remove('open'); });
             }
         });
-        }
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.iq-sel')) {
-                document.querySelectorAll('.iq-sel.open').forEach(function(el) { el.classList.remove('open'); });
-            }
-        });
         document.addEventListener('DOMContentLoaded', () => {
             const themeToggleBtn = document.getElementById('themeToggle');
             if (themeToggleBtn) {
