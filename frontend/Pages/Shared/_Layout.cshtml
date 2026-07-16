@@ -257,29 +257,39 @@
                         <div class="inquiry-section-group">
                             <div class="inquiry-group-title"><i class="bi bi-sliders"></i> Campaign Details</div>
                             <div class="inquiry-grid">
-                                <div class="inquiry-field inquiry-field-full">
+                                <div class="inquiry-field inquiry-field-full" style="position:relative;">
                                     <label>Platforms <span>*</span></label>
-                                    <select id="iq-platform-dropdown" required style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;">
-                                        <option value="" disabled selected>Choose platforms...</option>
-                                        <option value="Instagram">Instagram</option>
-                                        <option value="YouTube">YouTube</option>
-                                        <option value="TikTok">TikTok</option>
-                                        <option value="Twitter">Twitter / X</option>
-                                        <option value="Facebook">Facebook</option>
-                                        <option value="LinkedIn">LinkedIn</option>
-                                    </select>
+                                    <div class="custom-select-container" style="position:relative;">
+                                        <div id="iq-platform-dropdown-box" onclick="document.getElementById('platform-options').style.display = document.getElementById('platform-options').style.display === 'block' ? 'none' : 'block'" style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+                                            <span id="iq-platform-selected" style="color:#6c757d;">Choose platforms...</span>
+                                            <i class="bi bi-chevron-down"></i>
+                                        </div>
+                                        <div id="platform-options" style="display:none;position:absolute;top:100%;left:0;width:100%;background:var(--bg-card);border:1px solid var(--border-muted);border-radius:10px;margin-top:4px;z-index:1000;max-height:200px;overflow-y:auto;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Instagram" class="iq-platform-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">Instagram</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="YouTube" class="iq-platform-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">YouTube</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="TikTok" class="iq-platform-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">TikTok</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Twitter" class="iq-platform-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">Twitter / X</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Facebook" class="iq-platform-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">Facebook</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="LinkedIn" class="iq-platform-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">LinkedIn</label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="inquiry-field inquiry-field-full">
+                                <div class="inquiry-field inquiry-field-full" style="position:relative;">
                                     <label>Service Types <span>*</span></label>
-                                    <select id="iq-service-dropdown" required style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;">
-                                        <option value="" disabled selected>Choose service types...</option>
-                                        <option value="Followers">Followers</option>
-                                        <option value="Likes">Likes</option>
-                                        <option value="Views">Views</option>
-                                        <option value="Comments">Comments</option>
-                                        <option value="Shares">Shares</option>
-                                        <option value="Subscribers">Subscribers</option>
-                                    </select>
+                                    <div class="custom-select-container" style="position:relative;">
+                                        <div id="iq-service-dropdown-box" onclick="document.getElementById('service-options').style.display = document.getElementById('service-options').style.display === 'block' ? 'none' : 'block'" style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+                                            <span id="iq-service-selected" style="color:#6c757d;">Choose service types...</span>
+                                            <i class="bi bi-chevron-down"></i>
+                                        </div>
+                                        <div id="service-options" style="display:none;position:absolute;top:100%;left:0;width:100%;background:var(--bg-card);border:1px solid var(--border-muted);border-radius:10px;margin-top:4px;z-index:1000;max-height:200px;overflow-y:auto;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Followers" class="iq-service-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Followers</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Likes" class="iq-service-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Likes</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Views" class="iq-service-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Views</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Comments" class="iq-service-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Comments</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Shares" class="iq-service-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Shares</label>
+                                            <label style="display:flex;align-items:center;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;"><input type="checkbox" value="Subscribers" class="iq-service-cb" style="margin-right:8px;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Subscribers</label>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="inquiry-field">
                                     <label>Quantity <span>*</span></label>
@@ -471,11 +481,43 @@
             var h = document.getElementById('landingHeader');
             if (h) h.classList.toggle('scrolled', window.scrollY > 50);
         });
+
+        function updateMultiSelect(className, displayId, defaultText) {
+            const checkboxes = document.querySelectorAll('.' + className + ':checked');
+            const displaySpan = document.getElementById(displayId);
+            
+            if (checkboxes.length === 0) {
+                displaySpan.textContent = defaultText;
+                displaySpan.style.color = '#6c757d';
+            } else {
+                const selected = Array.from(checkboxes).map(cb => cb.value);
+                displaySpan.textContent = selected.join(', ');
+                displaySpan.style.color = 'var(--text-primary)';
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const platformBox = document.getElementById('iq-platform-dropdown-box');
+            const platformOpts = document.getElementById('platform-options');
+            const serviceBox = document.getElementById('iq-service-dropdown-box');
+            const serviceOpts = document.getElementById('service-options');
+            
+            if (platformBox && platformOpts && !platformBox.contains(e.target) && !platformOpts.contains(e.target)) {
+                platformOpts.style.display = 'none';
+            }
+            if (serviceBox && serviceOpts && !serviceBox.contains(e.target) && !serviceOpts.contains(e.target)) {
+                serviceOpts.style.display = 'none';
+            }
+        });
         async function submitInquiry(e) {
             e.preventDefault();
 
-            var platform = document.getElementById('iq-platform-dropdown').value;
-            var service = document.getElementById('iq-service-dropdown').value;
+            const platformCheckboxes = document.querySelectorAll('.iq-platform-cb:checked');
+            const serviceCheckboxes = document.querySelectorAll('.iq-service-cb:checked');
+            
+            var platform = Array.from(platformCheckboxes).map(cb => cb.value).join(',');
+            var service = Array.from(serviceCheckboxes).map(cb => cb.value).join(',');
+            
             if (!platform) { alert('Please select at least one Platform.'); return; }
             if (!service) { alert('Please select at least one Service Type.'); return; }
 
@@ -512,6 +554,9 @@
                     document.getElementById('inquirySuccess').style.display = 'flex';
                     document.getElementById('inquiryError').style.display = 'none';
                     document.getElementById('inquiryForm').reset();
+                    document.querySelectorAll('.iq-platform-cb, .iq-service-cb').forEach(cb => cb.checked = false);
+                    updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...');
+                    updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...');
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-send"></i> Submit Requirements';
                     setTimeout(function() {
