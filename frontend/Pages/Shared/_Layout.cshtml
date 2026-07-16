@@ -258,10 +258,9 @@
                             <div class="inquiry-group-title"><i class="bi bi-sliders"></i> Campaign Details</div>
                             <div class="inquiry-grid">
                                 <div class="inquiry-field inquiry-field-full">
-                                    <label>Platform <span>*</span></label>
-                                    <select id="iq-platform" required style="width:100%;padding:10px 14px;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;outline:none;">
-                                        <option value="" disabled selected>Select a Platform</option>
-                                        <option value="Instagram"><i class="bi bi-instagram"></i> Instagram</option>
+                                    <label>Platforms <span>*</span> <small>(hold Ctrl/Cmd to select multiple)</small></label>
+                                    <select id="iq-platform" multiple size="6" style="width:100%;padding:10px 14px;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;outline:none;">
+                                        <option value="Instagram">Instagram</option>
                                         <option value="YouTube">YouTube</option>
                                         <option value="TikTok">TikTok</option>
                                         <option value="Twitter">Twitter / X</option>
@@ -270,9 +269,8 @@
                                     </select>
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
-                                    <label>Service Type <span>*</span></label>
-                                    <select id="iq-service" required style="width:100%;padding:10px 14px;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;outline:none;">
-                                        <option value="" disabled selected>Select a Service</option>
+                                    <label>Service Types <span>*</span> <small>(hold Ctrl/Cmd to select multiple)</small></label>
+                                    <select id="iq-service" multiple size="6" style="width:100%;padding:10px 14px;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);font-size:0.9rem;outline:none;">
                                         <option value="Followers">Followers</option>
                                         <option value="Likes">Likes</option>
                                         <option value="Views">Views</option>
@@ -474,10 +472,12 @@
         async function submitInquiry(e) {
             e.preventDefault();
 
-            var platform = document.getElementById('iq-platform').value;
-            var service = document.getElementById('iq-service').value;
-            if (!platform) { alert('Please select a Platform.'); return; }
-            if (!service) { alert('Please select a Service Type.'); return; }
+            var platformSelect = document.getElementById('iq-platform');
+            var serviceSelect = document.getElementById('iq-service');
+            var platform = Array.from(platformSelect.selectedOptions).map(o => o.value).join(',');
+            var service = Array.from(serviceSelect.selectedOptions).map(o => o.value).join(',');
+            if (!platform) { alert('Please select at least one Platform.'); return; }
+            if (!service) { alert('Please select at least one Service Type.'); return; }
 
             const qty = parseInt(document.getElementById('iq-qty').value);
             const url = document.getElementById('iq-url').value;
