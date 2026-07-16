@@ -259,39 +259,37 @@
                             <div class="inquiry-grid">
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Platforms <span>*</span></label>
-                                    <div class="iq-cb-dropdown" id="iq-platform-dropdown">
-                                        <div class="iq-cb-trigger" onclick="toggleCheckDropdown('iq-platform-dropdown')">
-                                            <span class="iq-cb-placeholder">Select Platforms</span>
-                                            <span class="iq-cb-selected" style="display:none;"></span>
-                                            <i class="bi bi-chevron-down iq-cb-arrow"></i>
+                                    <div class="iq-sel" id="iq-platform-dropdown">
+                                        <div class="iq-sel-trigger" onclick="toggleCheckDropdown('iq-platform-dropdown')">
+                                            <span class="iq-sel-text iq-sel-placeholder">Choose platforms...</span>
+                                            <span class="iq-sel-text iq-sel-value" style="display:none;"></span>
+                                            <i class="bi bi-chevron-down iq-sel-arrow"></i>
                                         </div>
-                                        <div class="iq-cb-panel">
-                                            <div class="iq-cb-select-all" onclick="toggleSelectAll('iq-platform-dropdown')"><input type="checkbox" class="iq-cb-selectall-cb"> Select All</div>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Instagram" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-cb-check"></span>Instagram</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="YouTube" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-cb-check"></span>YouTube</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="TikTok" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-cb-check"></span>TikTok</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Twitter" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-cb-check"></span>Twitter / X</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Facebook" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-cb-check"></span>Facebook</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="LinkedIn" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-cb-check"></span>LinkedIn</label>
+                                        <div class="iq-sel-panel">
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Instagram" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-sel-cb"></span>Instagram</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="YouTube" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-sel-cb"></span>YouTube</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="TikTok" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-sel-cb"></span>TikTok</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Twitter" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-sel-cb"></span>Twitter / X</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Facebook" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-sel-cb"></span>Facebook</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="LinkedIn" onchange="onCheckChange('iq-platform-dropdown')"><span class="iq-sel-cb"></span>LinkedIn</label>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Service Types <span>*</span></label>
-                                    <div class="iq-cb-dropdown" id="iq-service-dropdown">
-                                        <div class="iq-cb-trigger" onclick="toggleCheckDropdown('iq-service-dropdown')">
-                                            <span class="iq-cb-placeholder">Select Service Types</span>
-                                            <span class="iq-cb-selected" style="display:none;"></span>
-                                            <i class="bi bi-chevron-down iq-cb-arrow"></i>
+                                    <div class="iq-sel" id="iq-service-dropdown">
+                                        <div class="iq-sel-trigger" onclick="toggleCheckDropdown('iq-service-dropdown')">
+                                            <span class="iq-sel-text iq-sel-placeholder">Choose service types...</span>
+                                            <span class="iq-sel-text iq-sel-value" style="display:none;"></span>
+                                            <i class="bi bi-chevron-down iq-sel-arrow"></i>
                                         </div>
-                                        <div class="iq-cb-panel">
-                                            <div class="iq-cb-select-all" onclick="toggleSelectAll('iq-service-dropdown')"><input type="checkbox" class="iq-cb-selectall-cb"> Select All</div>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Followers" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-cb-check"></span>Followers</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Likes" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-cb-check"></span>Likes</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Views" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-cb-check"></span>Views</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Comments" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-cb-check"></span>Comments</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Shares" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-cb-check"></span>Shares</label>
-                                            <label class="iq-cb-item"><input type="checkbox" value="Subscribers" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-cb-check"></span>Subscribers</label>
+                                        <div class="iq-sel-panel">
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Followers" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-sel-cb"></span>Followers</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Likes" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-sel-cb"></span>Likes</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Views" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-sel-cb"></span>Views</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Comments" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-sel-cb"></span>Comments</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Shares" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-sel-cb"></span>Shares</label>
+                                            <label class="iq-sel-opt"><input type="checkbox" value="Subscribers" onchange="onCheckChange('iq-service-dropdown')"><span class="iq-sel-cb"></span>Subscribers</label>
                                         </div>
                                     </div>
                                 </div>
@@ -547,53 +545,50 @@
         function toggleCheckDropdown(id) {
             var dd = document.getElementById(id);
             var wasOpen = dd.classList.contains('open');
-            document.querySelectorAll('.iq-cb-dropdown.open').forEach(function(el) { el.classList.remove('open'); });
+            document.querySelectorAll('.iq-sel.open').forEach(function(el) { el.classList.remove('open'); });
             if (!wasOpen) dd.classList.add('open');
         }
         function onCheckChange(id) {
             var dd = document.getElementById(id);
-            var checks = dd.querySelectorAll('.iq-cb-panel input[type="checkbox"]:not(.iq-cb-selectall-cb)');
-            var checked = dd.querySelectorAll('.iq-cb-panel input[type="checkbox"]:not(.iq-cb-selectall-cb):checked');
-            var selected = dd.querySelector('.iq-cb-selected');
-            var placeholder = dd.querySelector('.iq-cb-placeholder');
-            var selectAllCb = dd.querySelector('.iq-cb-selectall-cb');
-            if (selectAllCb) selectAllCb.checked = checks.length === checked.length && checks.length > 0;
+            var allCbs = dd.querySelectorAll('.iq-sel-panel input[type="checkbox"]');
+            var checked = dd.querySelectorAll('.iq-sel-panel input[type="checkbox"]:checked');
+            var val = dd.querySelector('.iq-sel-value');
+            var ph = dd.querySelector('.iq-sel-placeholder');
             if (checked.length === 0) {
-                selected.style.display = 'none';
-                placeholder.style.display = '';
-                selected.textContent = '';
+                ph.style.display = '';
+                val.style.display = 'none';
+                val.textContent = '';
             } else {
-                placeholder.style.display = 'none';
-                selected.style.display = '';
-                var names = Array.from(checked).map(function(c) { return c.parentElement.textContent.trim(); });
-                selected.textContent = names.length <= 2 ? names.join(', ') : names.slice(0, 2).join(', ') + ' +' + (names.length - 2) + ' more';
+                ph.style.display = 'none';
+                val.style.display = '';
+                var names = Array.from(checked).map(function(c) { return c.value; });
+                val.textContent = names.length <= 2 ? names.join(', ') : names.slice(0, 2).join(', ') + ' +' + (names.length - 2) + ' more';
             }
-        }
-        function toggleSelectAll(id) {
-            var dd = document.getElementById(id);
-            var selectAllCb = dd.querySelector('.iq-cb-selectall-cb');
-            var allCbs = dd.querySelectorAll('.iq-cb-panel input[type="checkbox"]:not(.iq-cb-selectall-cb)');
-            allCbs.forEach(function(cb) { cb.checked = selectAllCb.checked; });
-            onCheckChange(id);
         }
         function getCheckedValues(id) {
             var dd = document.getElementById(id);
-            var checks = dd.querySelectorAll('.iq-cb-panel input[type="checkbox"]:not(.iq-cb-selectall-cb):checked');
+            var checks = dd.querySelectorAll('.iq-sel-panel input[type="checkbox"]:checked');
             return Array.from(checks).map(function(c) { return c.value; }).join(',');
         }
         function resetCheckDropdowns() {
-            document.querySelectorAll('.iq-cb-dropdown').forEach(function(dd) {
+            document.querySelectorAll('.iq-sel').forEach(function(dd) {
                 dd.querySelectorAll('input[type="checkbox"]').forEach(function(c) { c.checked = false; });
-                var selected = dd.querySelector('.iq-cb-selected');
-                var placeholder = dd.querySelector('.iq-cb-placeholder');
-                if (selected) { selected.textContent = ''; selected.style.display = 'none'; }
-                if (placeholder) placeholder.style.display = '';
+                var val = dd.querySelector('.iq-sel-value');
+                var ph = dd.querySelector('.iq-sel-placeholder');
+                if (val) { val.textContent = ''; val.style.display = 'none'; }
+                if (ph) ph.style.display = '';
                 dd.classList.remove('open');
             });
         }
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.iq-cb-dropdown')) {
-                document.querySelectorAll('.iq-cb-dropdown.open').forEach(function(el) { el.classList.remove('open'); });
+            if (!e.target.closest('.iq-sel')) {
+                document.querySelectorAll('.iq-sel.open').forEach(function(el) { el.classList.remove('open'); });
+            }
+        });
+        }
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.iq-sel')) {
+                document.querySelectorAll('.iq-sel.open').forEach(function(el) { el.classList.remove('open'); });
             }
         });
         document.addEventListener('DOMContentLoaded', () => {
