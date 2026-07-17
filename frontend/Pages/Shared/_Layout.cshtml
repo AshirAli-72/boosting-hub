@@ -301,7 +301,7 @@
                                     <label>Target URL <span>*</span></label>
                                     <input type="url" id="iq-url" placeholder="https://instagram.com/your-profile" style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;" />
                                 </div>
-                                <div class="inquiry-field">
+                                <div class="inquiry-field inquiry-field-full">
                                     <label>Budget <span>*</span></label>
                                     <div class="input-group" style="display:flex;gap:0;">
                                         <select id="iq-currency" style="width:90px;border:1px solid var(--border-muted);border-radius:10px 0 0 10px;background:var(--bg-card);color:var(--text-primary);padding:10px 6px;font-size:0.9rem;outline:none;">
@@ -552,7 +552,7 @@
                         <span style="font-weight:600;font-size:0.95rem;color:var(--text-primary);">${s}</span>
                     </div>
                     <div style="flex:1;">
-                        <input type="number" class="iq-service-qty" min="100" max="1000000" placeholder="Quantity (min 100)"
+                        <input type="number" class="iq-service-qty" min="1" placeholder="Enter quantity"
                             value="${exVal}"
                             style="width:100%;border:1px solid var(--border-muted);border-radius:8px;background:var(--bg-card);color:var(--text-primary);padding:8px 12px;outline:none;font-size:0.9rem;" />
                     </div>
@@ -594,10 +594,10 @@
             serviceRows.forEach(row => {
                 const s = row.dataset.service;
                 const qty = parseInt(row.querySelector('.iq-service-qty').value);
-                if (!qty || qty < 100) { row.querySelector('.iq-service-qty').focus(); allValid = false; }
+                if (!qty || qty < 1) { row.querySelector('.iq-service-qty').focus(); allValid = false; }
                 serviceDetails.push({ service: s, quantity: qty });
             });
-            if (!allValid) { alert('Please fill in a valid Quantity (min 100) for each service.'); return; }
+            if (!allValid) { alert('Please fill in a valid Quantity for each service.'); return; }
 
             const url = document.getElementById('iq-url').value.trim();
             if (!url) { document.getElementById('iq-url').focus(); alert('Please enter your Target URL.'); return; }

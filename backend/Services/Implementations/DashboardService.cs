@@ -16,27 +16,20 @@ public class DashboardService : IDashboardService
 
     public async Task<UserDashboardDto> GetUserDashboardAsync(int userId)
     {
-        // Run independent queries concurrently
-        var activeTaskIdsTask = _db.TaskGenerates
+        var allActiveTaskIds = await _db.TaskGenerates
             .Where(t => t.Status == "Active")
             .Select(t => t.Id)
             .ToListAsync();
 
-        var acceptedTaskIdsTask = _db.AcceptedTasks
+        var acceptedTaskIds = await _db.AcceptedTasks
             .Where(a => a.UserId == userId)
             .Select(a => a.TaskId)
             .ToListAsync();
 
-        var completedTaskIdsTask = _db.TaskCompletes
+        var completedTaskIds = await _db.TaskCompletes
             .Where(tc => tc.UserId == userId && tc.Status == "Completed")
             .Select(tc => tc.TaskId)
             .ToListAsync();
-
-        await Task.WhenAll(activeTaskIdsTask, acceptedTaskIdsTask, completedTaskIdsTask);
-
-        var allActiveTaskIds = activeTaskIdsTask.Result;
-        var acceptedTaskIds = acceptedTaskIdsTask.Result;
-        var completedTaskIds = completedTaskIdsTask.Result;
 
         var userTaskIds = acceptedTaskIds.Union(completedTaskIds).ToHashSet();
         var totalAvailable = allActiveTaskIds.Count(id => !userTaskIds.Contains(id));
@@ -122,21 +115,18 @@ public class DashboardService : IDashboardService
                 .ToListAsync()
             : new List<int>();
 
-        // Aggregate user stats in DB — no full table load
-        var totalUsersTask = _db.Users
+        var totalUsers = await _db.Users
             .CountAsync(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail);
-        var lockedTask = _db.Users
+        var locked = await _db.Users
             .CountAsync(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail && u.Status == 0);
-        var unverifiedTask = _db.Users
+        var unverified = await _db.Users
             .CountAsync(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail && u.EmailVerifiedAt == null);
         var today = DateTime.UtcNow.Date;
-        var registeredTodayTask = _db.Users
+        var registeredToday = await _db.Users
             .CountAsync(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail && u.CreatedAt >= today);
 
-        var totalOrdersTask = _db.Orders.CountAsync();
-        var totalRevenueTask = _db.Orders.Where(o => o.Status == "Approved").SumAsync(o => o.Budget);
-
-        await Task.WhenAll(totalUsersTask, lockedTask, unverifiedTask, registeredTodayTask, totalOrdersTask, totalRevenueTask);
+        var totalOrders = await _db.Orders.CountAsync();
+        var totalRevenue = await _db.Orders.Where(o => o.Status == "Approved").SumAsync(o => o.Budget);
 
         // Order chart — only last 7 days
         var sevenDaysAgo = today.AddDays(-6);
@@ -160,10 +150,12 @@ public class DashboardService : IDashboardService
         }
 
         // Order status pie chart
-        var statusGroups = await _db.Orders
-            .GroupBy(o => o.Status ?? "Pending")
+        var statusGroups = (await _db.Orders
+            .Select(o => o.Status ?? "Pending")
+            .ToListAsync())
+            .GroupBy(s => s)
             .Select(g => new { Status = g.Key, Count = g.Count() })
-            .ToListAsync();
+            .ToList();
 
         var pieChart = new ChartDataDto();
         var colorMap = new Dictionary<string, string>
@@ -181,11 +173,12 @@ public class DashboardService : IDashboardService
         }
 
         // Task completion stats
-        var completedCounts = await _db.TaskCompletes
+        var completedCounts = (await _db.TaskCompletes
             .Where(tc => tc.Status == "Completed")
-            .GroupBy(tc => tc.TaskId)
-            .Select(g => new { TaskId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.TaskId, x => x.Count);
+            .Select(tc => tc.TaskId)
+            .ToListAsync())
+            .GroupBy(id => id)
+            .ToDictionary(g => g.Key, g => g.Count());
 
         var taskStats = await _db.TaskGenerates
             .Select(t => new { t.Id, t.Quantity })
@@ -196,12 +189,12 @@ public class DashboardService : IDashboardService
 
         return new AdminDashboardDto
         {
-            TotalUsers = totalUsersTask.Result,
-            LockedAccounts = lockedTask.Result,
-            UnverifiedEmails = unverifiedTask.Result,
-            RegisteredToday = registeredTodayTask.Result,
-            TotalOrders = totalOrdersTask.Result,
-            TotalRevenue = totalRevenueTask.Result,
+            TotalUsers = totalUsers,
+            LockedAccounts = locked,
+            UnverifiedEmails = unverified,
+            RegisteredToday = registeredToday,
+            TotalOrders = totalOrders,
+            TotalRevenue = totalRevenue,
             InProgressTasks = inProgressTasks,
             CompletedTasks = completedTasks,
             LineChart = lineChart,

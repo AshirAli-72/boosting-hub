@@ -77,11 +77,12 @@ public class ReportService : IReportService
         var activeTasks  = await _db.TaskGenerates.CountAsync(t => t.Status == "Active");
 
         var tasks = await _db.TaskGenerates.ToListAsync();
-        var completedCounts = await _db.TaskCompletes
+        var completedCounts = (await _db.TaskCompletes
             .Where(tc => tc.Status == "Completed")
-            .GroupBy(tc => tc.TaskId)
-            .Select(g => new { TaskId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.TaskId, x => x.Count);
+            .Select(tc => tc.TaskId)
+            .ToListAsync())
+            .GroupBy(id => id)
+            .ToDictionary(g => g.Key, g => g.Count());
 
         var completedTasks = tasks.Count(t => completedCounts.GetValueOrDefault(t.Id, 0) >= t.Quantity && t.Quantity > 0);
         
