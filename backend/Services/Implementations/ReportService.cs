@@ -90,11 +90,16 @@ public class ReportService : IReportService
         var rejectedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Rejected");
 
         var since = DateTime.UtcNow.Date.AddDays(-6);
-        var raw = await _db.TaskCompletes
+        // Fix SQL CTE error: pull dates into memory, then group in C#
+        var completionDates = await _db.TaskCompletes
             .Where(tc => tc.Status == "Completed" && tc.Date >= since)
-            .GroupBy(tc => tc.Date.Date)
-            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .Select(tc => tc.Date)
             .ToListAsync();
+
+        var raw = completionDates
+            .GroupBy(d => d.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .ToList();
 
         var daily = new Dictionary<string, int>();
         for (var i = 0; i < 7; i++)
