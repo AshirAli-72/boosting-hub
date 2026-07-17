@@ -291,10 +291,15 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Dynamic per-platform quantity/url fields -->
-                                <div class="inquiry-field inquiry-field-full" id="iq-platform-details-wrapper" style="display:none;">
-                                    <label>Platform Details <span>*</span></label>
-                                    <div id="iq-platform-details"></div>
+                                <!-- Dynamic per-service quantity fields -->
+                                <div class="inquiry-field inquiry-field-full" id="iq-service-details-wrapper" style="display:none;">
+                                    <label>Service Quantities <span>*</span></label>
+                                    <div id="iq-service-details"></div>
+                                </div>
+                                <!-- Shared Target URL -->
+                                <div class="inquiry-field inquiry-field-full" id="iq-url-wrapper" style="display:none;">
+                                    <label>Target URL <span>*</span></label>
+                                    <input type="url" id="iq-url" placeholder="https://instagram.com/your-profile" style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;" />
                                 </div>
                                 <div class="inquiry-field">
                                     <label>Budget <span>*</span></label>
@@ -492,59 +497,64 @@
                 displaySpan.style.color = 'var(--text-primary)';
             }
 
-            // If it's the platform selector, rebuild per-platform detail rows
-            if (className === 'iq-platform-cb') {
-                rebuildPlatformDetails();
+            // If it's the service selector, rebuild per-service qty rows
+            if (className === 'iq-service-cb') {
+                rebuildServiceDetails();
             }
         }
 
-        function rebuildPlatformDetails() {
-            const selectedPlatforms = Array.from(document.querySelectorAll('.iq-platform-cb:checked')).map(cb => cb.value);
-            const wrapper = document.getElementById('iq-platform-details-wrapper');
-            const container = document.getElementById('iq-platform-details');
+        function rebuildServiceDetails() {
+            const selectedServices = Array.from(document.querySelectorAll('.iq-service-cb:checked')).map(cb => cb.value);
+            const wrapper = document.getElementById('iq-service-details-wrapper');
+            const urlWrapper = document.getElementById('iq-url-wrapper');
+            const container = document.getElementById('iq-service-details');
 
-            if (selectedPlatforms.length === 0) {
+            if (selectedServices.length === 0) {
                 wrapper.style.display = 'none';
+                urlWrapper.style.display = 'none';
                 container.innerHTML = '';
                 return;
             }
 
             wrapper.style.display = 'block';
+            urlWrapper.style.display = 'block';
 
-            // Keep existing values so user doesn't lose input when adding more platforms
+            // Preserve existing values when toggling services
             const existing = {};
-            container.querySelectorAll('.platform-detail-row').forEach(row => {
-                const p = row.dataset.platform;
-                const qty = row.querySelector('.iq-platform-qty')?.value || '';
-                const url = row.querySelector('.iq-platform-url')?.value || '';
-                existing[p] = { qty, url };
+            container.querySelectorAll('.service-detail-row').forEach(row => {
+                const s = row.dataset.service;
+                existing[s] = row.querySelector('.iq-service-qty')?.value || '';
             });
 
-            container.innerHTML = selectedPlatforms.map(p => {
-                const ex = existing[p] || {};
-                const platformIcons = {
-                    Instagram: 'bi-instagram', YouTube: 'bi-youtube', TikTok: 'bi-tiktok',
-                    Twitter: 'bi-twitter-x', Facebook: 'bi-facebook', LinkedIn: 'bi-linkedin'
-                };
-                const icon = platformIcons[p] || 'bi-globe2';
+            const serviceIcons = {
+                Followers: 'bi-people-fill',
+                Likes: 'bi-heart-fill',
+                Views: 'bi-eye-fill',
+                Comments: 'bi-chat-dots-fill',
+                Shares: 'bi-share-fill',
+                Subscribers: 'bi-bell-fill'
+            };
+            const serviceColors = {
+                Followers: '#7C3AED', Likes: '#EF4444', Views: '#3B82F6',
+                Comments: '#10B981', Shares: '#F59E0B', Subscribers: '#EC4899'
+            };
+
+            container.innerHTML = selectedServices.map(s => {
+                const icon = serviceIcons[s] || 'bi-star-fill';
+                const color = serviceColors[s] || '#6366F1';
+                const exVal = existing[s] || '';
                 return `
-                <div class="platform-detail-row" data-platform="${p}" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-muted);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:600;color:var(--text-primary);">
-                        <i class="bi ${icon}" style="font-size:1.1rem;"></i> ${p}
+                <div class="service-detail-row" data-service="${s}" style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border-muted);border-radius:12px;padding:12px 16px;margin-bottom:10px;">
+                    <div style="display:flex;align-items:center;gap:8px;min-width:130px;">
+                        <span style="width:32px;height:32px;border-radius:8px;background:${color}22;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi ${icon}" style="color:${color};font-size:0.95rem;"></i>
+                        </span>
+                        <span style="font-weight:600;font-size:0.95rem;color:var(--text-primary);">${s}</span>
                     </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        <div>
-                            <label style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:4px;display:block;">Quantity <span style="color:#ef4444;">*</span></label>
-                            <input type="number" class="iq-platform-qty" min="100" max="1000000" placeholder="Min 100" required
-                                value="${ex.qty || ''}"
-                                style="width:100%;border:1px solid var(--border-muted);border-radius:8px;background:var(--bg-card);color:var(--text-primary);padding:8px 12px;outline:none;font-size:0.9rem;" />
-                        </div>
-                        <div>
-                            <label style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:4px;display:block;">Target URL <span style="color:#ef4444;">*</span></label>
-                            <input type="url" class="iq-platform-url" placeholder="https://..." required
-                                value="${ex.url || ''}"
-                                style="width:100%;border:1px solid var(--border-muted);border-radius:8px;background:var(--bg-card);color:var(--text-primary);padding:8px 12px;outline:none;font-size:0.9rem;" />
-                        </div>
+                    <div style="flex:1;">
+                        <input type="number" class="iq-service-qty" min="100" max="1000000" placeholder="Quantity (min 100)"
+                            value="${exVal}"
+                            style="width:100%;border:1px solid var(--border-muted);border-radius:8px;background:var(--bg-card);color:var(--text-primary);padding:8px 12px;outline:none;font-size:0.9rem;" />
                     </div>
                 </div>`;
             }).join('');
@@ -575,28 +585,27 @@
             if (!platform) { alert('Please select at least one Platform.'); return; }
             if (!service) { alert('Please select at least one Service Type.'); return; }
 
-            // Collect per-platform details
-            const platformRows = document.querySelectorAll('.platform-detail-row');
-            if (platformRows.length === 0) { alert('Please select at least one Platform.'); return; }
+            // Collect per-service qty
+            const serviceRows = document.querySelectorAll('.service-detail-row');
+            if (serviceRows.length === 0) { alert('Please select at least one Service Type.'); return; }
 
-            // Validate all per-platform qty and url
             let allValid = true;
-            const platformDetails = [];
-            platformRows.forEach(row => {
-                const p = row.dataset.platform;
-                const qty = parseInt(row.querySelector('.iq-platform-qty').value);
-                const url = row.querySelector('.iq-platform-url').value.trim();
-                if (!qty || qty < 100) { row.querySelector('.iq-platform-qty').focus(); allValid = false; }
-                if (!url) { row.querySelector('.iq-platform-url').focus(); allValid = false; }
-                platformDetails.push({ platform: p, quantity: qty, url });
+            const serviceDetails = [];
+            serviceRows.forEach(row => {
+                const s = row.dataset.service;
+                const qty = parseInt(row.querySelector('.iq-service-qty').value);
+                if (!qty || qty < 100) { row.querySelector('.iq-service-qty').focus(); allValid = false; }
+                serviceDetails.push({ service: s, quantity: qty });
             });
-            if (!allValid) { alert('Please fill in valid Quantity (min 100) and URL for all platforms.'); return; }
+            if (!allValid) { alert('Please fill in a valid Quantity (min 100) for each service.'); return; }
 
-            // Use the first platform's URL as the main socialMediaUrl
-            const qty = platformDetails[0].quantity;
-            const url = platformDetails.map(d => d.url).join(',');
-            // Embed per-platform qty info into quantity field as JSON string for admin visibility
-            const quantityStr = platformDetails.map(d => `${d.platform}:${d.quantity}`).join(';');
+            const url = document.getElementById('iq-url').value.trim();
+            if (!url) { document.getElementById('iq-url').focus(); alert('Please enter your Target URL.'); return; }
+
+            // Use max qty as the primary quantity
+            const qty = Math.max(...serviceDetails.map(d => d.quantity));
+            // Embed per-service qty info into description
+            const serviceQtyStr = serviceDetails.map(d => `${d.service}:${d.quantity}`).join(';');
 
             const budget = parseFloat(document.getElementById('iq-budget').value);
             const currency = document.getElementById('iq-currency').value;
@@ -621,7 +630,7 @@
                         socialMediaUrl: url,
                         budget: budget,
                         currency: currency,
-                        description: (description ? description + '\n' : '') + 'Platform details: ' + quantityStr
+                        description: (description ? description + '\n' : '') + 'Service quantities: ' + serviceQtyStr
                     })
                 });
                 const data = await resp.json();
@@ -632,8 +641,10 @@
                     document.querySelectorAll('.iq-platform-cb, .iq-service-cb').forEach(cb => cb.checked = false);
                     updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...');
                     updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...');
-                    document.getElementById('iq-platform-details').innerHTML = '';
-                    document.getElementById('iq-platform-details-wrapper').style.display = 'none';
+                    document.getElementById('iq-service-details').innerHTML = '';
+                    document.getElementById('iq-service-details-wrapper').style.display = 'none';
+                    document.getElementById('iq-url-wrapper').style.display = 'none';
+                    document.getElementById('iq-url').value = '';
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-send"></i> Submit Requirements';
                     setTimeout(function() {
