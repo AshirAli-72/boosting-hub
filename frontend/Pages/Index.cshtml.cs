@@ -42,8 +42,14 @@ public class IndexModel : PageModel
 
             TotalOrders = await _db.Orders.CountAsync();
 
-            var allTaskCompletes = await _db.TaskCompletes.ToListAsync();
-            CompletedTasks = allTaskCompletes.Count(tc => tc.Status == "Completed");
+            var tasks = await _db.TaskGenerates.ToListAsync();
+            var completedCounts = await _db.TaskCompletes
+                .Where(tc => tc.Status == "Completed")
+                .GroupBy(tc => tc.TaskId)
+                .Select(g => new { TaskId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.TaskId, x => x.Count);
+
+            CompletedTasks = tasks.Count(t => completedCounts.GetValueOrDefault(t.Id, 0) >= t.Quantity && t.Quantity > 0);
 
             RecentUsers = filteredUsers
                 .OrderByDescending(u => u.CreatedAt)

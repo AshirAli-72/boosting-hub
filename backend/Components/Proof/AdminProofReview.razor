@@ -1,6 +1,7 @@
 @using BoostingHub.backend.DTOs
 @inject ITaskService TaskService
 @inject ILogger<AdminProofReview> Logger
+@inject IJSRuntime JS
 
 <div class="proof-review">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -118,15 +119,6 @@
     </div>
 }
 
-@if (!string.IsNullOrEmpty(successMessage))
-{
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;">
-        <div class="alert alert-success alert-dismissible fade show mb-0 shadow">
-            <i class="bi bi-check-circle-fill me-2"></i>@successMessage
-            <button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
-        </div>
-    </div>
-}
 
 @code {
     [Parameter, EditorRequired] public int AdminUserId { get; set; }
@@ -135,7 +127,6 @@
     private bool isLoading = true;
     private bool hasError;
     private string? errorMessage;
-    private string? successMessage;
 
     private bool showRejectModal;
     private int rejectProofId;
@@ -176,11 +167,12 @@
             var result = await TaskService.ApproveProofAsync(proofId);
             if (result.IsSuccess)
             {
-                successMessage = result.Message;
+                await JS.InvokeVoidAsync("showToast", result.Message, "success");
                 proofs.RemoveAll(p => p.ProofId == proofId);
             }
             else
             {
+                await JS.InvokeVoidAsync("showToast", result.Message, "danger");
                 hasError = true;
                 errorMessage = result.Message;
             }
@@ -223,14 +215,13 @@
             var result = await TaskService.RejectProofAsync(rejectProofId, rejectReason.Trim());
             if (result.IsSuccess)
             {
-                operationMessage = "Proof rejected successfully.";
-                operationSuccess = true;
+                await JS.InvokeVoidAsync("showToast", "Proof rejected successfully.", "success");
                 proofs.RemoveAll(p => p.ProofId == rejectProofId);
-                await Task.Delay(800);
                 CloseRejectModal();
             }
             else
             {
+                await JS.InvokeVoidAsync("showToast", result.Message ?? "Failed to reject.", "danger");
                 operationMessage = result.Message;
                 operationSuccess = false;
             }

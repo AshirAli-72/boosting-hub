@@ -125,6 +125,16 @@
         </div>
 
 @section Scripts {
+    @if (TempData["Success"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof showToast === 'function') {
+                    showToast('@TempData["Success"]', 'success');
+                }
+            });
+        </script>
+    }
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script>
         var lineLabels = @Html.Raw(JsonSerializer.Serialize(Model.Dashboard.LineChart.Labels));

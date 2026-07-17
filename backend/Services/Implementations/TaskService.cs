@@ -30,78 +30,81 @@ public class TaskService : ITaskService
 
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
     {
-        var completedCounts = await _db.TaskCompletes
-            .Where(tc => tc.Status == "Completed")
-            .GroupBy(tc => tc.TaskId)
-            .Select(g => new { TaskId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(tc => tc.TaskId, tc => tc.Count);
-
-        var userStatusMap = await BuildUserStatusMapAsync(userId);
-
-        var allTasks = await _db.TaskGenerates
+        var query = _db.TaskGenerates
             .AsNoTracking()
-            .Where(t => t.Status == "Active")
-            .ToListAsync();
-
-        foreach (var kv in userStatusMap.Where(kv => kv.Value == "Completed"))
-        {
-            var completedCount = completedCounts.GetValueOrDefault(kv.Key, 0);
-            var task = allTasks.FirstOrDefault(t => t.Id == kv.Key);
-            if (task != null && completedCount < task.Quantity)
-                userStatusMap[kv.Key] = "Accepted";
-        }
-
-        var filtered = allTasks
-            .Where(t => t.Quantity > (completedCounts.GetValueOrDefault(t.Id, 0)));
+            .Where(t => t.Status == "Active");
 
         if (!string.IsNullOrEmpty(filter.Platform))
-            filtered = filtered.Where(t => t.Platform == filter.Platform);
+            query = query.Where(t => t.Platform == filter.Platform);
 
         if (!string.IsNullOrEmpty(filter.Service))
-            filtered = filtered.Where(t => t.Service == filter.Service);
+            query = query.Where(t => t.Service == filter.Service);
 
         if (!string.IsNullOrEmpty(filter.Search))
         {
             var search = filter.Search.ToLower();
-            filtered = filtered.Where(t => t.Platform.ToLower().Contains(search)
-                                        || t.Service.ToLower().Contains(search));
+            query = query.Where(t => t.Platform.ToLower().Contains(search)
+                                  || t.Service.ToLower().Contains(search));
         }
 
         if (filter.MinReward.HasValue)
-            filtered = filtered.Where(t => t.Reward >= filter.MinReward.Value);
+            query = query.Where(t => t.Reward >= filter.MinReward.Value);
 
         if (filter.MaxReward.HasValue)
-            filtered = filtered.Where(t => t.Reward <= filter.MaxReward.Value);
+            query = query.Where(t => t.Reward <= filter.MaxReward.Value);
 
-        var sorted = filter.SortBy.ToLower() switch
+        // Filter out tasks that have reached their target quantity
+        query = query.Where(t => t.Quantity > _db.TaskCompletes.Count(tc => tc.TaskId == t.Id && tc.Status == "Completed"));
+
+        // Sort
+        query = filter.SortBy.ToLower() switch
         {
-            "reward" => filtered.OrderByDescending(t => t.Reward).ToList(),
-            _ => filtered.OrderByDescending(t => t.CreatedAt).ToList()
+            "reward" => query.OrderByDescending(t => t.Reward),
+            _ => query.OrderByDescending(t => t.CreatedAt)
         };
 
-        var totalCount = sorted.Count;
+        var totalCount = await query.CountAsync();
 
-        var paged = sorted
+        var pagedTasks = await query
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .ToList();
+            .Select(t => new 
+            {
+                Task = t,
+                CompletedQuantity = _db.TaskCompletes.Count(tc => tc.TaskId == t.Id && tc.Status == "Completed")
+            })
+            .ToListAsync();
 
-        var tasks = paged.Select(t => new AvailableTaskDto
+        var pagedTaskIds = pagedTasks.Select(x => x.Task.Id).ToList();
+        var userStatusMap = await BuildUserStatusMapAsync(userId, pagedTaskIds);
+
+        var tasks = pagedTasks.Select(x => 
         {
-            Id = t.Id,
-            OrderId = t.OrderId,
-            Platform = t.Platform,
-            Service = t.Service,
-            Url = t.Url,
-            Title = t.Service,
-            TargetQuantity = t.Quantity,
-            CompletedQuantity = completedCounts.GetValueOrDefault(t.Id, 0),
-            RewardAmount = t.Reward,
-            Currency = t.Currency,
-            UserStatus = userId.HasValue ? userStatusMap.GetValueOrDefault(t.Id, "Not Accepted") : "Not Accepted",
-            Status = t.Status,
-            CreatedAt = t.CreatedAt,
-            ExpiresAt = t.CreatedAt.AddDays(3)
+            var t = x.Task;
+            var completedCount = x.CompletedQuantity;
+            string userStatus = userId.HasValue ? userStatusMap.GetValueOrDefault(t.Id, "Not Accepted") : "Not Accepted";
+            
+            // Replicating original logic: if user is completed but task has capacity, revert to accepted
+            if (userStatus == "Completed" && completedCount < t.Quantity)
+                userStatus = "Accepted";
+
+            return new AvailableTaskDto
+            {
+                Id = t.Id,
+                OrderId = t.OrderId,
+                Platform = t.Platform,
+                Service = t.Service,
+                Url = t.Url,
+                Title = t.Service,
+                TargetQuantity = t.Quantity,
+                CompletedQuantity = completedCount,
+                RewardAmount = t.Reward,
+                Currency = t.Currency,
+                UserStatus = userStatus,
+                Status = t.Status,
+                CreatedAt = t.CreatedAt,
+                ExpiresAt = t.CreatedAt.AddDays(3)
+            };
         }).ToList();
 
         return new PagedResult<AvailableTaskDto>
@@ -113,13 +116,13 @@ public class TaskService : ITaskService
         };
     }
 
-    private async Task<Dictionary<int, string>> BuildUserStatusMapAsync(int? userId)
+    private async Task<Dictionary<int, string>> BuildUserStatusMapAsync(int? userId, IEnumerable<int> taskIds)
     {
         var map = new Dictionary<int, string>();
-        if (!userId.HasValue) return map;
+        if (!userId.HasValue || !taskIds.Any()) return map;
 
         var completions = await _db.TaskCompletes
-            .Where(tc => tc.UserId == userId.Value)
+            .Where(tc => tc.UserId == userId.Value && taskIds.Contains(tc.TaskId))
             .Select(tc => new { tc.TaskId, tc.Status })
             .ToListAsync();
         foreach (var c in completions)
@@ -131,7 +134,7 @@ public class TaskService : ITaskService
         }
 
         var acceptedTaskIds = await _db.AcceptedTasks
-            .Where(a => a.UserId == userId.Value)
+            .Where(a => a.UserId == userId.Value && taskIds.Contains(a.TaskId))
             .Select(a => a.TaskId)
             .ToListAsync();
         foreach (var taskId in acceptedTaskIds)
@@ -238,13 +241,23 @@ public class TaskService : ITaskService
     {
         try
         {
-            var acceptedTaskIds = await _db.AcceptedTasks
-                .Where(a => a.UserId == userId)
-                .Select(a => a.TaskId)
-                .ToListAsync();
+            var myTasksQuery = _db.TaskGenerates
+                .AsNoTracking()
+                .Where(t => _db.AcceptedTasks.Any(a => a.UserId == userId && a.TaskId == t.Id) ||
+                            _db.TaskCompletes.Any(c => c.UserId == userId && c.TaskId == t.Id) ||
+                            _db.TaskProofs.Any(p => p.UserId == userId && p.TaskId == t.Id))
+                .OrderByDescending(t => t.Id)
+                .Take(100);
+
+            var tasks = await myTasksQuery.ToListAsync();
+
+            if (tasks.Count == 0)
+                return new List<MyTaskDto>();
+
+            var taskIds = tasks.Select(t => t.Id).ToList();
 
             var proofsList = await _db.TaskProofs
-                .Where(p => p.UserId == userId)
+                .Where(p => p.UserId == userId && taskIds.Contains(p.TaskId))
                 .OrderByDescending(p => p.Date)
                 .ToListAsync();
             var proofs = proofsList
@@ -252,26 +265,10 @@ public class TaskService : ITaskService
                 .ToDictionary(g => g.Key, g => g.First());
 
             var completions = await _db.TaskCompletes
-                .Where(tc => tc.UserId == userId)
+                .Where(tc => tc.UserId == userId && taskIds.Contains(tc.TaskId))
                 .OrderByDescending(tc => tc.Date)
                 .Select(tc => new { tc.TaskId, tc.Status, tc.Id })
                 .ToListAsync();
-
-            var completedTaskIds = completions
-                .Where(c => c.Status == "Completed")
-                .Select(c => c.TaskId)
-                .ToHashSet();
-
-            var allTaskIds = acceptedTaskIds
-                .Union(completedTaskIds)
-                .Union(completions.Select(c => c.TaskId))
-                .ToList();
-
-            if (allTaskIds.Count == 0)
-                return new List<MyTaskDto>();
-
-            var allTasks = await _db.TaskGenerates.AsNoTracking().ToListAsync();
-            var tasks = allTasks.Where(t => allTaskIds.Contains(t.Id)).ToList();
 
             var result = new List<MyTaskDto>();
 
@@ -408,6 +405,7 @@ public class TaskService : ITaskService
             .Include(p => p.User)
             .Include(p => p.Task)
             .OrderByDescending(p => p.Date)
+            .Take(100)
             .Select(p => new ProofReviewDto
             {
                 ProofId = p.Id,

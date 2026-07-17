@@ -197,7 +197,7 @@
                         {
                             foreach (var user in recentUsers)
                             {
-                                var initials = string.IsNullOrEmpty(user.Name) ? "?" : user.Name.Split(' ').Take(2).Aggregate((a, b) => a[..1] + b[..1]).ToUpper();
+                                var initials = string.IsNullOrEmpty(user.Name) ? "?" : string.Join("", user.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[..1])).ToUpper();
                                 var colors = new[] { "#7C3AED,#0D9488", "#3B82F6,#1D4ED8", "#10B981,#059669", "#F59E0B,#D97706", "#EF4444,#B91C1C", "#EC4899,#BE185D", "#6366F1,#4F46E5", "#0D9488,#0F766E" };
                                 var colorIdx = user.Id % colors.Length;
                                 var displayName = user.Name ?? "User";
@@ -210,7 +210,7 @@
                                     _ => $"since {user.CreatedAt:MMM yyyy}"
                                 };
                                 <div class="user-joined-card">
-                                    <div class="user-joined-avatar" style="background:linear-gradient(135deg,{colors[colorIdx]});">@initials</div>
+                                    <div class="user-joined-avatar" style="background:linear-gradient(135deg,@colors[colorIdx]);">@initials</div>
                                     <div class="user-joined-info">
                                         <h4>@displayName</h4>
                                         <p>Joined @timeAgo</p>

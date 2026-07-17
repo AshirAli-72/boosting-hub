@@ -28,6 +28,7 @@ public class TokenService : ITokenService
     {
         var roles = await _db.UserHasRoles
             .Where(ur => ur.UserId == user.Id)
+            .Include(ur => ur.Role)
             .Select(ur => ur.Role!.RoleTitle)
             .ToArrayAsync();
 

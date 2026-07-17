@@ -141,6 +141,12 @@ catch (Exception ex)
     Console.WriteLine($"[Startup] Database seeding failed: {ex.Message}");
 }
 
+    var env = builder.Environment.EnvironmentName;
+    var connStr = builder.Configuration.GetConnectionString("DefaultConnection") ?? "";
+    var dbLabel = connStr.Contains("localhost") || connStr.Contains("SQLEXPRESS") || connStr.Contains("Trusted_Connection")
+        ? "LOCAL (SQL Express)" : "PRODUCTION (Somee)";
+    Console.WriteLine($"[Startup] Environment: {env} | Database: {dbLabel}");
+
     app.UseDeveloperExceptionPage();
     app.UseHttpsRedirection();
 app.UseResponseCompression();

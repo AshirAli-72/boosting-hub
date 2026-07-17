@@ -36,12 +36,14 @@ public class VerifyEmailModel : PageModel
                 return Page();
             }
 
+            IsVerificationError = true;
             ErrorMessage = result.Message;
             return Page();
         }
         catch (Exception ex)
         {
-            ErrorMessage = "An error occurred during verification. Please try again.";
+            IsVerificationError = true;
+            ErrorMessage = $"An unexpected error occurred: {ex.Message}. Please try again or contact support.";
             return Page();
         }
     }

@@ -41,10 +41,12 @@ public class LoginModel : PageModel
             if (isAdmin)
             {
                 HttpContext.Session.SetString("UserRole", "Admin");
+                TempData["Success"] = "Welcome back, Admin!";
                 return RedirectToPage("/Admin/Dashboard");
             }
 
             HttpContext.Session.SetString("UserRole", "User");
+            TempData["Success"] = "Login successful!";
             return RedirectToPage("/Users/Dashboard");
         }
 

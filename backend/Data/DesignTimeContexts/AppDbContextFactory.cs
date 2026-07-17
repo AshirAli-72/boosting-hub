@@ -8,8 +8,17 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbCont
 {
     public ApplicationDbContext CreateDbContext(string[] args)
     {
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        var config = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile($"appsettings.{environment}.json", optional: true)
+            .Build();
+
+        var connectionString = config.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-        var connectionString = "Data Source=boostinghubdb.mssql.somee.com;Initial Catalog=boostinghubdb;User ID=ashir_ali_SQLLogin_1;Password=el3dgbdjiu;TrustServerCertificate=True;MultipleActiveResultSets=True";
         optionsBuilder.UseSqlServer(connectionString);
         return new ApplicationDbContext(optionsBuilder.Options);
     }

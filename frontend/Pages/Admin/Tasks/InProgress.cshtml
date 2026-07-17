@@ -41,7 +41,7 @@
                                         <th>ID</th>
                                         <th>Platform</th>
                                         <th>Service</th>
-                                        <th>Slots</th>
+                                        <th>Remaining Slots</th>
                                         <th>Completed</th>
                                         <th>Reward</th>
                                         <th>Created</th>
@@ -54,7 +54,7 @@
                                             <td>#@task.Id</td>
                                             <td>@task.Platform</td>
                                             <td>@task.Service</td>
-                                            <td>@task.Quantity</td>
+                                            <td>@(task.Quantity - task.CompletedCount)</td>
                                             <td>@task.CompletedCount</td>
                                             <td>@Model.GetCurrencySymbol(task.Currency)@task.Reward.ToString("N2")</td>
                                             <td>@task.CreatedAt.ToString("yyyy-MM-dd")</td>
