@@ -52,11 +52,14 @@ public class TaskService : ITaskService
             allActiveTasks = allActiveTasks.Where(t => t.Reward <= filter.MaxReward.Value).ToList();
 
         var activeTaskIds = allActiveTasks.Select(t => t.Id).ToList();
-        var completedCounts = await _db.TaskCompletes
-            .Where(tc => activeTaskIds.Contains(tc.TaskId) && tc.Status == "Completed")
-            .GroupBy(tc => tc.TaskId)
-            .Select(g => new { TaskId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.TaskId, x => x.Count);
+        var allCompletedTaskIds = await _db.TaskCompletes
+            .Where(tc => tc.Status == "Completed")
+            .Select(tc => tc.TaskId)
+            .ToListAsync();
+        var completedCounts = allCompletedTaskIds
+            .GroupBy(id => id)
+            .Where(g => activeTaskIds.Contains(g.Key))
+            .ToDictionary(g => g.Key, g => g.Count());
 
         allActiveTasks = allActiveTasks
             .Where(t => t.Quantity > completedCounts.GetValueOrDefault(t.Id, 0))
@@ -116,13 +119,14 @@ public class TaskService : ITaskService
     private async Task<Dictionary<int, string>> BuildUserStatusMapAsync(int? userId, IEnumerable<int> taskIds)
     {
         var map = new Dictionary<int, string>();
-        if (!userId.HasValue || !taskIds.Any()) return map;
+        var taskIdSet = taskIds.ToHashSet();
+        if (!userId.HasValue || taskIdSet.Count == 0) return map;
 
         var completions = await _db.TaskCompletes
-            .Where(tc => tc.UserId == userId.Value && taskIds.Contains(tc.TaskId))
+            .Where(tc => tc.UserId == userId.Value)
             .Select(tc => new { tc.TaskId, tc.Status })
             .ToListAsync();
-        foreach (var c in completions)
+        foreach (var c in completions.Where(c => taskIdSet.Contains(c.TaskId)))
         {
             if (c.Status == "Completed")
                 map[c.TaskId] = "Completed";
@@ -131,10 +135,10 @@ public class TaskService : ITaskService
         }
 
         var acceptedTaskIds = await _db.AcceptedTasks
-            .Where(a => a.UserId == userId.Value && taskIds.Contains(a.TaskId))
+            .Where(a => a.UserId == userId.Value)
             .Select(a => a.TaskId)
             .ToListAsync();
-        foreach (var taskId in acceptedTaskIds)
+        foreach (var taskId in acceptedTaskIds.Where(id => taskIdSet.Contains(id)))
         {
             if (!map.ContainsKey(taskId))
                 map[taskId] = "Accepted";
@@ -262,25 +266,29 @@ public class TaskService : ITaskService
             if (relatedTaskIds.Count == 0)
                 return new List<MyTaskDto>();
 
-            var tasks = await _db.TaskGenerates
+            var relatedTaskIdSet = relatedTaskIds.ToHashSet();
+            var allTasks = await _db.TaskGenerates
                 .AsNoTracking()
-                .Where(t => relatedTaskIds.Contains(t.Id))
                 .OrderByDescending(t => t.Id)
-                .Take(100)
+                .Take(500)
                 .ToListAsync();
 
+            var tasks = allTasks.Where(t => relatedTaskIdSet.Contains(t.Id)).Take(100).ToList();
+
             var taskIds = tasks.Select(t => t.Id).ToList();
+            var taskIdSet = taskIds.ToHashSet();
 
             var proofsList = await _db.TaskProofs
-                .Where(p => p.UserId == userId && taskIds.Contains(p.TaskId))
+                .Where(p => p.UserId == userId)
                 .OrderByDescending(p => p.Date)
                 .ToListAsync();
             var proofs = proofsList
+                .Where(p => taskIdSet.Contains(p.TaskId))
                 .GroupBy(p => p.TaskId)
                 .ToDictionary(g => g.Key, g => g.First());
 
             var completions = await _db.TaskCompletes
-                .Where(tc => tc.UserId == userId && taskIds.Contains(tc.TaskId))
+                .Where(tc => tc.UserId == userId)
                 .OrderByDescending(tc => tc.Date)
                 .Select(tc => new { tc.TaskId, tc.Status, tc.Id })
                 .ToListAsync();
@@ -290,7 +298,7 @@ public class TaskService : ITaskService
             foreach (var t in tasks)
             {
                 var proof = proofs.GetValueOrDefault(t.Id);
-                var comp = completions.FirstOrDefault(c => c.TaskId == t.Id);
+                var comp = completions.FirstOrDefault(c => c.TaskId == t.Id && taskIdSet.Contains(c.TaskId));
 
                 if (proof != null && comp == null)
                 {
@@ -548,12 +556,20 @@ public class TaskService : ITaskService
     {
         try
         {
-            var adminUserIds = await _db.UserHasRoles
-                .Include(ur => ur.Role)
-                .Where(ur => ur.Role!.RoleTitle == "Admin" || ur.Role.RoleTitle == "Administrator")
+            var adminRoleIds = await _db.Roles
+                .Where(r => r.RoleTitle == "Admin" || r.RoleTitle == "Administrator")
+                .Select(r => r.Id)
+                .ToListAsync();
+
+            var allUserRoles = await _db.UserHasRoles
+                .Select(ur => new { ur.UserId, ur.RoleId })
+                .ToListAsync();
+
+            var adminUserIds = allUserRoles
+                .Where(ur => adminRoleIds.Contains(ur.RoleId))
                 .Select(ur => ur.UserId)
                 .Distinct()
-                .ToListAsync();
+                .ToList();
 
             if (adminUserIds.Count == 0)
             {
