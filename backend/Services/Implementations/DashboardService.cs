@@ -107,23 +107,29 @@ public class DashboardService : IDashboardService
             .Select(r => r.Id)
             .ToListAsync();
 
+        var allUserRoles = await _db.UserHasRoles
+            .Select(ur => new { ur.UserId, ur.RoleId })
+            .ToListAsync();
+
         var adminUserIds = adminRoleIds.Count > 0
-            ? await _db.UserHasRoles
+            ? allUserRoles
                 .Where(ur => adminRoleIds.Contains(ur.RoleId))
                 .Select(ur => ur.UserId)
                 .Distinct()
-                .ToListAsync()
+                .ToList()
             : new List<int>();
 
-        var totalUsers = await _db.Users
-            .CountAsync(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail);
-        var locked = await _db.Users
-            .CountAsync(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail && u.Status == 0);
-        var unverified = await _db.Users
-            .CountAsync(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail && u.EmailVerifiedAt == null);
         var today = DateTime.UtcNow.Date;
-        var registeredToday = await _db.Users
-            .CountAsync(u => !adminUserIds.Contains(u.Id) && u.Email != seederEmail && u.CreatedAt >= today);
+        var allUsers = await _db.Users
+            .Where(u => u.Email != seederEmail)
+            .Select(u => new { u.Id, u.Status, u.EmailVerifiedAt, u.CreatedAt })
+            .ToListAsync();
+
+        var filteredUsers = allUsers.Where(u => !adminUserIds.Contains(u.Id)).ToList();
+        var totalUsers = filteredUsers.Count;
+        var locked = filteredUsers.Count(u => u.Status == 0);
+        var unverified = filteredUsers.Count(u => u.EmailVerifiedAt == null);
+        var registeredToday = filteredUsers.Count(u => u.CreatedAt >= today);
 
         var totalOrders = await _db.Orders.CountAsync();
         var totalRevenue = await _db.Orders.Where(o => o.Status == "Approved").SumAsync(o => o.Budget);
