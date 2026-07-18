@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Services.Interfaces;
@@ -17,7 +18,7 @@ public class DashboardService : IDashboardService
     public async Task<UserDashboardDto> GetUserDashboardAsync(int userId)
     {
         var allActiveTaskIds = await _db.TaskGenerates
-            .Where(t => t.Status == "Active")
+            .Where(t => t.Status == StatusHelper.TaskGenerateActive)
             .Select(t => t.Id)
             .ToListAsync();
 
@@ -27,7 +28,7 @@ public class DashboardService : IDashboardService
             .ToListAsync();
 
         var completedTaskIds = await _db.TaskCompletes
-            .Where(tc => tc.UserId == userId && tc.Status == "Completed")
+            .Where(tc => tc.UserId == userId && tc.Status == StatusHelper.TaskCompleteCompleted)
             .Select(tc => tc.TaskId)
             .ToListAsync();
 
@@ -38,7 +39,7 @@ public class DashboardService : IDashboardService
         var completedCount = completedTaskIds.Count;
 
         var totalRewards = await _db.TaskCompletes
-            .Where(tc => tc.UserId == userId && tc.Status == "Completed")
+            .Where(tc => tc.UserId == userId && tc.Status == StatusHelper.TaskCompleteCompleted)
             .Join(_db.TaskGenerates,
                 tc => tc.TaskId,
                 t => t.Id,
@@ -49,7 +50,7 @@ public class DashboardService : IDashboardService
 
         // Fix SQL CTE error: use EF.Functions or pull only dates into memory
         var completionDates = await _db.TaskCompletes
-            .Where(tc => tc.UserId == userId && tc.Status == "Completed" && tc.Date >= sevenDaysAgo)
+            .Where(tc => tc.UserId == userId && tc.Status == StatusHelper.TaskCompleteCompleted && tc.Date >= sevenDaysAgo)
             .Select(tc => tc.Date)
             .ToListAsync();
 
@@ -68,7 +69,7 @@ public class DashboardService : IDashboardService
         }
 
         var submittedCount = await _db.TaskProofs
-            .CountAsync(p => p.UserId == userId && p.Status == "Submitted");
+            .CountAsync(p => p.UserId == userId && p.Status == StatusHelper.TaskProofSubmitted);
         var pendingPie = pendingCount - submittedCount;
 
         var pieChart = new ChartDataDto
@@ -91,7 +92,7 @@ public class DashboardService : IDashboardService
             PendingTasks = pendingCount,
             TotalRewards = totalRewards,
             WalletBalance = wallet?.TotalBalance ?? 0,
-            WalletStatus = wallet?.Status ?? "Inactive",
+            WalletStatus = wallet != null ? StatusHelper.WalletStatusToString(wallet.Status) : "Inactive",
             LineChart = lineChart,
             PieChart = pieChart
         };
@@ -132,7 +133,7 @@ public class DashboardService : IDashboardService
         var registeredToday = filteredUsers.Count(u => u.CreatedAt >= today);
 
         var totalOrders = await _db.Orders.CountAsync();
-        var totalRevenue = await _db.Orders.Where(o => o.Status == "Approved").SumAsync(o => o.Budget);
+        var totalRevenue = await _db.Orders.Where(o => o.Status == StatusHelper.OrderApproved).SumAsync(o => o.Budget);
 
         // Order chart — only last 7 days
         var sevenDaysAgo = today.AddDays(-6);
@@ -157,7 +158,7 @@ public class DashboardService : IDashboardService
 
         // Order status pie chart
         var statusGroups = (await _db.Orders
-            .Select(o => o.Status ?? "Pending")
+            .Select(o => StatusHelper.OrderStatusToString(o.Status))
             .ToListAsync())
             .GroupBy(s => s)
             .Select(g => new { Status = g.Key, Count = g.Count() })
@@ -180,7 +181,7 @@ public class DashboardService : IDashboardService
 
         // Task completion stats
         var completedCounts = (await _db.TaskCompletes
-            .Where(tc => tc.Status == "Completed")
+            .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted)
             .Select(tc => tc.TaskId)
             .ToListAsync())
             .GroupBy(id => id)

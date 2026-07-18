@@ -21,6 +21,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Account> Accounts { get; set; }
+    public DbSet<ActivityLog> ActivityLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -137,7 +138,7 @@ public class ApplicationDbContext : DbContext
             e.Property(p => p.ProofUrl).HasMaxLength(2048);
             e.Property(p => p.ProofType).HasMaxLength(50);
             e.Property(p => p.Status).HasMaxLength(50);
-            e.Property(p => p.VerificationStatus).HasMaxLength(50).IsRequired().HasDefaultValue("None");
+            e.Property(p => p.VerificationStatus).IsRequired().HasDefaultValue(4);
             e.Property(p => p.RejectReason).HasMaxLength(1000);
 
             e.HasOne(p => p.User)
@@ -227,6 +228,26 @@ public class ApplicationDbContext : DbContext
             e.Property(a => a.UpdatedAt).HasColumnType("datetime2");
             e.HasOne(a => a.User).WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.NoAction);
             e.HasIndex(a => a.UserId);
+        });
+
+        // ── ActivityLog ──────────────────────────────────────────────────────
+        builder.Entity<ActivityLog>(e =>
+        {
+            e.Property(l => l.UserRole).HasMaxLength(20).IsRequired();
+            e.Property(l => l.Event).HasMaxLength(50).IsRequired();
+            e.Property(l => l.Description).HasMaxLength(500);
+            e.Property(l => l.SubjectType).HasMaxLength(50).IsRequired();
+            e.Property(l => l.SubjectName).HasMaxLength(200);
+            e.Property(l => l.UserName).HasMaxLength(200);
+            e.Property(l => l.UserEmail).HasMaxLength(255);
+            e.Property(l => l.IpAddress).HasMaxLength(50);
+            e.Property(l => l.UserAgent).HasMaxLength(500);
+            e.Property(l => l.CreatedAt).HasColumnType("datetime2");
+            e.HasOne(l => l.User).WithMany().HasForeignKey(l => l.UserId).OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(l => l.UserId);
+            e.HasIndex(l => new { l.SubjectType, l.SubjectId });
+            e.HasIndex(l => l.CreatedAt);
+            e.HasIndex(l => l.Event);
         });
 
     }

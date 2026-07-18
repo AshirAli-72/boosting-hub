@@ -19,7 +19,7 @@ public class Orders
     [Column("quantity")] public string? Quantity { get; set; }
     [Column("budget")] public decimal Budget { get; set; }
     [Column("currency")] public string Currency { get; set; } = "USD";
-    [Column("status")] public string Status { get; set; } = "Pending";
+    [Column("status")] public int Status { get; set; } = 2;
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<TaskGenerate> TaskGenerates { get; set; } = new List<TaskGenerate>();

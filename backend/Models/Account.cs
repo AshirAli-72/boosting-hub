@@ -12,7 +12,7 @@ public class Account
     [Column("mobile_number")] public string MobileNumber { get; set; } = "";
     [Column("cnic")] public string Cnic { get; set; } = "";
     [Column("is_default")] public bool IsDefault { get; set; }
-    [Column("status")] public string Status { get; set; } = "Active";
+    [Column("status")] public int Status { get; set; } = 1;
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [Column("updated_at")] public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Services.Interfaces;
@@ -60,7 +61,7 @@ public partial class ProofVerificationService : IProofVerificationService
         if (task == null)
             return Fail("Task not found");
 
-        if (task.Status != "Active")
+        if (task.Status != StatusHelper.TaskGenerateActive)
             return Fail("Task is no longer active");
 
         var accepted = await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId && a.TaskId == taskId);
@@ -82,7 +83,7 @@ public partial class ProofVerificationService : IProofVerificationService
         return new ProofVerificationResult
         {
             Success = true,
-            VerificationStatus = "PendingReview",
+            VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationPendingReview),
             ErrorMessage = null
         };
     }
@@ -112,7 +113,7 @@ public partial class ProofVerificationService : IProofVerificationService
         if (suspiciousPatterns.Any(p => proofUrl.Contains(p, StringComparison.OrdinalIgnoreCase)))
             return Task.FromResult(Fail("Proof URL contains suspicious content"));
 
-        return Task.FromResult(new ProofVerificationResult { Success = true, VerificationStatus = "None" });
+        return Task.FromResult(new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) });
     }
 
     public async Task<ProofVerificationResult> ValidatePlatformAsync(string proofUrl, string expectedPlatform)
@@ -120,7 +121,7 @@ public partial class ProofVerificationService : IProofVerificationService
         if (!PlatformPatterns.TryGetValue(expectedPlatform, out var pattern))
         {
             _logger.LogWarning("Unknown platform {Platform}; skipping platform validation", expectedPlatform);
-            return new ProofVerificationResult { Success = true, VerificationStatus = "None" };
+            return new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) };
         }
 
         if (!pattern.IsMatch(proofUrl))
@@ -137,7 +138,7 @@ public partial class ProofVerificationService : IProofVerificationService
 
             if (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                return new ProofVerificationResult { Success = true, VerificationStatus = "None" };
+                return new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) };
             }
 
             _logger.LogWarning("Proof URL {Url} returned HTTP {Status}", proofUrl, (int)response.StatusCode);
@@ -160,11 +161,11 @@ public partial class ProofVerificationService : IProofVerificationService
         var existingActiveProof = await _db.TaskProofs.AnyAsync(p =>
             p.UserId == userId &&
             p.TaskId == taskId &&
-            p.VerificationStatus != "Rejected");
+            p.VerificationStatus != StatusHelper.VerificationRejected);
         if (existingActiveProof)
             return Fail("You have already submitted a proof for this task");
 
-        return new ProofVerificationResult { Success = true, VerificationStatus = "None" };
+        return new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) };
     }
 
     public async Task<ProofVerificationResult> VerifyCampaignMatchAsync(string proofUrl, int taskId)
@@ -174,7 +175,7 @@ public partial class ProofVerificationService : IProofVerificationService
             return Fail("Task not found");
 
         if (string.IsNullOrWhiteSpace(task.Url))
-            return new ProofVerificationResult { Success = true, VerificationStatus = "None" };
+            return new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) };
 
         var isVideoTask = task.Service?.Contains("video", StringComparison.OrdinalIgnoreCase) == true ||
                           task.Service?.Contains("view", StringComparison.OrdinalIgnoreCase) == true ||
@@ -188,7 +189,7 @@ public partial class ProofVerificationService : IProofVerificationService
                 return Fail("Invalid proof URI");
 
             if (!Uri.TryCreate(task.Url, UriKind.Absolute, out var taskUri))
-                return new ProofVerificationResult { Success = true, VerificationStatus = "None" };
+                return new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) };
 
             var proofContentId = ExtractContentId(proofUri, task.Platform);
             var taskContentId = ExtractContentId(taskUri, task.Platform);
@@ -196,7 +197,7 @@ public partial class ProofVerificationService : IProofVerificationService
                 return Fail("Proof URL does not match the campaign's target content");
         }
 
-        return new ProofVerificationResult { Success = true, VerificationStatus = "None" };
+        return new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) };
     }
 
     private static string ExtractContentId(Uri uri, string platform)
@@ -244,5 +245,5 @@ public partial class ProofVerificationService : IProofVerificationService
     }
 
     private static ProofVerificationResult Fail(string message) =>
-        new() { Success = false, ErrorMessage = message, VerificationStatus = "Rejected" };
+        new() { Success = false, ErrorMessage = message, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationRejected) };
 }

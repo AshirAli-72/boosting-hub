@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -58,12 +59,12 @@ public class IndexModel : PageModel
         // ── Revenue / Orders ──────────────────────────────────────────────────
         var allOrders = await _db.Orders.AsNoTracking().OrderByDescending(o => o.CreatedAt).ToListAsync();
         TotalOrders     = allOrders.Count;
-        TotalRevenue    = allOrders.Where(o => o.Status == "Approved").Sum(o => o.Budget);
+        TotalRevenue    = allOrders.Where(o => o.Status == StatusHelper.OrderApproved).Sum(o => o.Budget);
         AvgOrderValue   = TotalOrders > 0 ? allOrders.Sum(o => o.Budget) / TotalOrders : 0;
-        OrdersCompleted = allOrders.Count(o => o.Status == "Approved");
-        OrdersPending   = allOrders.Count(o => o.Status == "Pending");
-        OrdersInProgress= allOrders.Count(o => o.Status == "in_progress");
-        RevenueTableData = allOrders.Where(o => o.Status == "Approved").Take(50).ToList();
+        OrdersCompleted = allOrders.Count(o => o.Status == StatusHelper.OrderApproved);
+        OrdersPending   = allOrders.Count(o => o.Status == StatusHelper.OrderPending);
+        OrdersInProgress= allOrders.Count(o => o.Status == StatusHelper.OrderPending);
+        RevenueTableData = allOrders.Where(o => o.Status == StatusHelper.OrderApproved).Take(50).ToList();
         OrdersTableData  = allOrders.Take(50).ToList();
 
         var dailyOrders = allOrders
@@ -96,16 +97,16 @@ public class IndexModel : PageModel
 
         // ── Tasks ─────────────────────────────────────────────────────────────
         TotalTasks     = await _db.TaskGenerates.CountAsync();
-        ActiveTasks    = await _db.TaskGenerates.CountAsync(t => t.Status == "Active");
-        CompletedTasks = await _db.TaskCompletes.CountAsync(tc => tc.Status == "Completed");
-        PendingProofs  = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Pending");
-        ApprovedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Approved");
-        RejectedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Rejected");
+        ActiveTasks    = await _db.TaskGenerates.CountAsync(t => t.Status == StatusHelper.TaskGenerateActive);
+        CompletedTasks = await _db.TaskCompletes.CountAsync(tc => tc.Status == StatusHelper.TaskCompleteCompleted);
+        PendingProofs  = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationPendingReview);
+        ApprovedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationApproved);
+        RejectedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationRejected);
         TasksTableData = await _db.TaskGenerates.AsNoTracking()
             .OrderByDescending(t => t.CreatedAt).Take(50).ToListAsync();
 
         var dailyTasks = await _db.TaskCompletes
-            .Where(tc => tc.Status == "Completed" && tc.Date >= since)
+            .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted && tc.Date >= since)
             .GroupBy(tc => tc.Date.Date)
             .Select(g => new { Date = g.Key, Count = g.Count() })
             .ToListAsync();

@@ -1,5 +1,6 @@
 @page "/admin/inquiries"
 @model BoostingHub.frontend.Pages.Admin.Inquiries.IndexModel
+@using BoostingHub.backend.Common
 @{
     ViewData["Title"] = "Client Requirements";
     ViewData["BodyClass"] = "admin-page";
@@ -80,11 +81,11 @@
                                                 else { <span class="opacity-50">—</span> }
                                             </td>
                                             <td>
-                                                @if (item.Status == "Pending")
+                                                    @if (item.Status == StatusHelper.OrderPending)
                                                 {
                                                     <span class="inquiry-status-badge inquiry-status-pending">Pending</span>
                                                 }
-                                                else if (item.Status == "Approved")
+                                                else if (item.Status == StatusHelper.OrderApproved)
                                                 {
                                                     <span class="inquiry-status-badge inquiry-status-approved">Approved</span>
                                                 }
@@ -98,7 +99,7 @@
                                             </td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
-                                                    @if (item.Status == "Pending")
+                                                @if (item.Status == StatusHelper.OrderPending)
                                                     {
                                                         <button class="btn btn-sm btn-success approve-btn"
                                                                 id="approve-btn-@item.Id"

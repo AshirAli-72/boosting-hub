@@ -28,7 +28,7 @@ public class AccountService : IAccountService
                 MobileNumber = a.MobileNumber,
                 Cnic = a.Cnic,
                 IsDefault = a.IsDefault,
-                Status = a.Status,
+                Status = StatusHelper.AccountStatusToString(a.Status),
                 CreatedAt = a.CreatedAt
             })
             .ToListAsync();
@@ -61,7 +61,7 @@ public class AccountService : IAccountService
             MobileNumber = dto.MobileNumber,
             Cnic = dto.Cnic,
             IsDefault = dto.IsDefault,
-            Status = "Active",
+            Status = StatusHelper.AccountActive,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -76,7 +76,7 @@ public class AccountService : IAccountService
             MobileNumber = account.MobileNumber,
             Cnic = account.Cnic,
             IsDefault = account.IsDefault,
-            Status = account.Status,
+            Status = StatusHelper.AccountStatusToString(account.Status),
             CreatedAt = account.CreatedAt
         }, "Account created successfully");
     }

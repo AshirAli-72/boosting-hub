@@ -32,7 +32,7 @@ public class TaskService : ITaskService
     {
         var allActiveTasks = await _db.TaskGenerates
             .AsNoTracking()
-            .Where(t => t.Status == "Active")
+            .Where(t => t.Status == StatusHelper.TaskGenerateActive)
             .ToListAsync();
 
         if (!string.IsNullOrEmpty(filter.Platform))
@@ -53,7 +53,7 @@ public class TaskService : ITaskService
 
         var activeTaskIds = allActiveTasks.Select(t => t.Id).ToList();
         var allCompletedTaskIds = await _db.TaskCompletes
-            .Where(tc => tc.Status == "Completed")
+            .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted)
             .Select(tc => tc.TaskId)
             .ToListAsync();
         var completedCounts = allCompletedTaskIds
@@ -101,7 +101,7 @@ public class TaskService : ITaskService
                 RewardAmount = t.Reward,
                 Currency = t.Currency,
                 UserStatus = userStatus,
-                Status = t.Status,
+                Status = StatusHelper.TaskGenerateStatusToString(t.Status),
                 CreatedAt = t.CreatedAt,
                 ExpiresAt = t.CreatedAt.AddDays(3)
             };
@@ -128,9 +128,9 @@ public class TaskService : ITaskService
             .ToListAsync();
         foreach (var c in completions.Where(c => taskIdSet.Contains(c.TaskId)))
         {
-            if (c.Status == "Completed")
+            if (c.Status == StatusHelper.TaskCompleteCompleted)
                 map[c.TaskId] = "Completed";
-            else if (c.Status != "Cancelled" && !map.ContainsKey(c.TaskId))
+            else if (c.Status != StatusHelper.TaskCompleteCancelled && !map.ContainsKey(c.TaskId))
                 map[c.TaskId] = "Accepted";
         }
 
@@ -157,11 +157,11 @@ public class TaskService : ITaskService
         if (task == null)
             return Result.Failure<TaskDetailDto>("Task not found", "NOT_FOUND");
 
-        if (task.Status != "Active")
+        if (task.Status != StatusHelper.TaskGenerateActive)
             return Result.Failure<TaskDetailDto>("Task is no longer available", "INACTIVE");
 
         var completedCount = await _db.TaskCompletes
-            .CountAsync(tc => tc.TaskId == taskId && tc.Status == "Completed");
+            .CountAsync(tc => tc.TaskId == taskId && tc.Status == StatusHelper.TaskCompleteCompleted);
 
         string userStatus = "Not Accepted";
         if (userId.HasValue)
@@ -170,13 +170,13 @@ public class TaskService : ITaskService
                 .Where(tc => tc.TaskId == taskId && tc.UserId == userId.Value)
                 .Select(tc => tc.Status)
                 .FirstOrDefaultAsync();
-            if (completion == "Completed")
+            if (completion == StatusHelper.TaskCompleteCompleted)
             {
                 var totalCompleted = await _db.TaskCompletes
-                    .CountAsync(tc => tc.TaskId == taskId && tc.Status == "Completed");
+                    .CountAsync(tc => tc.TaskId == taskId && tc.Status == StatusHelper.TaskCompleteCompleted);
                 userStatus = totalCompleted >= task.Quantity ? "Completed" : "Accepted";
             }
-            else if (completion != null && completion != "Cancelled")
+            else if (completion != StatusHelper.TaskCompleteCancelled)
                 userStatus = "Accepted";
             else if (await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId.Value && a.TaskId == taskId))
                 userStatus = "Accepted";
@@ -196,7 +196,7 @@ public class TaskService : ITaskService
             Currency = task.Currency,
             Description = task.Order?.Description ?? string.Empty,
             UserStatus = userStatus,
-            Status = task.Status,
+            Status = StatusHelper.TaskGenerateStatusToString(task.Status),
             CreatedAt = task.CreatedAt,
             ExpiresAt = task.CreatedAt.AddDays(3)
         });
@@ -207,7 +207,7 @@ public class TaskService : ITaskService
         var task = await _db.TaskGenerates.FirstOrDefaultAsync(t => t.Id == taskId);
         if (task == null)
             return Result.Failure<AcceptTaskResult>("Task not found", "NOT_FOUND");
-        if (task.Status != "Active")
+        if (task.Status != StatusHelper.TaskGenerateActive)
             return Result.Failure<AcceptTaskResult>("Task is no longer active", "INACTIVE");
 
         var worker = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
@@ -227,7 +227,7 @@ public class TaskService : ITaskService
             UserId = userId,
             TaskId = taskId,
             AcceptedAt = DateTime.UtcNow,
-            Status = "Accepted"
+            Status = StatusHelper.AcceptedTaskAccepted
         });
         await _db.SaveChangesAsync();
 
@@ -310,11 +310,11 @@ public class TaskService : ITaskService
                         Url = t.Url,
                         Reward = t.Reward,
                         Currency = t.Currency,
-                        Status = proof.VerificationStatus == "Rejected" ? "Rejected" : "Submitted",
+                        Status = StatusHelper.TaskProofStatusToString(proof.VerificationStatus == StatusHelper.VerificationRejected ? StatusHelper.TaskProofRejected : StatusHelper.TaskProofSubmitted),
                         ProofUrl = proof.ProofUrl,
                         ProofType = proof.ProofType,
-                        ProofStatus = proof.Status,
-                        VerificationStatus = proof.VerificationStatus,
+                        ProofStatus = StatusHelper.TaskProofStatusToString(proof.Status),
+                        VerificationStatus = StatusHelper.VerificationStatusToString(proof.VerificationStatus),
                         RejectReason = proof.RejectReason
                     });
                 }
@@ -329,11 +329,11 @@ public class TaskService : ITaskService
                         Url = t.Url,
                         Reward = t.Reward,
                         Currency = t.Currency,
-                        Status = comp.Status,
+                        Status = StatusHelper.TaskCompleteStatusToString(comp.Status),
                         ProofUrl = proof?.ProofUrl,
                         ProofType = proof?.ProofType,
-                        ProofStatus = proof?.Status,
-                        VerificationStatus = proof?.VerificationStatus,
+                        ProofStatus = proof != null ? StatusHelper.TaskProofStatusToString(proof.Status) : null,
+                        VerificationStatus = proof != null ? StatusHelper.VerificationStatusToString(proof.VerificationStatus) : null,
                         RejectReason = proof?.RejectReason
                     });
                 }
@@ -347,7 +347,7 @@ public class TaskService : ITaskService
                         Url = t.Url,
                         Reward = t.Reward,
                         Currency = t.Currency,
-                        Status = "Pending"
+                        Status = StatusHelper.TaskCompleteStatusToString(StatusHelper.TaskCompletePending)
                     });
                 }
             }
@@ -375,11 +375,11 @@ public class TaskService : ITaskService
             if (accepted == null)
                 return Result.Failure("You have not accepted this task", "NOT_ACCEPTED");
 
-            if (task.Status != "Active")
+            if (task.Status != StatusHelper.TaskGenerateActive)
                 return Result.Failure("Task has expired or is no longer available", "TASK_EXPIRED");
 
             var existingProof = await _db.TaskProofs
-                .FirstOrDefaultAsync(p => p.UserId == userId && p.TaskId == taskId && p.VerificationStatus != "Rejected");
+                .FirstOrDefaultAsync(p => p.UserId == userId && p.TaskId == taskId && p.VerificationStatus != StatusHelper.VerificationRejected);
             if (existingProof != null)
                 return Result.Failure("You have already submitted a proof for this task", "ALREADY_SUBMITTED");
 
@@ -392,8 +392,8 @@ public class TaskService : ITaskService
                 ProofUrl = proofUrl,
                 ProofType = proofType,
                 Date = DateTime.UtcNow,
-                Status = "Submitted",
-                VerificationStatus = verification.Success ? "PendingReview" : "Rejected",
+                Status = StatusHelper.TaskProofSubmitted,
+                VerificationStatus = verification.Success ? StatusHelper.VerificationPendingReview : StatusHelper.VerificationRejected,
                 RejectReason = verification.Success ? null : verification.ErrorMessage
             };
 
@@ -424,7 +424,7 @@ public class TaskService : ITaskService
     {
         return await _db.TaskProofs
             .AsNoTracking()
-            .Where(p => p.VerificationStatus == "PendingReview")
+            .Where(p => p.VerificationStatus == StatusHelper.VerificationPendingReview)
             .Join(_db.Users, p => p.UserId, u => u.Id, (p, u) => new { p, u })
             .Join(_db.TaskGenerates, x => x.p.TaskId, t => t.Id, (x, t) => new { x.p, x.u, t })
             .OrderByDescending(x => x.p.Date)
@@ -442,7 +442,7 @@ public class TaskService : ITaskService
                 Reward = x.t.Reward,
                 Currency = x.t.Currency,
                 SubmittedAt = x.p.Date,
-                VerificationStatus = x.p.VerificationStatus,
+                VerificationStatus = StatusHelper.VerificationStatusToString(x.p.VerificationStatus),
                 RejectReason = x.p.RejectReason
             })
             .ToListAsync();
@@ -459,11 +459,11 @@ public class TaskService : ITaskService
             if (proof == null)
                 return Result.Failure("Proof not found", "NOT_FOUND");
 
-            if (proof.VerificationStatus != "PendingReview")
+            if (proof.VerificationStatus != StatusHelper.VerificationPendingReview)
                 return Result.Failure("Proof is not pending review", "INVALID_STATUS");
 
             var alreadyCompleted = await _db.TaskCompletes
-                .AnyAsync(tc => tc.TaskId == proof.TaskId && tc.UserId == proof.UserId && tc.Status == "Completed");
+                .AnyAsync(tc => tc.TaskId == proof.TaskId && tc.UserId == proof.UserId && tc.Status == StatusHelper.TaskCompleteCompleted);
 
             if (!alreadyCompleted)
             {
@@ -473,12 +473,12 @@ public class TaskService : ITaskService
                     TaskId = proof.TaskId,
                     ProofId = proof.Id,
                     Date = DateTime.UtcNow,
-                    Status = "Completed"
+                    Status = StatusHelper.TaskCompleteCompleted
                 });
             }
 
-            proof.VerificationStatus = "Approved";
-            proof.Status = "Completed";
+            proof.VerificationStatus = StatusHelper.VerificationApproved;
+            proof.Status = StatusHelper.TaskProofCompleted;
 
             await _db.SaveChangesAsync();
 
@@ -521,12 +521,12 @@ public class TaskService : ITaskService
             if (proof == null)
                 return Result.Failure("Proof not found", "NOT_FOUND");
 
-            if (proof.VerificationStatus != "PendingReview")
+            if (proof.VerificationStatus != StatusHelper.VerificationPendingReview)
                 return Result.Failure("Proof is not pending review", "INVALID_STATUS");
 
-            proof.VerificationStatus = "Rejected";
+            proof.VerificationStatus = StatusHelper.VerificationRejected;
             proof.RejectReason = reason ?? "Rejected by admin";
-            proof.Status = "Rejected";
+            proof.Status = StatusHelper.TaskProofRejected;
 
             await _db.SaveChangesAsync();
 
@@ -604,7 +604,7 @@ public class TaskService : ITaskService
     {
         return await _db.TaskGenerates
             .AsNoTracking()
-            .Where(t => t.Status == "Active")
+            .Where(t => t.Status == StatusHelper.TaskGenerateActive)
             .Select(t => t.Platform)
             .Distinct()
             .ToListAsync();
@@ -614,7 +614,7 @@ public class TaskService : ITaskService
     {
         return await _db.TaskGenerates
             .AsNoTracking()
-            .Where(t => t.Status == "Active")
+            .Where(t => t.Status == StatusHelper.TaskGenerateActive)
             .Select(t => t.Service)
             .Distinct()
             .ToListAsync();
@@ -623,9 +623,9 @@ public class TaskService : ITaskService
     public async Task<int> GetWorkerActiveTaskCountAsync(int userId)
     {
         var acceptedCount = await _db.AcceptedTasks
-            .CountAsync(a => a.UserId == userId && a.Status == "Accepted");
+            .CountAsync(a => a.UserId == userId && a.Status == StatusHelper.AcceptedTaskAccepted);
         var pendingCount = await _db.TaskCompletes
-            .CountAsync(tc => tc.UserId == userId && tc.Status == "Pending");
+            .CountAsync(tc => tc.UserId == userId && tc.Status == StatusHelper.TaskCompletePending);
         return acceptedCount + pendingCount;
     }
 }

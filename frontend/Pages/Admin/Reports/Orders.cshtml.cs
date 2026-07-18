@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -29,9 +30,9 @@ public class OrdersReportModel : PageModel
 
         var allOrders = await _db.Orders.AsNoTracking().OrderByDescending(o => o.CreatedAt).ToListAsync();
         TotalOrders      = allOrders.Count;
-        OrdersCompleted  = allOrders.Count(o => o.Status == "Approved");
-        OrdersPending    = allOrders.Count(o => o.Status == "Pending");
-        OrdersInProgress = allOrders.Count(o => o.Status == "in_progress");
+        OrdersCompleted  = allOrders.Count(o => o.Status == StatusHelper.OrderApproved);
+        OrdersPending    = allOrders.Count(o => o.Status == StatusHelper.OrderPending);
+        OrdersInProgress = allOrders.Count(o => o.Status == StatusHelper.OrderPending);
         OrdersTableData  = allOrders.Take(100).ToList();
 
         var dailyOrders = allOrders

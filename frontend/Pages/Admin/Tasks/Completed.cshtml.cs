@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -43,7 +44,7 @@ public class CompletedModel : PageModel
         try
         {
             var completedCounts = await _db.TaskCompletes
-                .Where(tc => tc.Status == "Completed")
+                .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted)
                 .GroupBy(tc => tc.TaskId)
                 .Select(g => new { TaskId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.TaskId, x => x.Count);

@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -30,11 +31,11 @@ public class RevenueModel : PageModel
 
         var allOrders = await _db.Orders.AsNoTracking().OrderByDescending(o => o.CreatedAt).ToListAsync();
         TotalOrders     = allOrders.Count;
-        TotalRevenue    = allOrders.Where(o => o.Status == "Approved").Sum(o => o.Budget);
+        TotalRevenue    = allOrders.Where(o => o.Status == StatusHelper.OrderApproved).Sum(o => o.Budget);
         AvgOrderValue   = TotalOrders > 0 ? allOrders.Sum(o => o.Budget) / TotalOrders : 0;
-        OrdersCompleted = allOrders.Count(o => o.Status == "Approved");
-        OrdersPending   = allOrders.Count(o => o.Status == "Pending");
-        RevenueTableData = allOrders.Where(o => o.Status == "Approved").Take(100).ToList();
+        OrdersCompleted = allOrders.Count(o => o.Status == StatusHelper.OrderApproved);
+        OrdersPending   = allOrders.Count(o => o.Status == StatusHelper.OrderPending);
+        RevenueTableData = allOrders.Where(o => o.Status == StatusHelper.OrderApproved).Take(100).ToList();
 
         var dailyOrders = allOrders
             .Where(o => o.CreatedAt >= since)

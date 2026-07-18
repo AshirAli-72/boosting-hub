@@ -14,7 +14,7 @@ public class TaskComplete
     [Column("proof_id")] public int? ProofId { get; set; }
 
     [Column("date")] public DateTime Date { get; set; } = DateTime.UtcNow;
-    [Column("status")] public string Status { get; set; } = "Pending";
+    [Column("status")] public int Status { get; set; } = 2;
 
     public User User { get; set; } = null!;
     public TaskGenerate Task { get; set; } = null!;

@@ -20,7 +20,7 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
         var baseQuery = _context.TaskGenerates
             .AsNoTracking()
             .Include(t => t.Order)
-            .Where(t => t.Status == "Active");
+            .Where(t => t.Status == StatusHelper.TaskGenerateActive);
 
        
         var projected = baseQuery.Select(t => new AvailableTaskDto
@@ -43,12 +43,12 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
             TargetQuantity = t.Quantity,
 
             CompletedQuantity = _context.TaskCompletes.Count(tc =>
-                tc.TaskId == t.Id && tc.Status == "Completed"),
+                tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
 
             ProofRequired = false,
             ExpiresAt = t.Order.CreatedAt.AddDays(3),
 
-            Status = t.Status,
+            Status = StatusHelper.TaskGenerateStatusToString(t.Status),
             CreatedAt = t.CreatedAt
         });
 
@@ -132,12 +132,12 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
                 TargetQuantity = t.Quantity,
 
                 CompletedQuantity = _context.TaskCompletes.Count(tc =>
-                    tc.TaskId == t.Id && tc.Status == "Completed"),
+                    tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
 
                 ProofRequired = false,
                 ExpiresAt = t.Order.CreatedAt.AddDays(3),
 
-                Status = t.Status,
+                Status = StatusHelper.TaskGenerateStatusToString(t.Status),
                 CreatedAt = t.CreatedAt
             })
             .FirstOrDefaultAsync();
@@ -159,7 +159,7 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
         var baseQuery = _context.TaskGenerates
             .AsNoTracking()
             .Include(t => t.Order)
-            .Where(t => t.Status == "Active");
+            .Where(t => t.Status == StatusHelper.TaskGenerateActive);
 
         // TotalAvailable: tasks not expired and still have remaining slots
         // Using Remaining = quantity > CompletedCount (Completed status)
@@ -169,7 +169,7 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
             t.Id,
             t.Quantity,
             Completed = _context.TaskCompletes.Count(tc =>
-                tc.TaskId == t.Id && tc.Status == "Completed"),
+                tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
             ExpiresAt = t.Order.CreatedAt.AddDays(3),
             t.Reward,
             t.CreatedAt,

@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Services.Interfaces;
@@ -15,11 +16,11 @@ public class ReportService : IReportService
     {
         var orders = await _db.Orders.AsNoTracking().ToListAsync();
 
-        var totalRevenue   = orders.Where(o => o.Status == "Approved").Sum(o => o.Budget);
+        var totalRevenue   = orders.Where(o => o.Status == StatusHelper.OrderApproved).Sum(o => o.Budget);
         var totalOrders    = orders.Count;
-        var approvedOrders = orders.Count(o => o.Status == "Approved");
-        var pendingOrders  = orders.Count(o => o.Status == "Pending");
-        var rejectedOrders = orders.Count(o => o.Status == "Rejected");
+        var approvedOrders = orders.Count(o => o.Status == StatusHelper.OrderApproved);
+        var pendingOrders  = orders.Count(o => o.Status == StatusHelper.OrderPending);
+        var rejectedOrders = orders.Count(o => o.Status == StatusHelper.OrderRejected);
         var avgOrderValue  = totalOrders > 0 ? orders.Sum(o => o.Budget) / totalOrders : 0;
 
         var since = DateTime.UtcNow.Date.AddDays(-6);
@@ -28,7 +29,7 @@ public class ReportService : IReportService
         {
             var day = since.AddDays(i);
             var dayRevenue = orders
-                .Where(o => o.Status == "Approved" && o.CreatedAt.Date == day)
+                .Where(o => o.Status == StatusHelper.OrderApproved && o.CreatedAt.Date == day)
                 .Sum(o => o.Budget);
             dailyRevenue[day.ToString("MMM dd")] = dayRevenue;
         }
@@ -74,11 +75,11 @@ public class ReportService : IReportService
     public async Task<TasksReportDto> GetTasksReportAsync()
     {
         var totalTasks   = await _db.TaskGenerates.CountAsync();
-        var activeTasks  = await _db.TaskGenerates.CountAsync(t => t.Status == "Active");
+        var activeTasks  = await _db.TaskGenerates.CountAsync(t => t.Status == StatusHelper.TaskGenerateActive);
 
         var tasks = await _db.TaskGenerates.ToListAsync();
         var completedCounts = (await _db.TaskCompletes
-            .Where(tc => tc.Status == "Completed")
+            .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted)
             .Select(tc => tc.TaskId)
             .ToListAsync())
             .GroupBy(id => id)
@@ -86,14 +87,14 @@ public class ReportService : IReportService
 
         var completedTasks = tasks.Count(t => completedCounts.GetValueOrDefault(t.Id, 0) >= t.Quantity && t.Quantity > 0);
         
-        var pendingProofs  = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Pending");
-        var approvedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Approved");
-        var rejectedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Rejected");
+        var pendingProofs  = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationPendingReview);
+        var approvedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationApproved);
+        var rejectedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationRejected);
 
         var since = DateTime.UtcNow.Date.AddDays(-6);
         // Fix SQL CTE error: pull dates into memory, then group in C#
         var completionDates = await _db.TaskCompletes
-            .Where(tc => tc.Status == "Completed" && tc.Date >= since)
+            .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted && tc.Date >= since)
             .Select(tc => tc.Date)
             .ToListAsync();
 

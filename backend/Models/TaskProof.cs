@@ -14,8 +14,8 @@ public class TaskProof
     [Column("proof_type")] public string ProofType { get; set; } = string.Empty;
 
     [Column("date")] public DateTime Date { get; set; } = DateTime.UtcNow;
-    [Column("status")] public string Status { get; set; } = "Submitted";
-    [Column("verification_status")] public string VerificationStatus { get; set; } = "None";
+    [Column("status")] public int Status { get; set; } = 2;
+    [Column("verification_status")] public int VerificationStatus { get; set; } = 4;
     [Column("reject_reason")] public string? RejectReason { get; set; }
 
     public User User { get; set; } = null!;

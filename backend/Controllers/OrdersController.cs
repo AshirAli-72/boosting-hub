@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Models;
@@ -37,7 +38,7 @@ public class OrdersController : ControllerBase
             Budget = dto.Budget,
             Currency = dto.Currency,
             Description = dto.Description,
-            Status = "Pending",
+            Status = StatusHelper.OrderPending,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -57,10 +58,10 @@ public class OrdersController : ControllerBase
         if (order == null)
             return NotFound(new { message = "Order not found." });
 
-        if (order.Status != "Pending")
+        if (order.Status != StatusHelper.OrderPending)
             return BadRequest(new { message = $"Order is already {order.Status}." });
 
-        order.Status = "Approved";
+        order.Status = StatusHelper.OrderApproved;
 
         // Reward = 50% for admin, 50% split equally across all task completions
         var quantity = int.TryParse(order.Quantity, out var qty) ? Math.Max(qty, 1) : 1;
@@ -85,7 +86,7 @@ public class OrdersController : ControllerBase
                     Reward = rewardPerCompletion,
                     Currency = order.Currency,
                     CreatedAt = DateTime.UtcNow,
-                    Status = "Active"
+                    Status = StatusHelper.TaskGenerateActive
                 };
                 _db.TaskGenerates.Add(taskGenerate);
                 tasksGenerated++;
@@ -107,10 +108,10 @@ public class OrdersController : ControllerBase
         if (order == null)
             return NotFound(new { message = "Order not found." });
 
-        if (order.Status != "Pending")
+        if (order.Status != StatusHelper.OrderPending)
             return BadRequest(new { message = $"Order is already {order.Status}." });
 
-        order.Status = "Rejected";
+        order.Status = StatusHelper.OrderRejected;
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("Order #{OrderId} rejected.", id);
@@ -124,7 +125,7 @@ public class OrdersController : ControllerBase
     {
         var query = _db.Orders.AsNoTracking().AsQueryable();
         if (!string.IsNullOrEmpty(status))
-            query = query.Where(o => o.Status == status);
+            query = query.Where(o => StatusHelper.OrderStatusToString(o.Status) == status);
 
         var orders = await query
             .OrderByDescending(o => o.CreatedAt)

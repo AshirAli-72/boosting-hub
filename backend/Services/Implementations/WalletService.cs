@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.Models;
 using BoostingHub.backend.Services.Interfaces;
@@ -21,7 +22,7 @@ public class WalletService : IWalletService
         return await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
     }
 
-    public async Task<Wallet> CreateOrUpdateWalletAsync(int userId, decimal totalBalance, string currency, decimal withdrawn, string status)
+    public async Task<Wallet> CreateOrUpdateWalletAsync(int userId, decimal totalBalance, string currency, decimal withdrawn, int status)
     {
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
 
@@ -61,7 +62,7 @@ public class WalletService : IWalletService
                 TotalBalance = amount,
                 Currency = "USD",
                 Withdrawn = 0,
-                Status = "Active",
+                Status = StatusHelper.WalletActive,
                 CreatedAt = DateTime.UtcNow
             };
             _db.Wallets.Add(wallet);
@@ -94,7 +95,7 @@ public class WalletService : IWalletService
                 : $"Reward earned for completing task #{taskId}",
             ReferenceType = "TaskReward",
             ReferenceId = taskId,
-            Status = "Completed",
+            Status = StatusHelper.TransactionCompleted,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -133,7 +134,7 @@ public class WalletService : IWalletService
                 TotalBalance = 0,
                 Currency = "USD",
                 Withdrawn = 0,
-                Status = "Active",
+                Status = StatusHelper.WalletActive,
                 CreatedAt = DateTime.UtcNow
             };
             _db.Wallets.Add(wallet);

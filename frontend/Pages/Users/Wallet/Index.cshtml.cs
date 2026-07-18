@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -45,13 +46,13 @@ public class IndexModel : PageModel
                 WalletData.Currency = wallet.Currency;
                 WalletData.Withdrawn = wallet.Withdrawn;
                 WalletData.CreatedAt = wallet.CreatedAt;
-                WalletData.Status = wallet.Status;
+                WalletData.Status = StatusHelper.WalletStatusToString(wallet.Status);
             }
 
             var accountsResult = await _accountService.GetAccountsByUserIdAsync(UserId);
             if (accountsResult.IsSuccess && accountsResult.Data != null)
-                DefaultAccount = accountsResult.Data.FirstOrDefault(a => a.IsDefault && a.Status == "Active")
-                    ?? accountsResult.Data.FirstOrDefault(a => a.Status == "Active");
+                DefaultAccount = accountsResult.Data.FirstOrDefault(a => a.IsDefault && a.Status == StatusHelper.AccountStatusToString(StatusHelper.AccountActive))
+                    ?? accountsResult.Data.FirstOrDefault(a => a.Status == StatusHelper.AccountStatusToString(StatusHelper.AccountActive));
         }
         return Page();
     }
@@ -91,8 +92,8 @@ public class IndexModel : PageModel
 
         var accountsResult = await _accountService.GetAccountsByUserIdAsync(userId);
         var defaultAccount = accountsResult.IsSuccess && accountsResult.Data != null
-            ? accountsResult.Data.FirstOrDefault(a => a.IsDefault && a.Status == "Active")
-                ?? accountsResult.Data.FirstOrDefault(a => a.Status == "Active")
+            ? accountsResult.Data.FirstOrDefault(a => a.IsDefault && a.Status == StatusHelper.AccountStatusToString(StatusHelper.AccountActive))
+                ?? accountsResult.Data.FirstOrDefault(a => a.Status == StatusHelper.AccountStatusToString(StatusHelper.AccountActive))
             : null;
 
         if (defaultAccount == null)

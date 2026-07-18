@@ -267,7 +267,7 @@ public class AuthenticationService : IAuthenticationService
             TotalBalance = 0,
             Currency = "USD",
             Withdrawn = 0,
-            Status = "Active",
+            Status = StatusHelper.WalletActive,
             CreatedAt = DateTime.UtcNow
         });
 

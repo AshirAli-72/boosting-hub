@@ -1,6 +1,7 @@
 @page "/admin/reports/tasks"
 @model BoostingHub.frontend.Pages.Admin.Reports.TasksReportModel
 @using System.Text.Json
+@using BoostingHub.backend.Common
 @{
     ViewData["Title"] = "Tasks Report";
     ViewData["BodyClass"] = "admin-page";
@@ -157,7 +158,7 @@
                                         <td class="fw-semibold">@GetCurrencySymbol(t.Currency)@t.Reward.ToString("N2")</td>
                                         <td>
                                             @{
-                                                var tClass = t.Status == "Active" ? "report-badge-success" : t.Status == "Completed" ? "report-badge-info" : "report-badge-secondary";
+                                                var tClass = t.Status == StatusHelper.TaskGenerateActive ? "report-badge-success" : t.Status == StatusHelper.TaskCompleteCompleted ? "report-badge-info" : "report-badge-secondary";
                                             }
                                             <span class="report-badge @tClass">@t.Status</span>
                                         </td>

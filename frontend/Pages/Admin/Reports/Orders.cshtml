@@ -1,6 +1,7 @@
 @page "/admin/reports/orders"
 @model BoostingHub.frontend.Pages.Admin.Reports.OrdersReportModel
 @using System.Text.Json
+@using BoostingHub.backend.Common
 @{
     ViewData["Title"] = "Orders Report";
     ViewData["BodyClass"] = "admin-page";
@@ -158,11 +159,11 @@
                                         <td class="fw-semibold">$@o.Budget.ToString("N2")</td>
                                         <td>
                                             @{
-                                                var oBadgeClass = o.Status == "Approved" ? "report-badge-success"
-                                                    : o.Status == "Pending"      ? "report-badge-warning"
-                                                    : o.Status == "in_progress"  ? "report-badge-info"
+                                                var oBadgeClass = o.Status == StatusHelper.OrderApproved ? "report-badge-success"
+                                                    : o.Status == StatusHelper.OrderPending      ? "report-badge-warning"
+                                                    : o.Status == 2  ? "report-badge-info"
                                                     : "report-badge-danger";
-                                                var oLabel = o.Status == "in_progress" ? "In Progress" : o.Status;
+                                                var oLabel = o.Status == 2 ? "In Progress" : StatusHelper.OrderStatusToString(o.Status);
                                             }
                                             <span class="report-badge @oBadgeClass">@oLabel</span>
                                         </td>

@@ -1,3 +1,4 @@
+using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -30,16 +31,16 @@ public class TasksReportModel : PageModel
         var since = DateTime.UtcNow.Date.AddDays(-6);
 
         TotalTasks     = await _db.TaskGenerates.CountAsync();
-        ActiveTasks    = await _db.TaskGenerates.CountAsync(t => t.Status == "Active");
-        CompletedTasks = await _db.TaskCompletes.CountAsync(tc => tc.Status == "Completed");
-        PendingProofs  = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Pending");
-        ApprovedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Approved");
-        RejectedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == "Rejected");
+        ActiveTasks    = await _db.TaskGenerates.CountAsync(t => t.Status == StatusHelper.TaskGenerateActive);
+        CompletedTasks = await _db.TaskCompletes.CountAsync(tc => tc.Status == StatusHelper.TaskCompleteCompleted);
+        PendingProofs  = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationPendingReview);
+        ApprovedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationApproved);
+        RejectedProofs = await _db.TaskProofs.CountAsync(p => p.VerificationStatus == StatusHelper.VerificationRejected);
         TasksTableData = await _db.TaskGenerates.AsNoTracking()
             .OrderByDescending(t => t.CreatedAt).Take(100).ToListAsync();
 
         var dailyTasks = await _db.TaskCompletes
-            .Where(tc => tc.Status == "Completed" && tc.Date >= since)
+            .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted && tc.Date >= since)
             .GroupBy(tc => tc.Date.Date)
             .Select(g => new { Date = g.Key, Count = g.Count() })
             .ToListAsync();
