@@ -1,7 +1,9 @@
+using System.Text.Json;
 using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Models;
+using BoostingHub.backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +15,13 @@ public class OrdersController : ControllerBase
 {
     private readonly ApplicationDbContext _db;
     private readonly ILogger<OrdersController> _logger;
+    private readonly IActivityLogService _activityLog;
 
-    public OrdersController(ApplicationDbContext db, ILogger<OrdersController> logger)
+    public OrdersController(ApplicationDbContext db, ILogger<OrdersController> logger, IActivityLogService activityLog)
     {
         _db = db;
         _logger = logger;
+        _activityLog = activityLog;
     }
 
     // POST /api/orders � submit requirements from landing page
@@ -47,6 +51,13 @@ public class OrdersController : ControllerBase
 
         _logger.LogInformation("New order #{OrderId} submitted from {Email}", order.Id, order.Email);
 
+        await _activityLog.LogAsync(
+            userId: null, userName: dto.FullName, userEmail: dto.Email,
+            userRole: "Public", evt: "OrderSubmitted", description: $"New order #{order.Id} submitted by {dto.FullName} ({dto.Email})",
+            subjectType: "Order", subjectId: order.Id, subjectName: $"{dto.Platform} - {dto.Service}",
+            newValues: JsonSerializer.Serialize(new { Platform = dto.Platform, Service = dto.Service, Budget = dto.Budget, Currency = dto.Currency }),
+            httpContext: HttpContext);
+
         return Ok(new { message = "Your requirements have been submitted successfully!", orderId = order.Id });
     }
 
@@ -63,13 +74,12 @@ public class OrdersController : ControllerBase
 
         order.Status = StatusHelper.OrderApproved;
 
-        // Reward = 50% for admin, 50% split equally across all task completions
-        var quantity = int.TryParse(order.Quantity, out var qty) ? Math.Max(qty, 1) : 1;
-        var userRewardPool = order.Budget * 0.5m;
-        var rewardPerCompletion = Math.Round(userRewardPool / quantity, 2);
-
         var platforms = order.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var services = order.Service.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var numberOfTasks = platforms.Length * services.Length;
+
+        var userRewardPool = order.Budget * 0.5m;
+        var rewardPerCompletion = numberOfTasks > 0 ? Math.Round(userRewardPool / numberOfTasks, 2) : 0m;
 
         var tasksGenerated = 0;
         foreach (var platform in platforms)
@@ -81,7 +91,7 @@ public class OrdersController : ControllerBase
                     OrderId = order.Id,
                     Platform = platform,
                     Service = service,
-                    Quantity = quantity,
+                    Quantity = 1,
                     Url = order.SocialMediaUrl ?? string.Empty,
                     Reward = rewardPerCompletion,
                     Currency = order.Currency,
@@ -96,6 +106,14 @@ public class OrdersController : ControllerBase
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("Order #{OrderId} approved. Generated {Count} tasks.", id, tasksGenerated);
+
+        await _activityLog.LogAsync(
+            userId: null, userName: null, userEmail: null,
+            userRole: "Admin", evt: "OrderApproved", description: $"Order #{id} approved, {tasksGenerated} tasks generated",
+            subjectType: "Order", subjectId: id, subjectName: $"{order.Platform} - {order.Service}",
+            oldValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderPending) }),
+            newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderApproved), TasksGenerated = tasksGenerated }),
+            httpContext: HttpContext);
 
         return Ok(new { message = $"Order approved. {tasksGenerated} task(s) generated and published.", tasksGenerated });
     }
@@ -115,6 +133,14 @@ public class OrdersController : ControllerBase
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("Order #{OrderId} rejected.", id);
+
+        await _activityLog.LogAsync(
+            userId: null, userName: null, userEmail: null,
+            userRole: "Admin", evt: "OrderRejected", description: $"Order #{id} rejected",
+            subjectType: "Order", subjectId: id, subjectName: $"{order.Platform} - {order.Service}",
+            oldValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderPending) }),
+            newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderRejected) }),
+            httpContext: HttpContext);
 
         return Ok(new { message = "Order has been rejected." });
     }

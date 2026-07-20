@@ -43,8 +43,15 @@ public class DashboardService : IDashboardService
             .Join(_db.TaskGenerates,
                 tc => tc.TaskId,
                 t => t.Id,
-                (tc, t) => t.Reward)
-            .SumAsync();
+                (tc, t) => new { t.Reward, t.Currency })
+            .ToListAsync();
+
+        var walletCurrency = "USD";
+        var convertedTotalRewards = 0m;
+        foreach (var r in totalRewards)
+        {
+            convertedTotalRewards += WalletService.ConvertCurrencyStatic(r.Reward, r.Currency, walletCurrency);
+        }
 
         var sevenDaysAgo = DateTime.UtcNow.Date.AddDays(-6);
 
@@ -82,6 +89,16 @@ public class DashboardService : IDashboardService
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
 
+        if (wallet != null)
+        {
+            walletCurrency = wallet.Currency;
+            convertedTotalRewards = 0m;
+            foreach (var r in totalRewards)
+            {
+                convertedTotalRewards += WalletService.ConvertCurrencyStatic(r.Reward, r.Currency, wallet.Currency);
+            }
+        }
+
         return new UserDashboardDto
         {
             UserName = !string.IsNullOrEmpty(user?.Name) ? user!.Name : user?.Email ?? "User",
@@ -90,8 +107,9 @@ public class DashboardService : IDashboardService
             TotalTasks = totalAvailable,
             CompletedTasks = completedCount,
             PendingTasks = pendingCount,
-            TotalRewards = totalRewards,
+            TotalRewards = convertedTotalRewards,
             WalletBalance = wallet?.TotalBalance ?? 0,
+            WalletCurrency = walletCurrency,
             WalletStatus = wallet != null ? StatusHelper.WalletStatusToString(wallet.Status) : "Inactive",
             LineChart = lineChart,
             PieChart = pieChart
@@ -208,4 +226,123 @@ public class DashboardService : IDashboardService
             PieChart = pieChart
         };
     }
+
+    public async Task<PagedResult<ActivityLogDto>> GetActivityLogsAsync(ActivityLogFilterDto filter)
+    {
+        var query = _db.ActivityLogs
+            .Where(a => a.UserRole != "Public" && a.UserRole != "System")
+            .AsQueryable();
+
+        // Search by username or email
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var search = filter.Search.Trim().ToLower();
+            query = query.Where(a =>
+                (a.UserName != null && a.UserName.ToLower().Contains(search)) ||
+                (a.UserEmail != null && a.UserEmail.ToLower().Contains(search)) ||
+                (a.Description != null && a.Description.ToLower().Contains(search)));
+        }
+
+        // Filter by event type
+        if (!string.IsNullOrWhiteSpace(filter.Event))
+        {
+            var ev = filter.Event.Trim();
+            query = query.Where(a => a.Event == ev);
+        }
+
+        // Filter by role
+        if (!string.IsNullOrWhiteSpace(filter.Role))
+        {
+            var role = filter.Role.Trim();
+            query = query.Where(a => a.UserRole == role);
+        }
+
+        // Date range filters
+        if (filter.DateFrom.HasValue)
+            query = query.Where(a => a.CreatedAt >= filter.DateFrom.Value);
+        if (filter.DateTo.HasValue)
+            query = query.Where(a => a.CreatedAt <= filter.DateTo.Value.AddDays(1));
+
+        var totalCount = await query.CountAsync();
+
+        var page = Math.Max(1, filter.Page);
+        var pageSize = Math.Clamp(filter.PageSize, 1, 100);
+
+        var items = await query
+            .OrderByDescending(a => a.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => new ActivityLogDto
+            {
+                Id          = a.Id,
+                Event       = a.Event,
+                UserName    = a.UserName,
+                UserEmail   = a.UserEmail,
+                UserRole    = a.UserRole,
+                Description = a.Description,
+                SubjectType = a.SubjectType,
+                SubjectId   = a.SubjectId,
+                SubjectName = a.SubjectName,
+                IpAddress   = a.IpAddress,
+                CreatedAt   = a.CreatedAt
+            })
+            .ToListAsync();
+
+        return new PagedResult<ActivityLogDto>
+        {
+            Items      = items,
+            TotalCount = totalCount,
+            Page       = page,
+            PageSize   = pageSize
+        };
+    }
+
+    public async Task<ActivityLogStatsDto> GetActivityLogStatsAsync()
+    {
+        var now = DateTime.UtcNow;
+        var todayStart = now.Date;
+        var weekStart = todayStart.AddDays(-(int)todayStart.DayOfWeek);
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var logs = await _db.ActivityLogs
+            .Where(a => a.CreatedAt >= monthStart && a.UserRole != "Public" && a.UserRole != "System")
+            .Select(a => new { a.Event, a.UserRole, a.UserName, a.CreatedAt })
+            .ToListAsync();
+
+        var byEvent = logs
+            .GroupBy(a => a.Event)
+            .Select(g => new ActivityByEventDto { Event = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        var byDay = logs
+            .GroupBy(a => a.CreatedAt.Date)
+            .Select(g => new ActivityByDayDto { Day = g.Key.ToString("MMM dd"), Count = g.Count() })
+            .OrderBy(x => x.Day)
+            .ToList();
+
+        var byRole = logs
+            .GroupBy(a => a.UserRole ?? "Unknown")
+            .Select(g => new ActivityByRoleDto { Role = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        var mostActive = logs
+            .Where(a => !string.IsNullOrEmpty(a.UserName))
+            .GroupBy(a => a.UserName)
+            .OrderByDescending(g => g.Count())
+            .FirstOrDefault()?.Key ?? "N/A";
+
+        return new ActivityLogStatsDto
+        {
+            ByEvent = byEvent,
+            ByDay = byDay,
+            ByRole = byRole,
+            TotalToday = logs.Count(a => a.CreatedAt >= todayStart),
+            TotalThisWeek = logs.Count(a => a.CreatedAt >= weekStart),
+            TotalThisMonth = logs.Count,
+            MostActiveUser = mostActive
+        };
+    }
 }
+

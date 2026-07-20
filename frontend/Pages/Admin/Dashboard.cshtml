@@ -6,132 +6,138 @@
     ViewData["BodyClass"] = "admin-page";
 }
 
-        <div class="admin-header">
-            <h3><i class="bi bi-shield-lock-fill text-primary"></i> Admin Panel</h3>
-            <div class="admin-header-right">
-                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
-                    <i class="bi bi-moon-stars fs-5"></i>
-                </button>
-                <div class="user-profile-dropdown" id="profileDropdown">
-                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
-                        <i class="bi bi-person-circle"></i> Admin
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
-                    </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
-                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+    <div class="admin-header">
+        <h3><i class="bi bi-shield-lock-fill text-primary"></i> Admin Panel</h3>
+        <div class="admin-header-right">
+            <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                <i class="bi bi-moon-stars fs-5"></i>
+            </button>
+            <div class="user-profile-dropdown" id="profileDropdown">
+                <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                    <i class="bi bi-person-circle"></i> Admin
+                    <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                </span>
+                <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-content">
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger mb-4" style="word-break:break-all;">@Model.ErrorMessage</div>
+        }
+
+        <!-- ── Stat Cards Row 1 ── -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <div class="stat-card" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 100%);border:none;">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-people"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Users</span>
+                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalUsers</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background:linear-gradient(135deg,#EF4444 0%,#B91C1C 100%);border:none;">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-shield-exclamation"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Locked Accounts</span>
+                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.LockedAccounts</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-envelope-exclamation"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Unverified Emails</span>
+                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.UnverifiedEmails</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-laptop"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Registered Today</span>
+                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.RegisteredToday</span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="admin-content">
-            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-            {
-                <div class="alert alert-danger" style="word-break: break-all;">@Model.ErrorMessage</div>
-            }
-            <div class="row g-4 mb-4">
-                <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-people"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Users</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalUsers</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#EF4444 0%,#B91C1C 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-shield-exclamation"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Locked Accounts</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.LockedAccounts</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-envelope-exclamation"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Unverified Emails</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.UnverifiedEmails</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-laptop"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Registered Today</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.RegisteredToday</span>
-                        </div>
+
+        <!-- ── Stat Cards Row 2 ── -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card" style="background:linear-gradient(135deg,#14B8A6 0%,#0F766E 100%);border:none;">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-cart-check"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Orders</span>
+                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalOrders</span>
                     </div>
                 </div>
             </div>
-            <div class="row g-4 mb-4">
-                <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#0D9488 0%,#0F766E 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-cart-check"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Orders</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalOrders</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-currency-dollar"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Revenue</span>
-                            <span class="stat-value" style="color:#fff;">$@Model.Dashboard.TotalRevenue.ToString("N2")</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass-split"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">In Progress Tasks</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.InProgressTasks</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check2-all"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Completed Tasks</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.CompletedTasks</span>
-                        </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-currency-dollar"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Revenue</span>
+                        <span class="stat-value" style="color:#fff;">$@Model.Dashboard.TotalRevenue.ToString("N2")</span>
                     </div>
                 </div>
             </div>
-            <div class="row g-4">
-                <div class="col-md-7">
-                    <div class="card shadow-sm border-0 chart-card chart-line">
-                        <div class="card-body">
-                            <h5 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Weekly Orders</h5>
-                            <canvas id="adminLineChart" style="width:100%!important;height:280px!important;"></canvas>
-                        </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">In Progress Tasks</span>
+                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.InProgressTasks</span>
                     </div>
                 </div>
-                <div class="col-md-5">
-                    <div class="card shadow-sm border-0 chart-card chart-pie">
-                        <div class="card-body">
-                            <h5 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Order Status</h5>
-                            <canvas id="adminPieChart" style="width:100%!important;max-width:360px!important;height:300px!important;margin:0 auto;"></canvas>
-                        </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check2-all"></i></div>
+                    <div class="stat-info">
+                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Completed Tasks</span>
+                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.CompletedTasks</span>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- ── Charts ── -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-7">
+                <div class="card shadow-sm border-0 chart-card chart-line">
+                    <div class="card-body">
+                        <h5 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Weekly Orders</h5>
+                        <canvas id="adminLineChart" style="width:100%!important;height:280px!important;"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card shadow-sm border-0 chart-card chart-pie">
+                    <div class="card-body">
+                        <h5 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Order Status</h5>
+                        <canvas id="adminPieChart" style="width:100%!important;max-width:360px!important;height:300px!important;margin:0 auto;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /admin-content -->
 
 @section Scripts {
     @if (TempData["Success"] != null)
     {
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                if (typeof showToast === 'function') {
-                    showToast('@TempData["Success"]', 'success');
-                }
+                if (typeof showToast === 'function') showToast('@TempData["Success"]', 'success');
             });
         </script>
     }
@@ -152,38 +158,45 @@
                 datasets: [{
                     label: 'Orders',
                     data: lineData,
-                    borderColor: '#7C3AED',
-                    backgroundColor: 'rgba(124,58,237,0.12)',
-                    fill: true, tension: 0.4
+                    borderColor: '#6366F1',
+                    backgroundColor: 'rgba(99,102,241,0.12)',
+                    fill: true, tension: 0.4,
+                    pointBackgroundColor: '#6366F1',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
                 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { ticks: { color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } },
-                    y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }
+                    x: { ticks: { color: isLight() ? '#71717A' : 'rgba(250,250,250,0.45)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#71717A' : 'rgba(250,250,250,0.45)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }
                 }
             }
         });
 
         var adminPieChart = new Chart(document.getElementById('adminPieChart'), {
             type: 'doughnut',
-            data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors }] },
+            data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 0 }] },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#334155' : 'rgba(241,245,249,0.65)' } } }
+                plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#3F3F46' : 'rgba(250,250,250,0.70)', padding: 16 } } },
+                cutout: '65%'
             }
         });
 
         function updateChartTheme() {
             var light = isLight();
-            adminLineChart.options.scales.x.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
-            adminLineChart.options.scales.x.grid.color = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
-            adminLineChart.options.scales.y.ticks.color = light ? '#64748B' : 'rgba(241,245,249,0.4)';
-            adminLineChart.options.scales.y.grid.color = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            var tickColor = light ? '#71717A' : 'rgba(250,250,250,0.45)';
+            var gridColor = light ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+            adminLineChart.options.scales.x.ticks.color = tickColor;
+            adminLineChart.options.scales.x.grid.color  = gridColor;
+            adminLineChart.options.scales.y.ticks.color = tickColor;
+            adminLineChart.options.scales.y.grid.color  = gridColor;
             adminLineChart.update();
-            adminPieChart.options.plugins.legend.labels.color = light ? '#334155' : 'rgba(241,245,249,0.65)';
+            adminPieChart.options.plugins.legend.labels.color = light ? '#3F3F46' : 'rgba(250,250,250,0.70)';
             adminPieChart.update();
         }
 

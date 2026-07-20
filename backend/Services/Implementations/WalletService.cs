@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.Models;
@@ -10,11 +11,13 @@ public class WalletService : IWalletService
 {
     private readonly ApplicationDbContext _db;
     private readonly ILogger<WalletService> _logger;
+    private readonly IActivityLogService _activityLog;
 
-    public WalletService(ApplicationDbContext db, ILogger<WalletService> logger)
+    public WalletService(ApplicationDbContext db, ILogger<WalletService> logger, IActivityLogService activityLog)
     {
         _db = db;
         _logger = logger;
+        _activityLog = activityLog;
     }
 
     public async Task<Wallet?> GetWalletByUserIdAsync(int userId)
@@ -103,6 +106,15 @@ public class WalletService : IWalletService
 
         _logger.LogInformation("Credited {Amount} {Currency} to wallet {WalletId} for task {TaskId} (proof {ProofId})",
             convertedAmount, wallet.Currency, wallet.Id, taskId, proofId);
+
+        var creditUser = await _db.Users.FindAsync(userId);
+        await _activityLog.LogAsync(
+            userId: userId, userName: creditUser?.Name, userEmail: creditUser?.Email,
+            userRole: "System", evt: "WalletCredited",
+            description: $"{wallet.Currency} {convertedAmount:F2} credited for task #{taskId}",
+            subjectType: "Wallet", subjectId: wallet.Id, subjectName: creditUser?.Email,
+            newValues: JsonSerializer.Serialize(new { Amount = convertedAmount, Currency = wallet.Currency, BalanceAfter = wallet.TotalBalance, TaskId = taskId }),
+            ct: CancellationToken.None);
     }
 
     public static decimal ConvertCurrencyStatic(decimal amount, string fromCurrency, string toCurrency) =>
@@ -113,14 +125,21 @@ public class WalletService : IWalletService
         if (string.Equals(fromCurrency, toCurrency, StringComparison.OrdinalIgnoreCase))
             return amount;
 
-        const decimal PkrPerUsd = 285m;
-
-        return (fromCurrency.ToUpper(), toCurrency.ToUpper()) switch
+        var rates = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
         {
-            ("USD", "PKR") => Math.Round(amount * PkrPerUsd, 2),
-            ("PKR", "USD") => Math.Round(amount / PkrPerUsd, 2),
-            _ => amount
+            ["USD"] = 1m,
+            ["EUR"] = 0.92m,
+            ["GBP"] = 0.79m,
+            ["PKR"] = 285m,
+            ["INR"] = 83.12m,
+            ["BDT"] = 109.85m,
         };
+
+        if (!rates.TryGetValue(fromCurrency, out var fromRate) || !rates.TryGetValue(toCurrency, out var toRate))
+            return amount;
+
+        var inUsd = amount / fromRate;
+        return Math.Round(inUsd * toRate, 2);
     }
 
     private async Task<Wallet> GetOrCreateWalletAsync(int userId)
@@ -150,6 +169,15 @@ public class WalletService : IWalletService
         wallet.TotalBalance -= amount;
         wallet.Withdrawn += amount;
         await _db.SaveChangesAsync();
+
+        var withdrawUser = await _db.Users.FindAsync(userId);
+        await _activityLog.LogAsync(
+            userId: userId, userName: withdrawUser?.Name, userEmail: withdrawUser?.Email,
+            userRole: "User", evt: "WalletWithdrawn",
+            description: $"{wallet.Currency} {amount:F2} withdrawn from wallet",
+            subjectType: "Wallet", subjectId: wallet.Id, subjectName: withdrawUser?.Email,
+            newValues: JsonSerializer.Serialize(new { Amount = amount, Currency = wallet.Currency, BalanceAfter = wallet.TotalBalance }),
+            ct: CancellationToken.None);
     }
 
     public async Task<bool> UpdateCurrencyAsync(int userId, string currency)
@@ -157,6 +185,12 @@ public class WalletService : IWalletService
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
         if (wallet == null) return false;
 
+        var oldCurrency = wallet.Currency;
+        if (!string.Equals(oldCurrency, currency, StringComparison.OrdinalIgnoreCase))
+        {
+            wallet.TotalBalance = ConvertCurrency(wallet.TotalBalance, oldCurrency, currency);
+            wallet.Withdrawn = ConvertCurrency(wallet.Withdrawn, oldCurrency, currency);
+        }
         wallet.Currency = currency;
         await _db.SaveChangesAsync();
         return true;

@@ -1,5 +1,3 @@
-using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
@@ -13,9 +11,7 @@ public partial class ProofVerificationService : IProofVerificationService
 {
     private readonly ApplicationDbContext _db;
     private readonly ILogger<ProofVerificationService> _logger;
-    private readonly HttpClient _httpClient;
     private const int MaxUrlLength = 2048;
-    private static readonly TimeSpan HttpTimeout = TimeSpan.FromSeconds(10);
 
     private static readonly Dictionary<string, Regex> PlatformPatterns = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -48,11 +44,10 @@ public partial class ProofVerificationService : IProofVerificationService
         "ow.ly", "is.gd", "buff.ly", "rebrand.ly", "cutt.ly",
     };
 
-    public ProofVerificationService(ApplicationDbContext db, ILogger<ProofVerificationService> logger, IHttpClientFactory httpClientFactory)
+    public ProofVerificationService(ApplicationDbContext db, ILogger<ProofVerificationService> logger)
     {
         _db = db;
         _logger = logger;
-        _httpClient = httpClientFactory.CreateClient("ProofVerification");
     }
 
     public async Task<ProofVerificationResult> ValidateProofAsync(int taskId, string proofUrl, int userId)
@@ -116,44 +111,18 @@ public partial class ProofVerificationService : IProofVerificationService
         return Task.FromResult(new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) });
     }
 
-    public async Task<ProofVerificationResult> ValidatePlatformAsync(string proofUrl, string expectedPlatform)
+    public Task<ProofVerificationResult> ValidatePlatformAsync(string proofUrl, string expectedPlatform)
     {
         if (!PlatformPatterns.TryGetValue(expectedPlatform, out var pattern))
         {
             _logger.LogWarning("Unknown platform {Platform}; skipping platform validation", expectedPlatform);
-            return new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) };
+            return Task.FromResult(new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) });
         }
 
         if (!pattern.IsMatch(proofUrl))
-            return Fail($"Proof URL does not match the expected platform ({expectedPlatform})");
+            return Task.FromResult(Fail($"Proof URL does not match the expected platform ({expectedPlatform})"));
 
-        if (!Uri.TryCreate(proofUrl, UriKind.Absolute, out var uri))
-            return Fail("Invalid URI");
-
-        try
-        {
-            using var cts = new CancellationTokenSource(HttpTimeout);
-            var request = new HttpRequestMessage(HttpMethod.Head, uri);
-            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
-
-            if (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                return new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) };
-            }
-
-            _logger.LogWarning("Proof URL {Url} returned HTTP {Status}", proofUrl, (int)response.StatusCode);
-            return Fail($"Proof URL returned HTTP {(int)response.StatusCode} — it may not be accessible");
-        }
-        catch (TaskCanceledException)
-        {
-            _logger.LogWarning("Proof URL {Url} timed out", proofUrl);
-            return Fail("Proof URL is not reachable (request timed out)");
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogWarning(ex, "Proof URL {Url} request failed", proofUrl);
-            return Fail("Proof URL is not reachable");
-        }
+        return Task.FromResult(new ProofVerificationResult { Success = true, VerificationStatus = StatusHelper.VerificationStatusToString(StatusHelper.VerificationNone) });
     }
 
     public async Task<ProofVerificationResult> CheckDuplicateAsync(string proofUrl, int taskId, int userId)

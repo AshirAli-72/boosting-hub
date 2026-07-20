@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
@@ -11,10 +12,12 @@ namespace BoostingHub.backend.Services.Implementations;
 public class UserManagementService : IUserManagementService
 {
     private readonly ApplicationDbContext _db;
+    private readonly IActivityLogService _activityLog;
 
-    public UserManagementService(ApplicationDbContext db)
+    public UserManagementService(ApplicationDbContext db, IActivityLogService activityLog)
     {
         _db = db;
+        _activityLog = activityLog;
     }
 
     public async Task<Result<List<UserWithRolesDto>>> GetUsersAsync()
@@ -76,6 +79,14 @@ public class UserManagementService : IUserManagementService
         var allRoles = await _db.Roles.ToListAsync();
         var roles = allRoles.Where(r => roleIdsSet.Contains(r.Id)).ToList();
 
+        var roleNames = string.Join(",", roles.Select(r => r.RoleTitle));
+        await _activityLog.LogAsync(
+            userId: null, userName: null, userEmail: null,
+            userRole: "Admin", evt: "UserCreated", description: $"Admin created user {dto.Email} with roles: {roleNames}",
+            subjectType: "User", subjectId: user.Id, subjectName: dto.Name,
+            newValues: JsonSerializer.Serialize(new { Name = dto.Name, Email = dto.Email, Phone = dto.Phone, Roles = roleNames }),
+            ct: CancellationToken.None);
+
         return Result.Success(new UserWithRolesDto
         {
             Id = user.Id,
@@ -93,6 +104,7 @@ public class UserManagementService : IUserManagementService
         if (user == null)
             return Result.Failure("User not found", "NOT_FOUND");
 
+        var oldRoles = string.Join(",", user.UserHasRoles.Select(ur => ur.Role?.RoleTitle ?? ""));
         _db.UserHasRoles.RemoveRange(user.UserHasRoles);
 
         foreach (var roleId in roleIds)
@@ -101,6 +113,18 @@ public class UserManagementService : IUserManagementService
         }
 
         await _db.SaveChangesAsync();
+
+        var allRoles = await _db.Roles.ToListAsync();
+        var newRoleNames = string.Join(",", allRoles.Where(r => roleIds.Contains(r.Id)).Select(r => r.RoleTitle));
+
+        await _activityLog.LogAsync(
+            userId: null, userName: null, userEmail: null,
+            userRole: "Admin", evt: "UserRolesUpdated", description: $"Roles updated for user {user.Email}: [{oldRoles}] → [{newRoleNames}]",
+            subjectType: "User", subjectId: userId, subjectName: user.Name,
+            oldValues: JsonSerializer.Serialize(new { Roles = oldRoles }),
+            newValues: JsonSerializer.Serialize(new { Roles = newRoleNames }),
+            ct: CancellationToken.None);
+
         return Result.Success("User roles updated");
     }
 }

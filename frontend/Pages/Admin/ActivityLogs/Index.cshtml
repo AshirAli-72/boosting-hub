@@ -1,0 +1,363 @@
+@page "/admin/activity-logs"
+@model BoostingHub.frontend.Pages.Admin.ActivityLogs.IndexModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Activity Log";
+    ViewData["BodyClass"] = "admin-page";
+
+    string AvatarColor(string? name) {
+        if (string.IsNullOrEmpty(name)) return "linear-gradient(135deg,#6366F1,#F43F5E)";
+        var colors = new[] {
+            "linear-gradient(135deg,#6366F1,#F43F5E)",
+            "linear-gradient(135deg,#3B82F6,#1D4ED8)",
+            "linear-gradient(135deg,#10B981,#059669)",
+            "linear-gradient(135deg,#F59E0B,#D97706)",
+            "linear-gradient(135deg,#EC4899,#BE185D)",
+            "linear-gradient(135deg,#8B5CF6,#7C3AED)",
+            "linear-gradient(135deg,#14B8A6,#0F766E)",
+        };
+        return colors[Math.Abs(name.GetHashCode()) % colors.Length];
+    }
+
+    string Initials(string? name, string? email) {
+        var src = !string.IsNullOrEmpty(name) ? name : (email ?? "?");
+        var parts = src.Split(' ', '@').Where(p => !string.IsNullOrEmpty(p)).Take(2).ToArray();
+        return parts.Length > 1
+            ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
+            : src[..Math.Min(2, src.Length)].ToUpper();
+    }
+
+    string EventBadgeClass(string? ev) => (ev?.ToLower() ?? "") switch {
+        var e when e.Contains("login")    => "badge-login",
+        var e when e.Contains("logout")   => "badge-logout",
+        var e when e.Contains("register") => "badge-register",
+        var e when e.Contains("order")    => "badge-order",
+        var e when e.Contains("task")     => "badge-task",
+        var e when e.Contains("payment") || e.Contains("wallet") => "badge-payment",
+        var e when e.Contains("admin")   => "badge-admin",
+        _                                => "badge-default"
+    };
+
+    string TimeAgo(DateTime dt) {
+        var diff = DateTime.UtcNow - dt;
+        if (diff.TotalSeconds < 60)  return "just now";
+        if (diff.TotalMinutes < 60)  return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours < 24)    return $"{(int)diff.TotalHours}h ago";
+        if (diff.TotalDays < 7)      return $"{(int)diff.TotalDays}d ago";
+        return dt.ToString("MMM d, yyyy");
+    }
+
+    string BuildUrl(int pg) {
+        var qs = new System.Collections.Specialized.NameValueCollection();
+        if (!string.IsNullOrEmpty(Model.Filter.Search))   qs["search"]   = Model.Filter.Search;
+        if (!string.IsNullOrEmpty(Model.Filter.Event))    qs["event"]    = Model.Filter.Event;
+        if (!string.IsNullOrEmpty(Model.Filter.Role))     qs["role"]     = Model.Filter.Role;
+        if (Model.Filter.DateFrom.HasValue)               qs["dateFrom"] = Model.Filter.DateFrom.Value.ToString("yyyy-MM-dd");
+        if (Model.Filter.DateTo.HasValue)                 qs["dateTo"]   = Model.Filter.DateTo.Value.ToString("yyyy-MM-dd");
+        qs["page"] = pg.ToString();
+        var parts = qs.AllKeys.Where(k => k != null).Select(k => $"{k}={Uri.EscapeDataString(qs[k]!)}");
+        return "/admin/activity-logs?" + string.Join("&", parts);
+    }
+}
+
+<div class="admin-header">
+    <h3><i class="bi bi-clock-history text-primary"></i> Activity Log</h3>
+    <div class="admin-header-right">
+        <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+            <i class="bi bi-moon-stars fs-5"></i>
+        </button>
+        <div class="user-profile-dropdown" id="profileDropdown">
+            <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                <i class="bi bi-person-circle"></i> Admin
+                <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+            </span>
+            <div class="profile-menu" id="profileMenu" style="display:none;">
+                <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-content">
+
+    <!-- ── Stats Row ── -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 100%);border:none;">
+                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calendar-check"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label" style="color:rgba(255,255,255,0.75);">Today</span>
+                    <span class="stat-value" style="color:#fff;">@Model.Stats.TotalToday</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
+                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calendar-week"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label" style="color:rgba(255,255,255,0.75);">This Week</span>
+                    <span class="stat-value" style="color:#fff;">@Model.Stats.TotalThisWeek</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calendar-month"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label" style="color:rgba(255,255,255,0.75);">This Month</span>
+                    <span class="stat-value" style="color:#fff;">@Model.Stats.TotalThisMonth</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-person-fill"></i></div>
+                <div class="stat-info">
+                    <span class="stat-label" style="color:rgba(255,255,255,0.75);">Most Active</span>
+                    <span class="stat-value" style="color:#fff;font-size:1rem;">@Model.Stats.MostActiveUser</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Charts ── -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0 chart-card chart-line">
+                <div class="card-body">
+                    <h5 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Activity Over Time</h5>
+                    <canvas id="activityLineChart" style="width:100%!important;height:280px!important;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 chart-card chart-pie">
+                <div class="card-body">
+                    <h5 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> By Event Type</h5>
+                    <canvas id="activityPieChart" style="width:100%!important;max-width:360px!important;height:300px!important;margin:0 auto;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Activity Feed ── -->
+    <div class="activity-log-card mt-2">
+        <div class="activity-log-header">
+            <h5 class="activity-log-title">
+                <i class="bi bi-activity"></i>
+                User Activity
+                <span class="activity-log-badge">@Model.ActivityLogs.TotalCount total</span>
+            </h5>
+            <div style="font-size:0.8rem;color:var(--text-muted);">
+                Showing @((Model.ActivityLogs.Page - 1) * Model.ActivityLogs.PageSize + 1)–@(Math.Min(Model.ActivityLogs.Page * Model.ActivityLogs.PageSize, Model.ActivityLogs.TotalCount)) of @Model.ActivityLogs.TotalCount
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="get" action="/admin/activity-logs" class="activity-filter-bar">
+            <input type="text" name="search" placeholder="Search user, email, description…"
+                   value="@Model.Filter.Search" autocomplete="off" />
+
+            <div class="activity-filter-sep"></div>
+
+            <select name="event">
+                <option value="">All Events</option>
+                @foreach (var ev in new[] { "LoggedIn", "LoggedOut", "Registered", "TaskAccepted", "ProofSubmitted", "ProofApproved", "ProofRejected", "WalletCredited", "WalletWithdrawn", "PasswordChanged", "ProfileUpdated" })
+                {
+                    <option value="@ev" selected="@(Model.Filter.Event == ev ? "selected" : null)">@ev</option>
+                }
+            </select>
+
+            <select name="role">
+                <option value="">All Roles</option>
+                <option value="Admin" selected="@(Model.Filter.Role == "Admin" ? "selected" : null)">Admin</option>
+                <option value="User"  selected="@(Model.Filter.Role == "User"  ? "selected" : null)">User</option>
+            </select>
+
+            <input type="date" name="dateFrom" value="@(Model.Filter.DateFrom?.ToString("yyyy-MM-dd"))" title="From date" />
+            <input type="date" name="dateTo"   value="@(Model.Filter.DateTo?.ToString("yyyy-MM-dd"))"   title="To date" />
+
+            <button type="submit" class="btn-filter-apply">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+            <a href="/admin/activity-logs" class="btn-filter-reset">
+                <i class="bi bi-x-circle"></i> Reset
+            </a>
+
+            <input type="hidden" name="page" value="1" />
+        </form>
+
+        <!-- Timeline Feed -->
+        <div class="activity-feed">
+            @if (!Model.ActivityLogs.Items.Any())
+            {
+                <div class="activity-empty">
+                    <div class="activity-empty-icon"><i class="bi bi-clock-history"></i></div>
+                    <h5>No activity found</h5>
+                    <p>Try adjusting your filters or check back later.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var log in Model.ActivityLogs.Items)
+                {
+                    var initials   = Initials(log.UserName, log.UserEmail);
+                    var avatarBg   = AvatarColor(log.UserName ?? log.UserEmail);
+                    var badgeCls   = EventBadgeClass(log.Event);
+                    var roleCls    = log.UserRole?.ToLower() == "admin" ? "chip-admin" : "chip-user";
+                    var displayName = !string.IsNullOrEmpty(log.UserName) ? log.UserName : (log.UserEmail ?? "Unknown");
+
+                    <div class="activity-item">
+                        <div class="activity-avatar" style="background:@avatarBg;">@initials</div>
+                        <div class="activity-body">
+                            <div class="activity-meta">
+                                <span class="activity-user">@displayName</span>
+                                <span class="activity-event-badge @badgeCls">
+                                    <i class="bi bi-circle-fill" style="font-size:0.5rem;"></i>
+                                    @log.Event
+                                </span>
+                                @if (!string.IsNullOrEmpty(log.UserRole))
+                                {
+                                    <span class="activity-role-chip @roleCls">@log.UserRole</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(log.Description))
+                            {
+                                <div class="activity-desc" title="@log.Description">@log.Description</div>
+                            }
+                            <div class="activity-footer">
+                                <span class="activity-time">
+                                    <i class="bi bi-clock" style="font-size:0.75rem;"></i>
+                                    @TimeAgo(log.CreatedAt)
+                                    <span style="color:var(--border-muted);margin:0 2px;">·</span>
+                                    @log.CreatedAt.ToString("MMM d, HH:mm")
+                                </span>
+                                @if (!string.IsNullOrEmpty(log.IpAddress))
+                                {
+                                    <span class="activity-ip">@log.IpAddress</span>
+                                }
+                                @if (!string.IsNullOrEmpty(log.SubjectType))
+                                {
+                                    <span class="activity-ip" style="color:var(--primary);">
+                                        @log.SubjectType@(log.SubjectId.HasValue ? $" #{log.SubjectId}" : "")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.ActivityLogs.TotalPages > 1)
+        {
+            <div class="activity-pagination">
+                <span class="activity-pagination-info">
+                    Page @Model.ActivityLogs.Page of @Model.ActivityLogs.TotalPages
+                </span>
+                <div class="activity-pagination-controls">
+                    @if (Model.ActivityLogs.HasPrevious)
+                    {
+                        <a href="@BuildUrl(1)" class="page-btn" title="First"><i class="bi bi-chevron-double-left"></i></a>
+                        <a href="@BuildUrl(Model.ActivityLogs.Page - 1)" class="page-btn"><i class="bi bi-chevron-left"></i></a>
+                    }
+                    else
+                    {
+                        <span class="page-btn disabled"><i class="bi bi-chevron-double-left"></i></span>
+                        <span class="page-btn disabled"><i class="bi bi-chevron-left"></i></span>
+                    }
+
+                    @{
+                        var startPage = Math.Max(1, Model.ActivityLogs.Page - 2);
+                        var endPage   = Math.Min(Model.ActivityLogs.TotalPages, startPage + 4);
+                    }
+                    @for (int p = startPage; p <= endPage; p++)
+                    {
+                        if (p == Model.ActivityLogs.Page)
+                        {
+                            <span class="page-btn active">@p</span>
+                        }
+                        else
+                        {
+                            <a href="@BuildUrl(p)" class="page-btn">@p</a>
+                        }
+                    }
+
+                    @if (Model.ActivityLogs.HasNext)
+                    {
+                        <a href="@BuildUrl(Model.ActivityLogs.Page + 1)" class="page-btn"><i class="bi bi-chevron-right"></i></a>
+                        <a href="@BuildUrl(Model.ActivityLogs.TotalPages)" class="page-btn" title="Last"><i class="bi bi-chevron-double-right"></i></a>
+                    }
+                    else
+                    {
+                        <span class="page-btn disabled"><i class="bi bi-chevron-right"></i></span>
+                        <span class="page-btn disabled"><i class="bi bi-chevron-double-right"></i></span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script>
+        var lineLabels = @Html.Raw(JsonSerializer.Serialize(Model.Stats.ByDay.Select(d => d.Day).ToList()));
+        var lineData   = @Html.Raw(JsonSerializer.Serialize(Model.Stats.ByDay.Select(d => d.Count).ToList()));
+        var pieLabels  = @Html.Raw(JsonSerializer.Serialize(Model.Stats.ByEvent.Select(e => e.Event).ToList()));
+        var pieData    = @Html.Raw(JsonSerializer.Serialize(Model.Stats.ByEvent.Select(e => e.Count).ToList()));
+        var pieColors  = new ['#6366F1','#3B82F6','#10B981','#F59E0B','#EC4899','#8B5CF6','#14B8A6','#EF4444'];
+
+        function isLight() { return document.body.classList.contains('light-mode'); }
+
+        var activityLineChart = new Chart(document.getElementById('activityLineChart'), {
+            type: 'line',
+            data: {
+                labels: lineLabels,
+                datasets: [{
+                    label: 'Activities',
+                    data: lineData,
+                    borderColor: '#6366F1',
+                    backgroundColor: 'rgba(99,102,241,0.12)',
+                    fill: true, tension: 0.4,
+                    pointBackgroundColor: '#6366F1',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: isLight() ? '#71717A' : 'rgba(250,250,250,0.45)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } },
+                    y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#71717A' : 'rgba(250,250,250,0.45)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+
+        var activityPieChart = new Chart(document.getElementById('activityPieChart'), {
+            type: 'doughnut',
+            data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 0 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#3F3F46' : 'rgba(250,250,250,0.70)', padding: 16 } } },
+                cutout: '65%'
+            }
+        });
+    </script>
+}

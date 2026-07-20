@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
@@ -13,6 +14,7 @@ public class TaskService : ITaskService
     private readonly ILogger<TaskService> _logger;
     private readonly IWalletService _walletService;
     private readonly IProofVerificationService _proofVerification;
+    private readonly IActivityLogService _activityLog;
     private const int MaxActiveTasks = 10;
     private const int DailyTaskLimit = 25;
 
@@ -20,12 +22,14 @@ public class TaskService : ITaskService
         ApplicationDbContext db,
         ILogger<TaskService> logger,
         IWalletService walletService,
-        IProofVerificationService proofVerification)
+        IProofVerificationService proofVerification,
+        IActivityLogService activityLog)
     {
         _db = db;
         _logger = logger;
         _walletService = walletService;
         _proofVerification = proofVerification;
+        _activityLog = activityLog;
     }
 
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
@@ -168,7 +172,7 @@ public class TaskService : ITaskService
         {
             var completion = await _db.TaskCompletes
                 .Where(tc => tc.TaskId == taskId && tc.UserId == userId.Value)
-                .Select(tc => tc.Status)
+                .Select(tc => (int?)tc.Status)
                 .FirstOrDefaultAsync();
             if (completion == StatusHelper.TaskCompleteCompleted)
             {
@@ -176,9 +180,9 @@ public class TaskService : ITaskService
                     .CountAsync(tc => tc.TaskId == taskId && tc.Status == StatusHelper.TaskCompleteCompleted);
                 userStatus = totalCompleted >= task.Quantity ? "Completed" : "Accepted";
             }
-            else if (completion != StatusHelper.TaskCompleteCancelled)
+            else if (completion.HasValue && completion != StatusHelper.TaskCompleteCancelled)
                 userStatus = "Accepted";
-            else if (await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId.Value && a.TaskId == taskId))
+            else if (!completion.HasValue && await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId.Value && a.TaskId == taskId))
                 userStatus = "Accepted";
         }
 
@@ -230,6 +234,11 @@ public class TaskService : ITaskService
             Status = StatusHelper.AcceptedTaskAccepted
         });
         await _db.SaveChangesAsync();
+
+        await _activityLog.LogAsync(
+            userId: userId, userName: worker?.Name, userEmail: worker?.Email,
+            userRole: "User", evt: "TaskAccepted", description: $"User accepted task #{taskId}",
+            subjectType: "Task", subjectId: taskId, subjectName: task.Service);
 
         return Result.Success(new AcceptTaskResult
         {
@@ -411,6 +420,12 @@ public class TaskService : ITaskService
 
             _logger.LogInformation("Proof for task {TaskId} by user {UserId} passed auto-validation, pending admin review", taskId, userId);
 
+            var proofUser = await _db.Users.FindAsync(userId);
+            await _activityLog.LogAsync(
+                userId: userId, userName: proofUser?.Name, userEmail: proofUser?.Email,
+                userRole: "User", evt: "ProofSubmitted", description: $"Proof submitted for task #{taskId}",
+                subjectType: "TaskProof", subjectId: proof.Id, subjectName: task.Service);
+
             return Result.Success("Proof submitted successfully and is pending admin review.");
         }
         catch (Exception ex)
@@ -504,6 +519,13 @@ public class TaskService : ITaskService
             _logger.LogInformation("Proof {ProofId} approved; task {TaskId} completed for user {UserId}, reward {Reward} credited",
                 proofId, proof.TaskId, proof.UserId, proof.Task.Reward);
 
+            var approvedUser = await _db.Users.FindAsync(proof.UserId);
+            await _activityLog.LogAsync(
+                userId: proof.UserId, userName: approvedUser?.Name, userEmail: approvedUser?.Email,
+                userRole: "Admin", evt: "ProofApproved", description: $"Proof #{proofId} approved for task #{proof.TaskId}",
+                subjectType: "TaskProof", subjectId: proofId, subjectName: null,
+                newValues: JsonSerializer.Serialize(new { VerificationStatus = StatusHelper.VerificationApproved, Reward = proof.Task.Reward }));
+
             return Result.Success($"Proof approved! {displayCurrency} {displayAmount:F2} credited to worker's wallet.");
         }
         catch (Exception ex)
@@ -542,6 +564,13 @@ public class TaskService : ITaskService
             await _db.SaveChangesAsync();
 
             _logger.LogInformation("Proof {ProofId} rejected by admin: {Reason}", proofId, reason);
+
+            var rejectedUser = await _db.Users.FindAsync(proof.UserId);
+            await _activityLog.LogAsync(
+                userId: proof.UserId, userName: rejectedUser?.Name, userEmail: rejectedUser?.Email,
+                userRole: "Admin", evt: "ProofRejected", description: $"Proof #{proofId} rejected for task #{proof.TaskId}: {reason}",
+                subjectType: "TaskProof", subjectId: proofId, subjectName: null,
+                newValues: JsonSerializer.Serialize(new { VerificationStatus = StatusHelper.VerificationRejected, RejectReason = reason }));
 
             return Result.Success("Proof rejected.");
         }

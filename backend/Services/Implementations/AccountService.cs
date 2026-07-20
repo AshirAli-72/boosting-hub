@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BoostingHub.backend.Common;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
@@ -10,10 +11,12 @@ namespace BoostingHub.backend.Services.Implementations;
 public class AccountService : IAccountService
 {
     private readonly ApplicationDbContext _db;
+    private readonly IActivityLogService _activityLog;
 
-    public AccountService(ApplicationDbContext db)
+    public AccountService(ApplicationDbContext db, IActivityLogService activityLog)
     {
         _db = db;
+        _activityLog = activityLog;
     }
 
     public async Task<Result<List<AccountDto>>> GetAccountsByUserIdAsync(int userId)
@@ -69,6 +72,14 @@ public class AccountService : IAccountService
         _db.Accounts.Add(account);
         await _db.SaveChangesAsync();
 
+        var user = await _db.Users.FindAsync(userId);
+        await _activityLog.LogAsync(
+            userId: userId, userName: user?.Name, userEmail: user?.Email,
+            userRole: "User", evt: "AccountCreated", description: $"Payment account '{dto.AccountTitle}' created",
+            subjectType: "Account", subjectId: account.Id, subjectName: dto.AccountTitle,
+            newValues: JsonSerializer.Serialize(new { AccountTitle = dto.AccountTitle, MobileNumber = dto.MobileNumber, Cnic = dto.Cnic }),
+            ct: CancellationToken.None);
+
         return Result.Success(new AccountDto
         {
             Id = account.Id,
@@ -87,8 +98,16 @@ public class AccountService : IAccountService
         if (account == null)
             return Result.Failure("Account not found");
 
+        var accountTitle = account.AccountTitle;
         _db.Accounts.Remove(account);
         await _db.SaveChangesAsync();
+
+        var user = await _db.Users.FindAsync(userId);
+        await _activityLog.LogAsync(
+            userId: userId, userName: user?.Name, userEmail: user?.Email,
+            userRole: "User", evt: "AccountDeleted", description: $"Payment account '{accountTitle}' deleted",
+            subjectType: "Account", subjectId: accountId, subjectName: accountTitle,
+            ct: CancellationToken.None);
 
         return Result.Success("Account deleted successfully");
     }

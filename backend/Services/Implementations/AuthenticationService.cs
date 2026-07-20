@@ -20,13 +20,17 @@ public class AuthenticationService : IAuthenticationService
     private readonly ILogger<AuthenticationService> _logger;
     private readonly PasswordHasher<User> _passwordHasher;
     private readonly IConfiguration _config;
+    private readonly IWebHostEnvironment _env;
+    private readonly IActivityLogService _activityLog;
 
     public AuthenticationService(
         ApplicationDbContext db,
         ITokenService tokenService,
         IEmailService emailService,
         ILogger<AuthenticationService> logger,
-        IConfiguration config)
+        IConfiguration config,
+        IWebHostEnvironment env,
+        IActivityLogService activityLog)
     {
         _db = db;
         _tokenService = tokenService;
@@ -34,6 +38,8 @@ public class AuthenticationService : IAuthenticationService
         _logger = logger;
         _passwordHasher = new PasswordHasher<User>();
         _config = config;
+        _env = env;
+        _activityLog = activityLog;
     }
 
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterDto dto, HttpContext httpContext, CancellationToken ct = default)
@@ -45,12 +51,16 @@ public class AuthenticationService : IAuthenticationService
             return Result.Failure<AuthResponseDto>("Phone number already registered", "DUPLICATE_PHONE");
 
         var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
-        var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
 
-        var host = httpContext.Request.Host.Value ?? "";
-        var isLocal = host.Contains("localhost");
-        var scheme = isLocal ? "http" : "https";
-        var baseUrl = isLocal ? $"{scheme}://{host}" : $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
+        // ── Local (Development): create user directly, no email needed ──
+        if (_env.IsDevelopment())
+        {
+            return await _registerDirectlyAsync(dto, passwordHash, httpContext, ct);
+        }
+
+        // ── Live (Production): send verification email ──
+        var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
+        var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
         var verificationLink = $"{baseUrl}/verify-email?token={Uri.EscapeDataString(token)}";
 
         try
@@ -65,6 +75,65 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
+    private async Task<Result<AuthResponseDto>> _registerDirectlyAsync(RegisterDto dto, string passwordHash, HttpContext httpContext, CancellationToken ct)
+    {
+        var user = new User
+        {
+            Name = dto.Name,
+            Email = dto.Email,
+            Phone = dto.Phone,
+            Password = passwordHash,
+            Status = StatusHelper.UserActive,
+            EmailVerifiedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync(ct);
+
+        var userRole = await _db.Roles.FirstOrDefaultAsync(r => r.RoleTitle == "User", ct);
+        if (userRole == null)
+        {
+            userRole = new Role { RoleTitle = "User", Description = "Default user role", CreatedAt = DateTime.UtcNow };
+            _db.Roles.Add(userRole);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        _db.UserHasRoles.Add(new UserHasRole { UserId = user.Id, RoleId = userRole.Id });
+
+        _db.Wallets.Add(new Wallet
+        {
+            UserId = user.Id,
+            TotalBalance = 0,
+            Currency = "USD",
+            Withdrawn = 0,
+            Status = StatusHelper.WalletActive,
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await _db.SaveChangesAsync(ct);
+
+        await _activityLog.LogAsync(
+            userId: user.Id, userName: user.Name, userEmail: user.Email,
+            userRole: "User", evt: "Registered", description: $"User {user.Email} registered (local auto-verified)",
+            subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+            httpContext: httpContext, ct: ct);
+
+        var authResponse = await _tokenService.GenerateTokensAsync(user);
+        authResponse.User = new UserDto
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Email = user.Email,
+            Phone = user.Phone,
+            Status = StatusHelper.UserStatusToString(user.Status),
+            EmailVerifiedAt = user.EmailVerifiedAt,
+            Roles = new[] { "User" }
+        };
+
+        return Result.Success(authResponse, "Registration successful");
+    }
+
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginDto dto, HttpContext httpContext, CancellationToken ct = default)
     {
         if (!string.IsNullOrEmpty(dto.Email))
@@ -73,7 +142,7 @@ public class AuthenticationService : IAuthenticationService
             if (user == null)
                 return Result.Failure<AuthResponseDto>("Invalid credentials", "INVALID_CREDENTIALS");
 
-            if (user.Status != 1)
+            if (user.Status != StatusHelper.UserActive)
                 return Result.Failure<AuthResponseDto>("Account is deactivated", "ACCOUNT_DEACTIVATED");
 
             if (user.EmailVerifiedAt == null)
@@ -85,16 +154,23 @@ public class AuthenticationService : IAuthenticationService
 
             var userWithRoles = await _db.Users.Include(u => u.UserHasRoles).ThenInclude(ur => ur.Role).FirstOrDefaultAsync(u => u.Id == user.Id, ct);
             var authResponse = await _tokenService.GenerateTokensAsync(user);
+            var roleNames = userWithRoles!.UserHasRoles.Select(ur => ur.Role!.RoleTitle).ToArray();
             authResponse.User = new UserDto
             {
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
                 Phone = user.Phone,
-                Status = user.Status == 1 ? "Active" : "Inactive",
+                Status = StatusHelper.UserStatusToString(user.Status),
                 EmailVerifiedAt = user.EmailVerifiedAt,
-                Roles = userWithRoles!.UserHasRoles.Select(ur => ur.Role!.RoleTitle).ToArray()
+                Roles = roleNames
             };
+
+            await _activityLog.LogAsync(
+                userId: user.Id, userName: user.Name, userEmail: user.Email,
+                userRole: string.Join(",", roleNames), evt: "LoggedIn", description: $"User {user.Email} logged in",
+                subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+                httpContext: httpContext, ct: ct);
 
             return Result.Success(authResponse, "Login successful");
         }
@@ -105,7 +181,7 @@ public class AuthenticationService : IAuthenticationService
             if (user == null)
                 return Result.Failure<AuthResponseDto>("Invalid credentials", "INVALID_CREDENTIALS");
 
-            if (user.Status != 1)
+            if (user.Status != StatusHelper.UserActive)
                 return Result.Failure<AuthResponseDto>("Account is deactivated", "ACCOUNT_DEACTIVATED");
 
             if (user.EmailVerifiedAt == null)
@@ -117,16 +193,23 @@ public class AuthenticationService : IAuthenticationService
 
             var userWithRoles = await _db.Users.Include(u => u.UserHasRoles).ThenInclude(ur => ur.Role).FirstOrDefaultAsync(u => u.Id == user.Id, ct);
             var authResponse = await _tokenService.GenerateTokensAsync(user);
+            var roleNames = userWithRoles!.UserHasRoles.Select(ur => ur.Role!.RoleTitle).ToArray();
             authResponse.User = new UserDto
             {
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
                 Phone = user.Phone,
-                Status = user.Status == 1 ? "Active" : "Inactive",
+                Status = StatusHelper.UserStatusToString(user.Status),
                 EmailVerifiedAt = user.EmailVerifiedAt,
-                Roles = userWithRoles!.UserHasRoles.Select(ur => ur.Role!.RoleTitle).ToArray()
+                Roles = roleNames
             };
+
+            await _activityLog.LogAsync(
+                userId: user.Id, userName: user.Name, userEmail: user.Email,
+                userRole: string.Join(",", roleNames), evt: "LoggedIn", description: $"User {user.Email} logged in",
+                subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+                httpContext: httpContext, ct: ct);
 
             return Result.Success(authResponse, "Login successful");
         }
@@ -136,6 +219,16 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Result> LogoutAsync(int userId, string? sessionId = null, CancellationToken ct = default)
     {
+        var user = await _db.Users.FindAsync(new object[] { userId }, ct);
+        if (user != null)
+        {
+            await _activityLog.LogAsync(
+                userId: user.Id, userName: user.Name, userEmail: user.Email,
+                userRole: "User", evt: "LoggedOut", description: $"User {user.Email} logged out",
+                subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+                ct: ct);
+        }
+
         return Result.Success("Logged out successfully");
     }
 
@@ -182,6 +275,12 @@ public class AuthenticationService : IAuthenticationService
             _logger.LogError(ex, "Failed to send password reset email to {Email}", user.Email);
         }
 
+        await _activityLog.LogAsync(
+            userId: user.Id, userName: user.Name, userEmail: user.Email,
+            userRole: "User", evt: "ForgotPassword", description: $"Password reset requested for {user.Email}",
+            subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+            ct: ct);
+
         return Result.Success("If the email exists, a reset link has been sent");
     }
 
@@ -201,6 +300,12 @@ public class AuthenticationService : IAuthenticationService
 
         await _emailService.SendPasswordChangedAsync(user.Email!, user.Name);
 
+        await _activityLog.LogAsync(
+            userId: user.Id, userName: user.Name, userEmail: user.Email,
+            userRole: "User", evt: "PasswordReset", description: $"Password reset completed for {user.Email}",
+            subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+            ct: ct);
+
         return Result.Success("Password reset successfully");
     }
 
@@ -218,6 +323,12 @@ public class AuthenticationService : IAuthenticationService
         await _db.SaveChangesAsync(ct);
 
         await _emailService.SendPasswordChangedAsync(user.Email!, user.Name);
+
+        await _activityLog.LogAsync(
+            userId: user.Id, userName: user.Name, userEmail: user.Email,
+            userRole: "User", evt: "PasswordChanged", description: $"Password changed for {user.Email}",
+            subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+            ct: ct);
 
         return Result.Success("Password changed successfully");
     }
@@ -317,6 +428,10 @@ public class AuthenticationService : IAuthenticationService
         if (user == null)
             return Result.Failure("User not found", "USER_NOT_FOUND");
 
+        var oldName = user.Name;
+        var oldEmail = user.Email;
+        var oldPhone = user.Phone;
+
         user.Name = dto.Name;
         user.Phone = dto.Phone;
 
@@ -329,6 +444,14 @@ public class AuthenticationService : IAuthenticationService
         }
 
         await _db.SaveChangesAsync(ct);
+
+        await _activityLog.LogAsync(
+            userId: user.Id, userName: user.Name, userEmail: user.Email,
+            userRole: "User", evt: "ProfileUpdated", description: $"Profile updated for {user.Email}",
+            subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+            oldValues: JsonSerializer.Serialize(new { Name = oldName, Email = oldEmail, Phone = oldPhone }),
+            newValues: JsonSerializer.Serialize(new { Name = dto.Name, Email = dto.Email, Phone = dto.Phone }),
+            httpContext: httpContext, ct: ct);
         
         return Result.Success("Profile updated successfully");
     }

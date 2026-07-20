@@ -68,7 +68,17 @@ public class IndexModel : PageModel
             return new JsonResult(new { success = false, message = "Invalid currency" });
 
         var ok = await _walletService.UpdateCurrencyAsync(userId, currency);
-        return new JsonResult(new { success = ok, message = ok ? "Currency updated" : "Wallet not found" });
+        if (!ok)
+            return new JsonResult(new { success = false, message = "Wallet not found" });
+
+        var wallet = await _walletService.GetWalletByUserIdAsync(userId);
+        return new JsonResult(new
+        {
+            success = true,
+            balance = wallet?.TotalBalance ?? 0m,
+            withdrawn = wallet?.Withdrawn ?? 0m,
+            currency = wallet?.Currency ?? currency
+        });
     }
 
     public async Task<IActionResult> OnPostWithdrawAsync()
@@ -102,8 +112,10 @@ public class IndexModel : PageModel
             return RedirectToPage();
         }
 
+        var walletCurrency = wallet?.Currency ?? "USD";
+        var sym = walletCurrency switch { "PKR" => "₨", "EUR" => "€", "GBP" => "£", "INR" => "₹", "BDT" => "৳", _ => "$" };
         await _walletService.WithdrawAsync(userId, WithdrawAmount);
-        TempData["Success"] = $"Withdrawal of ${WithdrawAmount:N2} requested to {defaultAccount.AccountTitle} ({defaultAccount.MobileNumber})";
+        TempData["Success"] = $"Withdrawal of {sym}{WithdrawAmount:N2} ({walletCurrency}) requested to {defaultAccount.AccountTitle} ({defaultAccount.MobileNumber})";
 
         return RedirectToPage();
     }

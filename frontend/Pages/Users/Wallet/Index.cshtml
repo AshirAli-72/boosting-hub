@@ -167,16 +167,23 @@
         }
 
         async function changeCurrency(currency) {
-            updateDisplay(currency);
             try {
                 const resp = await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(currency), {
                     method: 'POST',
                     headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
                 });
                 const data = await resp.json();
-                if (!resp.ok) {
+                if (resp.ok && data.success) {
+                    originalBalance = data.balance;
+                    originalWithdrawn = data.withdrawn;
+                    originalCurrency = data.currency;
+                    currentDisplayCurrency = data.currency;
+                    document.getElementById('currencySelect').value = data.currency;
+                    updateDisplay(data.currency);
+                } else {
                     showToast(data.message || 'Failed to update currency', 'danger');
                     document.getElementById('currencySelect').value = currentDisplayCurrency;
+                    updateDisplay(currentDisplayCurrency);
                 }
             } catch (e) {
                 showToast('Network error - display updated locally', 'warning');

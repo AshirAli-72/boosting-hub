@@ -4,6 +4,16 @@
 @{
     ViewData["Title"] = "Dashboard";
     ViewData["BodyClass"] = "user-dashboard-page";
+
+    string CurrencySymbol(string? currency) => (currency?.ToUpper() ?? "USD") switch {
+        "PKR" => "₨",
+        "EUR" => "€",
+        "GBP" => "£",
+        "INR" => "₹",
+        "BDT" => "৳",
+        _ => "$"
+    };
+    var sym = CurrencySymbol(Model.Dashboard.WalletCurrency);
 }
 
         <div class="admin-header">
@@ -57,7 +67,7 @@
                         <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-wallet2"></i></div>
                         <div class="stat-info">
                             <span class="stat-label" style="color:rgba(255,255,255,0.75);">Wallet Balance</span>
-                            <span class="stat-value" style="color:#fff;">$@Model.Dashboard.WalletBalance.ToString("N2")</span>
+                            <span class="stat-value" style="color:#fff;">@sym@Model.Dashboard.WalletBalance.ToString("N2")</span>
                             <span class="stat-label" style="color:rgba(255,255,255,0.75);font-size:0.7rem;">@Model.Dashboard.WalletStatus</span>
                         </div>
                     </div>

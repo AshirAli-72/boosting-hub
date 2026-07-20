@@ -15,13 +15,12 @@ public class DashboardModel : PageModel
     }
 
     public AdminDashboardDto Dashboard { get; set; } = new();
-
     public string? ErrorMessage { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var role = HttpContext.Session.GetString("UserRole");
-        if (role != "Admin")
+        var sessionRole = HttpContext.Session.GetString("UserRole");
+        if (sessionRole != "Admin")
             return RedirectToPage("/Account/Login");
 
         try

@@ -7,22 +7,22 @@
     <title>Boosting Hub - @ViewData["Title"]</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @if (ViewData["PageType"]?.ToString() == "landing")
     {
-        <link rel="stylesheet" href="~/css/landing.css" />
+        <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
     }
     else if (ViewData["PageType"]?.ToString() == "auth")
     {
-        <link rel="stylesheet" href="~/css/auth.css" />
+        <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
     }
     else if (ViewData["BodyClass"]?.ToString() == "dashboard-page" || ViewData["BodyClass"]?.ToString() == "admin-page")
     {
-        <link rel="stylesheet" href="~/css/dashboard.css" />
+        <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     }
     else if (ViewData["BodyClass"]?.ToString() == "user-dashboard-page")
     {
-        <link rel="stylesheet" href="~/css/dashboard.css" />
+        <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
     }
     @await RenderSectionAsync("Styles", required: false)
     <script>
@@ -32,8 +32,12 @@
         }
     </script>
 </head>
-<body class="@ViewData["BodyClass"]" style="background:#0B1120;color:#f1f5f9;">
-    <script>if(localStorage.getItem('theme')==='light')document.body.classList.add('light-mode');</script>
+<body class="@ViewData["BodyClass"]">
+    <script>
+        if(localStorage.getItem('theme')==='light'){
+            document.body.classList.add('light-mode');
+        }
+    </script>
     @if (ViewData["PageType"]?.ToString() == "landing")
     {
         <header class="landing-header" id="landingHeader">
@@ -47,11 +51,18 @@
                     <a href="#stats">Stats</a>
                     <a href="#get-started">Get Started</a>
                     <div class="mobile-nav-cta">
+                        <button class="theme-toggle-btn mobile-theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+                            <i class="bi bi-moon-fill dark-icon"></i><i class="bi bi-sun-fill light-icon"></i> <span class="theme-text">Theme</span>
+                        </button>
                         <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Login</a>
                         <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus"></i> Get Started</a>
                     </div>
                 </nav>
                 <div class="header-cta" id="headerCta">
+                    <button class="theme-toggle-btn" id="landingThemeToggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+                        <i class="bi bi-moon-fill dark-icon"></i>
+                        <i class="bi bi-sun-fill light-icon"></i>
+                    </button>
                     <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Login</a>
                     <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus"></i> Get Started</a>
                 </div>
@@ -186,7 +197,7 @@
                         if (recentUsers.Count == 0)
                         {
                             <div class="user-joined-card">
-                                <div class="user-joined-avatar" style="background:linear-gradient(135deg,#7C3AED,#0D9488);">BH</div>
+                                <div class="user-joined-avatar" style="background:linear-gradient(135deg,var(--primary),var(--accent));">BH</div>
                                 <div class="user-joined-info">
                                     <h4>Be the First!</h4>
                                     <p>Join our growing community of creators.</p>
@@ -198,7 +209,7 @@
                             foreach (var user in recentUsers)
                             {
                                 var initials = string.IsNullOrEmpty(user.Name) ? "?" : string.Join("", user.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[..1])).ToUpper();
-                                var colors = new[] { "#7C3AED,#0D9488", "#3B82F6,#1D4ED8", "#10B981,#059669", "#F59E0B,#D97706", "#EF4444,#B91C1C", "#EC4899,#BE185D", "#6366F1,#4F46E5", "#0D9488,#0F766E" };
+                                var colors = new[] { "#6366F1,#F43F5E", "#3B82F6,#1D4ED8", "#10B981,#059669", "#F59E0B,#D97706", "#EF4444,#B91C1C", "#EC4899,#BE185D", "#6366F1,#4F46E5", "#14B8A6,#0F766E" };
                                 var colorIdx = user.Id % colors.Length;
                                 var displayName = user.Name ?? "User";
                                 var timeAgo = (DateTime.UtcNow - user.CreatedAt).TotalDays switch
@@ -386,7 +397,7 @@
             <header>
                 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                     <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
-                        <div style="width:28px;height:28px;background:linear-gradient(135deg,#7C3AED,#0D9488);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:#fff;">
+                        <div style="width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:#fff;">
                             <i class="bi bi-rocket-takeoff"></i>
                         </div>
                         Boosting Hub
@@ -432,6 +443,7 @@
                             <a href="/admin/completed" class="sidebar-link @(rp == "/admin/completed" ? "active" : "")"><i class="bi bi-check2-all"></i> Completed</a>
                             <a href="/admin/inquiries" class="sidebar-link @(rp == "/admin/inquiries" ? "active" : "")"><i class="bi bi-inbox"></i> Client Requirements</a>
                             <a href="/admin/proof-review" class="sidebar-link @(rp == "/admin/proof-review" ? "active" : "")"><i class="bi bi-shield-check"></i> Proof Review</a>
+                            <a href="/admin/activity-logs" class="sidebar-link @(rp.StartsWith("/admin/activity-logs") ? "active" : "")"><i class="bi bi-clock-history"></i> Activity Log</a>
                             <div class="sidebar-divider"></div>
                             <a href="/admin/settings" class="sidebar-link @(rp.StartsWith("/admin/settings") || rp.StartsWith("/admin/roles") || rp.StartsWith("/admin/users") ? "active" : "")"><i class="bi bi-gear"></i> Settings</a>
                             <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
@@ -474,6 +486,7 @@
     }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/site.js"></script>
     <script src="/_framework/blazor.server.js"></script>
     <script>
         function toggleMobileNav() {
@@ -482,6 +495,24 @@
         window.addEventListener('scroll', function () {
             var h = document.getElementById('landingHeader');
             if (h) h.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            updateThemeIcons(isLight);
+        }
+
+        function updateThemeIcons(isLight) {
+            document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+                if(isLight) { btn.classList.add('is-light'); }
+                else { btn.classList.remove('is-light'); }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            updateThemeIcons(savedTheme === 'light');
         });
 
         function updateMultiSelect(className, displayId, defaultText) {
@@ -535,7 +566,7 @@
                 Subscribers: 'bi-bell-fill'
             };
             const serviceColors = {
-                Followers: '#7C3AED', Likes: '#EF4444', Views: '#3B82F6',
+                Followers: '#6366F1', Likes: '#EF4444', Views: '#3B82F6',
                 Comments: '#10B981', Shares: '#F59E0B', Subscribers: '#EC4899'
             };
 
