@@ -227,11 +227,14 @@ public class DashboardService : IDashboardService
         };
     }
 
-    public async Task<PagedResult<ActivityLogDto>> GetActivityLogsAsync(ActivityLogFilterDto filter)
+    public async Task<PagedResult<ActivityLogDto>> GetActivityLogsAsync(ActivityLogFilterDto filter, int? excludeUserId = null)
     {
         var query = _db.ActivityLogs
             .Where(a => a.UserRole != "Public" && a.UserRole != "System")
             .AsQueryable();
+
+        if (excludeUserId.HasValue)
+            query = query.Where(a => a.UserId != excludeUserId.Value);
 
         // Search by username or email
         if (!string.IsNullOrWhiteSpace(filter.Search))
@@ -297,15 +300,20 @@ public class DashboardService : IDashboardService
         };
     }
 
-    public async Task<ActivityLogStatsDto> GetActivityLogStatsAsync()
+    public async Task<ActivityLogStatsDto> GetActivityLogStatsAsync(int? excludeUserId = null)
     {
         var now = DateTime.UtcNow;
         var todayStart = now.Date;
         var weekStart = todayStart.AddDays(-(int)todayStart.DayOfWeek);
         var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        var logs = await _db.ActivityLogs
-            .Where(a => a.CreatedAt >= monthStart && a.UserRole != "Public" && a.UserRole != "System")
+        var query = _db.ActivityLogs
+            .Where(a => a.CreatedAt >= monthStart && a.UserRole != "Public" && a.UserRole != "System");
+
+        if (excludeUserId.HasValue)
+            query = query.Where(a => a.UserId != excludeUserId.Value);
+
+        var logs = await query
             .Select(a => new { a.Event, a.UserRole, a.UserName, a.CreatedAt })
             .ToListAsync();
 
@@ -317,8 +325,9 @@ public class DashboardService : IDashboardService
 
         var byDay = logs
             .GroupBy(a => a.CreatedAt.Date)
-            .Select(g => new ActivityByDayDto { Day = g.Key.ToString("MMM dd"), Count = g.Count() })
-            .OrderBy(x => x.Day)
+            .Select(g => new { Date = g.Key, Day = g.Key.ToString("MMM dd"), Count = g.Count() })
+            .OrderBy(x => x.Date)
+            .Select(x => new ActivityByDayDto { Day = x.Day, Count = x.Count })
             .ToList();
 
         var byRole = logs

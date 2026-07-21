@@ -27,6 +27,8 @@ public class IndexModel : PageModel
         if (sessionRole != "Admin")
             return RedirectToPage("/Account/Login");
 
+        var adminUserId = int.TryParse(HttpContext.Session.GetString("UserId"), out var uid) ? uid : (int?)null;
+
         Filter = new ActivityLogFilterDto
         {
             Page     = page,
@@ -40,8 +42,8 @@ public class IndexModel : PageModel
 
         try
         {
-            Stats = await _dashboardService.GetActivityLogStatsAsync();
-            ActivityLogs = await _dashboardService.GetActivityLogsAsync(Filter);
+            Stats = await _dashboardService.GetActivityLogStatsAsync(adminUserId);
+            ActivityLogs = await _dashboardService.GetActivityLogsAsync(Filter, adminUserId);
         }
         catch (Exception ex)
         {

@@ -7,6 +7,6 @@ public interface IDashboardService
 {
     Task<UserDashboardDto> GetUserDashboardAsync(int userId);
     Task<AdminDashboardDto> GetAdminDashboardAsync();
-    Task<PagedResult<ActivityLogDto>> GetActivityLogsAsync(ActivityLogFilterDto filter);
-    Task<ActivityLogStatsDto> GetActivityLogStatsAsync();
+    Task<PagedResult<ActivityLogDto>> GetActivityLogsAsync(ActivityLogFilterDto filter, int? excludeUserId = null);
+    Task<ActivityLogStatsDto> GetActivityLogStatsAsync(int? excludeUserId = null);
 }

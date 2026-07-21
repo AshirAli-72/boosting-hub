@@ -5,47 +5,62 @@
     ViewData["Title"] = "Activity Log";
     ViewData["BodyClass"] = "admin-page";
 
-    string AvatarColor(string? name) {
-        if (string.IsNullOrEmpty(name)) return "linear-gradient(135deg,#6366F1,#F43F5E)";
-        var colors = new[] {
-            "linear-gradient(135deg,#6366F1,#F43F5E)",
-            "linear-gradient(135deg,#3B82F6,#1D4ED8)",
-            "linear-gradient(135deg,#10B981,#059669)",
-            "linear-gradient(135deg,#F59E0B,#D97706)",
-            "linear-gradient(135deg,#EC4899,#BE185D)",
-            "linear-gradient(135deg,#8B5CF6,#7C3AED)",
-            "linear-gradient(135deg,#14B8A6,#0F766E)",
-        };
-        return colors[Math.Abs(name.GetHashCode()) % colors.Length];
-    }
-
-    string Initials(string? name, string? email) {
-        var src = !string.IsNullOrEmpty(name) ? name : (email ?? "?");
+    string Initials(string? name) {
+        var src = name ?? "?";
         var parts = src.Split(' ', '@').Where(p => !string.IsNullOrEmpty(p)).Take(2).ToArray();
         return parts.Length > 1
             ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
             : src[..Math.Min(2, src.Length)].ToUpper();
     }
 
-    string EventBadgeClass(string? ev) => (ev?.ToLower() ?? "") switch {
-        var e when e.Contains("login")    => "badge-login",
-        var e when e.Contains("logout")   => "badge-logout",
-        var e when e.Contains("register") => "badge-register",
-        var e when e.Contains("order")    => "badge-order",
-        var e when e.Contains("task")     => "badge-task",
-        var e when e.Contains("payment") || e.Contains("wallet") => "badge-payment",
-        var e when e.Contains("admin")   => "badge-admin",
-        _                                => "badge-default"
+    string EventBg(string? ev) => (ev ?? "") switch {
+        "LoggedIn" or "Registered"   => "act-ev-logged-in",
+        "LoggedOut"                  => "act-ev-logged-out",
+        "TaskAccepted"              => "act-ev-task-accepted",
+        "ProofSubmitted"            => "act-ev-proof-submitted",
+        "ProofApproved"             => "act-ev-proof-approved",
+        "ProofRejected"             => "act-ev-proof-rejected",
+        "OrderSubmitted"            => "act-ev-order-submitted",
+        "OrderApproved"             => "act-ev-order-approved",
+        "OrderRejected"             => "act-ev-order-rejected",
+        "WalletCredited"            => "act-ev-wallet-credited",
+        "WalletWithdrawn"           => "act-ev-wallet-withdrawn",
+        "PasswordChanged"           => "act-ev-password-changed",
+        _                           => "act-ev-default"
     };
 
-    string TimeAgo(DateTime dt) {
-        var diff = DateTime.UtcNow - dt;
-        if (diff.TotalSeconds < 60)  return "just now";
-        if (diff.TotalMinutes < 60)  return $"{(int)diff.TotalMinutes}m ago";
-        if (diff.TotalHours < 24)    return $"{(int)diff.TotalHours}h ago";
-        if (diff.TotalDays < 7)      return $"{(int)diff.TotalDays}d ago";
-        return dt.ToString("MMM d, yyyy");
-    }
+    string EventText(string? ev) => (ev ?? "") switch {
+        "LoggedIn" or "Registered"   => "act-ev-logged-in",
+        "LoggedOut"                  => "act-ev-logged-out",
+        "TaskAccepted"              => "act-ev-task-accepted",
+        "ProofSubmitted"            => "act-ev-proof-submitted",
+        "ProofApproved"             => "act-ev-proof-approved",
+        "ProofRejected"             => "act-ev-proof-rejected",
+        "OrderSubmitted"            => "act-ev-order-submitted",
+        "OrderApproved"             => "act-ev-order-approved",
+        "OrderRejected"             => "act-ev-order-rejected",
+        "WalletCredited"            => "act-ev-wallet-credited",
+        "WalletWithdrawn"           => "act-ev-wallet-withdrawn",
+        "PasswordChanged"           => "act-ev-password-changed",
+        _                           => "act-ev-default"
+    };
+
+    string FriendlyEvent(string? ev) => (ev ?? "") switch {
+        "LoggedIn" => "Logged In",
+        "LoggedOut" => "Logged Out",
+        "Registered" => "Registered",
+        "TaskAccepted" => "Accepted Task",
+        "ProofSubmitted" => "Submitted Proof",
+        "ProofApproved" => "Approved Proof",
+        "ProofRejected" => "Rejected Proof",
+        "WalletCredited" => "Wallet Credited",
+        "WalletWithdrawn" => "Wallet Withdrawn",
+        "PasswordChanged" => "Changed Password",
+        "ProfileUpdated" => "Updated Profile",
+        "OrderApproved" => "Approved Order",
+        "OrderRejected" => "Rejected Order",
+        _ => ev?.Replace("_", " ") ?? "Unknown"
+    };
 
     string BuildUrl(int pg) {
         var qs = new System.Collections.Specialized.NameValueCollection();
@@ -187,67 +202,100 @@
             <input type="hidden" name="page" value="1" />
         </form>
 
-        <!-- Timeline Feed -->
-        <div class="activity-feed">
-            @if (!Model.ActivityLogs.Items.Any())
-            {
-                <div class="activity-empty">
-                    <div class="activity-empty-icon"><i class="bi bi-clock-history"></i></div>
-                    <h5>No activity found</h5>
-                    <p>Try adjusting your filters or check back later.</p>
-                </div>
-            }
-            else
-            {
-                @foreach (var log in Model.ActivityLogs.Items)
-                {
-                    var initials   = Initials(log.UserName, log.UserEmail);
-                    var avatarBg   = AvatarColor(log.UserName ?? log.UserEmail);
-                    var badgeCls   = EventBadgeClass(log.Event);
-                    var roleCls    = log.UserRole?.ToLower() == "admin" ? "chip-admin" : "chip-user";
-                    var displayName = !string.IsNullOrEmpty(log.UserName) ? log.UserName : (log.UserEmail ?? "Unknown");
-
-                    <div class="activity-item">
-                        <div class="activity-avatar" style="background:@avatarBg;">@initials</div>
-                        <div class="activity-body">
-                            <div class="activity-meta">
-                                <span class="activity-user">@displayName</span>
-                                <span class="activity-event-badge @badgeCls">
-                                    <i class="bi bi-circle-fill" style="font-size:0.5rem;"></i>
-                                    @log.Event
+        <!-- Data Table -->
+        @if (!Model.ActivityLogs.Items.Any())
+        {
+            <div class="activity-empty">
+                <div class="activity-empty-icon"><i class="bi bi-inbox"></i></div>
+                <h5>No activity logs found</h5>
+                <p>Try adjusting your filters or check back later.</p>
+            </div>
+        }
+        else
+        {
+            <div class="act-table-wrap">
+                <table class="act-table">
+                    <thead>
+                        <tr>
+                            <th class="act-th-num">#</th>
+                            <th class="act-th-user">User</th>
+                            <th class="act-th-event">Event</th>
+                            <th class="act-th-desc">Description</th>
+                            <th class="act-th-ip">IP</th>
+                            <th class="act-th-time">Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @{ var rowNum = (Model.ActivityLogs.Page - 1) * Model.ActivityLogs.PageSize; }
+                    @foreach (var log in Model.ActivityLogs.Items)
+                    {
+                        rowNum++;
+                        var roleCls = log.UserRole?.ToLower() == "admin" ? "act-role-admin" : "act-role-user";
+                        var eventIcon = (log.Event ?? "") switch {
+                            "LoggedIn" or "LoggedOut" => "bi-box-arrow-in-right",
+                            "Registered"             => "bi-person-plus",
+                            "TaskAccepted"           => "bi-clipboard-check",
+                            "ProofSubmitted"         => "bi-cloud-upload",
+                            "ProofApproved"          => "bi-check-circle-fill",
+                            "ProofRejected"          => "bi-x-circle-fill",
+                            "OrderSubmitted"         => "bi-receipt",
+                            "OrderApproved"          => "bi-check2-circle",
+                            "OrderRejected"          => "bi-x-octagon",
+                            "WalletCredited"         => "bi-wallet2",
+                            "WalletWithdrawn"        => "bi-cash-stack",
+                            "PasswordChanged"        => "bi-shield-lock",
+                            "ProfileUpdated"         => "bi-person-gear",
+                            _                        => "bi-dot"
+                        };
+                        <tr>
+                            <td class="act-td-num">@rowNum</td>
+                            <td class="act-td-user">
+                                <div class="act-user-cell">
+                                    <div class="act-avatar @EventBg(log.Event) @EventText(log.Event)">
+                                        @Initials(log.UserName)
+                                    </div>
+                                    <div class="act-user-info">
+                                        <span class="act-user-name">@(log.UserName ?? "—")</span>
+                                        <span class="act-role-chip @roleCls">@log.UserRole</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="act-td-event">
+                                <span class="act-event-badge @EventBg(log.Event) @EventText(log.Event)">
+                                    <i class="bi @eventIcon"></i>
+                                    @FriendlyEvent(log.Event)
                                 </span>
-                                @if (!string.IsNullOrEmpty(log.UserRole))
+                            </td>
+                            <td class="act-td-desc" title="@log.Description">
+                                @if (!string.IsNullOrWhiteSpace(log.Description))
                                 {
-                                    <span class="activity-role-chip @roleCls">@log.UserRole</span>
+                                    @log.Description
                                 }
-                            </div>
-                            @if (!string.IsNullOrEmpty(log.Description))
-                            {
-                                <div class="activity-desc" title="@log.Description">@log.Description</div>
-                            }
-                            <div class="activity-footer">
-                                <span class="activity-time">
-                                    <i class="bi bi-clock" style="font-size:0.75rem;"></i>
-                                    @TimeAgo(log.CreatedAt)
-                                    <span style="color:var(--border-muted);margin:0 2px;">·</span>
-                                    @log.CreatedAt.ToString("MMM d, HH:mm")
-                                </span>
+                                else
+                                {
+                                    <span class="act-desc-empty">—</span>
+                                }
+                            </td>
+                            <td class="act-td-ip">
                                 @if (!string.IsNullOrEmpty(log.IpAddress))
                                 {
-                                    <span class="activity-ip">@log.IpAddress</span>
+                                    <code>@log.IpAddress</code>
                                 }
-                                @if (!string.IsNullOrEmpty(log.SubjectType))
+                                else
                                 {
-                                    <span class="activity-ip" style="color:var(--primary);">
-                                        @log.SubjectType@(log.SubjectId.HasValue ? $" #{log.SubjectId}" : "")
-                                    </span>
+                                    <span class="act-desc-empty">—</span>
                                 }
-                            </div>
-                        </div>
-                    </div>
-                }
-            }
-        </div>
+                            </td>
+                            <td class="act-td-time">
+                                <span class="act-time-date">@log.CreatedAt.ToLocalTime().ToString("MMM d, yyyy")</span>
+                                <span class="act-time-clock">@log.CreatedAt.ToLocalTime().ToString("h:mm tt")</span>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
 
         <!-- Pagination -->
         @if (Model.ActivityLogs.TotalPages > 1)
