@@ -77,9 +77,11 @@ public class OrdersController : ControllerBase
         var platforms = order.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var services = order.Service.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var numberOfTasks = platforms.Length * services.Length;
+        var quantity = int.TryParse(order.Quantity, out var q) && q > 0 ? q : 1;
 
         var userRewardPool = order.Budget * 0.5m;
-        var rewardPerCompletion = numberOfTasks > 0 ? Math.Round(userRewardPool / numberOfTasks, 2) : 0m;
+        var totalCompletions = numberOfTasks * quantity;
+        var rewardPerCompletion = totalCompletions > 0 ? Math.Round(userRewardPool / totalCompletions, 2) : 0m;
 
         var tasksGenerated = 0;
         foreach (var platform in platforms)
@@ -91,7 +93,7 @@ public class OrdersController : ControllerBase
                     OrderId = order.Id,
                     Platform = platform,
                     Service = service,
-                    Quantity = 1,
+                    Quantity = quantity,
                     Url = order.SocialMediaUrl ?? string.Empty,
                     Reward = rewardPerCompletion,
                     Currency = order.Currency,
