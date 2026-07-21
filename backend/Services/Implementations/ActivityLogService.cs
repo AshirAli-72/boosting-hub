@@ -47,7 +47,6 @@ public class ActivityLogService : IActivityLogService
                 OldValues = oldValues,
                 NewValues = newValues,
                 IpAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
-                UserAgent = httpContext?.Request?.Headers.UserAgent.ToString(),
                 CreatedAt = DateTime.UtcNow
             };
 

@@ -31,10 +31,6 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<Guid?>("BatchId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("batch_id");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("created_at");
@@ -81,11 +77,6 @@ namespace BoostingHub.backend.Data.Migrations
                     b.Property<int?>("UserId")
                         .HasColumnType("int")
                         .HasColumnName("user_id");
-
-                    b.Property<string>("UserAgent")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("user_agent");
 
                     b.Property<string>("UserEmail")
                         .HasMaxLength(255)

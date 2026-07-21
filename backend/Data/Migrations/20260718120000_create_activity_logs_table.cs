@@ -28,8 +28,6 @@ namespace BoostingHub.backend.Data.Migrations
                     old_values = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     new_values = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ip_address = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    user_agent = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    batch_id = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>

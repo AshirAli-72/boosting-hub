@@ -19,8 +19,6 @@ public class ActivityLog
     [Column("old_values")] public string? OldValues { get; set; }
     [Column("new_values")] public string? NewValues { get; set; }
     [Column("ip_address")] public string? IpAddress { get; set; }
-    [Column("user_agent")] public string? UserAgent { get; set; }
-    [Column("batch_id")] public Guid? BatchId { get; set; }
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User? User { get; set; }

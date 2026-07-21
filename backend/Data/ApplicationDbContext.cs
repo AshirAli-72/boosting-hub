@@ -241,7 +241,6 @@ public class ApplicationDbContext : DbContext
             e.Property(l => l.UserName).HasMaxLength(200);
             e.Property(l => l.UserEmail).HasMaxLength(255);
             e.Property(l => l.IpAddress).HasMaxLength(50);
-            e.Property(l => l.UserAgent).HasMaxLength(500);
             e.Property(l => l.CreatedAt).HasColumnType("datetime2");
             e.HasOne(l => l.User).WithMany().HasForeignKey(l => l.UserId).OnDelete(DeleteBehavior.NoAction);
             e.HasIndex(l => l.UserId);
