@@ -49,6 +49,13 @@ public class RegisterModel : PageModel
     {
         if (!ModelState.IsValid) return Page();
 
+        if (Input.SocialMediaAccounts == null || Input.SocialMediaAccounts.Count == 0 ||
+            Input.SocialMediaAccounts.All(a => string.IsNullOrWhiteSpace(a.Username)))
+        {
+            ErrorMessage = "At least one social media account is required.";
+            return Page();
+        }
+
         var result = await _authService.RegisterAsync(Input, HttpContext);
 
         if (result.IsSuccess)

@@ -18,6 +18,21 @@
     gap: 20px;
 }
 
+/* ── Task Grid 4 columns ── */
+.task-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 1200px) {
+    .task-grid-4 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 992px) {
+    .task-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    .task-grid-4 { grid-template-columns: 1fr; }
+}
+
 /* ── Task Card ── */
 .task-card {
     background: var(--bg-card);
@@ -318,6 +333,7 @@
 
 @media (max-width: 768px) {
     .task-grid { grid-template-columns: 1fr; }
+    .task-grid-4 { grid-template-columns: 1fr; }
     .proof-inline-row { flex-direction: column; }
     .proof-inline-field[style*="140px"] { flex: 1 !important; }
     .proof-inline-submit .btn { margin-top: 0 !important; width: 100%; }

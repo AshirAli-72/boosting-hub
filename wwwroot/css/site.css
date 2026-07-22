@@ -74,6 +74,12 @@ body.auth-page-body {
         #09090B;
     min-height: 100vh;
 }
+body.light-mode.auth-page-body {
+    background:
+        radial-gradient(circle at 25% 40%, rgba(99, 102, 241, 0.08) 0%, transparent 55%),
+        radial-gradient(circle at 75% 60%, rgba(244, 63, 94, 0.05) 0%, transparent 55%),
+        #FAFAFA;
+}
 
 body.dashboard-page  { background: var(--bg-base); }
 body.admin-page,
@@ -94,4 +100,59 @@ body.light-mode {
     --sidebar-border:rgba(0,0,0,0.08);
     --primary:       #4F46E5;
     --sidebar-active:rgba(79, 70, 229, 0.10);
+}
+
+/* ── Platform Checkbox Grid ──────────────────────────── */
+.platform-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.platform-checkbox-item {
+    cursor: pointer;
+}
+.platform-checkbox-item input[type="checkbox"] {
+    display: none;
+}
+.platform-checkbox-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.platform-checkbox-item:hover .platform-checkbox-box {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.08);
+}
+.platform-checkbox-item input[type="checkbox"]:checked + .platform-checkbox-box {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary-light);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+.platform-checkbox-item.linked .platform-checkbox-box {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.platform-url-field {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-muted);
+    border-radius: 10px;
+    padding: 12px;
+}
+.platform-url-field input.is-invalid {
+    border-color: var(--danger);
+}
+@media (max-width: 576px) {
+    .platform-checkbox-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }

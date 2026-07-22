@@ -4,6 +4,7 @@ using BoostingHub.backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoostingHub.backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260722102330_create_social_media_accounts_table")]
+    partial class create_social_media_accounts_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,9 +38,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("accepted_at");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
 
                     b.Property<int>("TaskId")
@@ -95,9 +99,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("mobile_number");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(20)")
                         .HasColumnName("status");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -312,9 +317,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("social_media_url");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
 
                     b.HasKey("Id");
@@ -475,9 +481,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("proof_id");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
 
                     b.Property<int>("TaskId")
@@ -541,9 +548,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("service");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
 
                     b.Property<string>("Url")
@@ -591,9 +599,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(1000)")
                         .HasColumnName("reject_reason");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
 
                     b.Property<int>("TaskId")
@@ -604,10 +613,12 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("user_id");
 
-                    b.Property<int>("VerificationStatus")
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .HasMaxLength(50)
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(4)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("None")
                         .HasColumnName("verification_status");
 
                     b.HasKey("Id");
@@ -657,9 +668,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("reference_type");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
 
                     b.Property<string>("Type")
@@ -734,8 +746,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("remember_token");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int")
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
                         .HasColumnName("status");
 
                     b.HasKey("Id");
@@ -797,9 +811,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(10)")
                         .HasColumnName("currency");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(20)")
                         .HasColumnName("status");
 
                     b.Property<decimal>("TotalBalance")

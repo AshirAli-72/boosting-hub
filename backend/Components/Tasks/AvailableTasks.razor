@@ -129,13 +129,23 @@
                         <button type="button" class="btn btn-secondary" @onclick="CloseDetail"><i class="bi bi-x-circle me-1"></i>Close</button>
                         @if ((selectedTask.TargetQuantity - selectedTask.CompletedQuantity) > 0 && selectedTask.Status == "Active" && selectedTask.UserStatus == "Not Accepted")
                         {
-                            <button type="button" class="btn btn-primary" @onclick="() => AcceptTask(selectedTask.Id)" disabled="@isAccepting">
-                                @if (isAccepting)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-1"></span>
-                                }
-                                <i class="bi bi-check2 me-1"></i>Accept Task
-                            </button>
+                            @if (!userPlatforms.Contains(selectedTask.Platform))
+                            {
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>You need a @selectedTask.Platform account</span>
+                                    <a href="/settings?tab=configuration" class="btn btn-sm btn-outline-warning"><i class="bi bi-plus-circle me-1"></i>Add Account</a>
+                                </div>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-primary" @onclick="() => AcceptTask(selectedTask.Id)" disabled="@isAccepting">
+                                    @if (isAccepting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1"></span>
+                                    }
+                                    <i class="bi bi-check2 me-1"></i>Accept Task
+                                </button>
+                            }
                         }
                     </div>
                 </div>
@@ -176,16 +186,29 @@
     private TaskFilterDto filter = new();
     private int? selectedTaskId;
     private TaskDetailDto? selectedTask;
+    private HashSet<string> userPlatforms = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadFilterData();
+        await LoadUserPlatforms();
         await LoadTasks();
     }
 
     private async Task LoadFilterData()
     {
         try { platforms = await TaskService.GetPlatformsAsync(); services = await TaskService.GetServicesAsync(); } catch { }
+    }
+
+    private async Task LoadUserPlatforms()
+    {
+        try
+        {
+            var result = await TaskService.GetUserSocialMediaPlatformsAsync(UserId);
+            if (result.IsSuccess && result.Data != null)
+                userPlatforms = result.Data.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        }
+        catch { }
     }
 
     private async Task LoadTasks()

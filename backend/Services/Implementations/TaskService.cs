@@ -218,6 +218,11 @@ public class TaskService : ITaskService
         if (worker == null || worker.Status != 1)
             return Result.Failure<AcceptTaskResult>("Account is not active", "ACCOUNT_INACTIVE");
 
+        var hasPlatformAccount = await _db.SocialMediaAccounts
+            .AnyAsync(s => s.UserId == userId && s.Platform == task.Platform);
+        if (!hasPlatformAccount)
+            return Result.Failure<AcceptTaskResult>($"You need a {task.Platform} account to accept this task. Please add it in Settings > Social Accounts.", "NO_PLATFORM_ACCOUNT");
+
         var alreadyAccepted = await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId && a.TaskId == taskId);
         if (alreadyAccepted)
             return Result.Failure<AcceptTaskResult>("You already accepted this task", "ALREADY_ACCEPTED");
@@ -629,6 +634,211 @@ public class TaskService : ITaskService
         }
     }
 
+    public async Task<PagedResult<MyTaskDto>> GetMyTasksPagedAsync(int userId, MyTaskFilterDto filter)
+    {
+        try
+        {
+            var userAcceptedTaskIds = await _db.AcceptedTasks
+                .Where(a => a.UserId == userId)
+                .Select(a => a.TaskId)
+                .ToListAsync();
+
+            var userCompletedTaskIds = await _db.TaskCompletes
+                .Where(c => c.UserId == userId)
+                .Select(c => c.TaskId)
+                .ToListAsync();
+
+            var userProofTaskIds = await _db.TaskProofs
+                .Where(p => p.UserId == userId)
+                .Select(p => p.TaskId)
+                .ToListAsync();
+
+            var relatedTaskIds = userAcceptedTaskIds
+                .Union(userCompletedTaskIds)
+                .Union(userProofTaskIds)
+                .Distinct()
+                .ToList();
+
+            if (relatedTaskIds.Count == 0)
+                return new PagedResult<MyTaskDto> { Items = new List<MyTaskDto>(), TotalCount = 0, Page = filter.Page, PageSize = filter.PageSize };
+
+            var relatedTaskIdSet = relatedTaskIds.ToHashSet();
+
+            var query = _db.TaskGenerates
+                .AsNoTracking()
+                .Where(t => relatedTaskIdSet.Contains(t.Id));
+
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                var search = filter.Search.ToLower();
+                query = query.Where(t =>
+                    (t.Platform != null && t.Platform.ToLower().Contains(search)) ||
+                    (t.Service != null && t.Service.ToLower().Contains(search)));
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var tasks = await query
+                .OrderByDescending(t => t.Id)
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            var taskIds = tasks.Select(t => t.Id).ToList();
+            var taskIdSet = taskIds.ToHashSet();
+
+            var proofsList = await _db.TaskProofs
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.Date)
+                .ToListAsync();
+            var proofs = proofsList
+                .Where(p => taskIdSet.Contains(p.TaskId))
+                .GroupBy(p => p.TaskId)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var completions = await _db.TaskCompletes
+                .Where(tc => tc.UserId == userId)
+                .OrderByDescending(tc => tc.Date)
+                .Select(tc => new { tc.TaskId, tc.Status, tc.Id })
+                .ToListAsync();
+
+            var result = new List<MyTaskDto>();
+
+            foreach (var t in tasks)
+            {
+                var proof = proofs.GetValueOrDefault(t.Id);
+                var comp = completions.FirstOrDefault(c => c.TaskId == t.Id && taskIdSet.Contains(c.TaskId));
+
+                string status;
+                if (proof != null && comp == null)
+                    status = StatusHelper.TaskProofStatusToString(proof.VerificationStatus == StatusHelper.VerificationRejected ? StatusHelper.TaskProofRejected : StatusHelper.TaskProofSubmitted);
+                else if (comp != null)
+                    status = StatusHelper.TaskCompleteStatusToString(comp.Status);
+                else
+                    status = StatusHelper.TaskCompleteStatusToString(StatusHelper.TaskCompletePending);
+
+                if (!string.IsNullOrEmpty(filter.Status) && !status.Equals(filter.Status, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (proof != null && comp == null)
+                {
+                    result.Add(new MyTaskDto
+                    {
+                        TaskId = t.Id,
+                        Platform = t.Platform,
+                        Service = t.Service,
+                        Url = t.Url,
+                        Reward = t.Reward,
+                        Currency = t.Currency,
+                        Status = status,
+                        ProofUrl = proof.ProofUrl,
+                        ProofType = proof.ProofType,
+                        ProofStatus = StatusHelper.TaskProofStatusToString(proof.Status),
+                        VerificationStatus = StatusHelper.VerificationStatusToString(proof.VerificationStatus),
+                        RejectReason = proof.RejectReason
+                    });
+                }
+                else if (comp != null)
+                {
+                    result.Add(new MyTaskDto
+                    {
+                        TaskCompleteId = comp.Id,
+                        TaskId = t.Id,
+                        Platform = t.Platform,
+                        Service = t.Service,
+                        Url = t.Url,
+                        Reward = t.Reward,
+                        Currency = t.Currency,
+                        Status = status,
+                        ProofUrl = proof?.ProofUrl,
+                        ProofType = proof?.ProofType,
+                        ProofStatus = proof != null ? StatusHelper.TaskProofStatusToString(proof.Status) : null,
+                        VerificationStatus = proof != null ? StatusHelper.VerificationStatusToString(proof.VerificationStatus) : null,
+                        RejectReason = proof?.RejectReason
+                    });
+                }
+                else
+                {
+                    result.Add(new MyTaskDto
+                    {
+                        TaskId = t.Id,
+                        Platform = t.Platform,
+                        Service = t.Service,
+                        Url = t.Url,
+                        Reward = t.Reward,
+                        Currency = t.Currency,
+                        Status = status
+                    });
+                }
+            }
+
+            return new PagedResult<MyTaskDto>
+            {
+                Items = result,
+                TotalCount = totalCount,
+                Page = filter.Page,
+                PageSize = filter.PageSize
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GetMyTasksPagedAsync failed for user {UserId}", userId);
+            throw;
+        }
+    }
+
+    public async Task<PagedResult<ProofReviewDto>> GetProofsPendingReviewPagedAsync(ProofReviewFilterDto filter)
+    {
+        var query = _db.TaskProofs
+            .AsNoTracking()
+            .Where(p => p.VerificationStatus == StatusHelper.VerificationPendingReview)
+            .Join(_db.Users, p => p.UserId, u => u.Id, (p, u) => new { p, u })
+            .Join(_db.TaskGenerates, x => x.p.TaskId, t => t.Id, (x, t) => new { x.p, x.u, t });
+
+        if (!string.IsNullOrEmpty(filter.Search))
+        {
+            var search = filter.Search.ToLower();
+            query = query.Where(x =>
+                (x.u.Name != null && x.u.Name.ToLower().Contains(search)) ||
+                (x.t.Service != null && x.t.Service.ToLower().Contains(search)));
+        }
+
+        if (!string.IsNullOrEmpty(filter.Platform))
+            query = query.Where(x => x.t.Platform == filter.Platform);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(x => x.p.Date)
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .Select(x => new ProofReviewDto
+            {
+                ProofId = x.p.Id,
+                TaskId = x.p.TaskId,
+                UserId = x.p.UserId,
+                UserName = x.u.Name ?? string.Empty,
+                ProofUrl = x.p.ProofUrl,
+                Platform = x.t.Platform,
+                Service = x.t.Service,
+                TaskUrl = x.t.Url,
+                Reward = x.t.Reward,
+                Currency = x.t.Currency,
+                SubmittedAt = x.p.Date,
+                VerificationStatus = StatusHelper.VerificationStatusToString(x.p.VerificationStatus),
+                RejectReason = x.p.RejectReason
+            })
+            .ToListAsync();
+
+        return new PagedResult<ProofReviewDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = filter.Page,
+            PageSize = filter.PageSize
+        };
+    }
+
     public async Task<List<string>> GetPlatformsAsync()
     {
         return await _db.TaskGenerates
@@ -647,6 +857,15 @@ public class TaskService : ITaskService
             .Select(t => t.Service)
             .Distinct()
             .ToListAsync();
+    }
+
+    public async Task<Result<List<string>>> GetUserSocialMediaPlatformsAsync(int userId)
+    {
+        var platforms = await _db.SocialMediaAccounts
+            .Where(s => s.UserId == userId)
+            .Select(s => s.Platform)
+            .ToListAsync();
+        return Result.Success(platforms);
     }
 
     public async Task<int> GetWorkerActiveTaskCountAsync(int userId)

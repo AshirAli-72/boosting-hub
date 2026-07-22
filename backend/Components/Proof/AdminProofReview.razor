@@ -17,65 +17,104 @@
             <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
         </div>
     }
-    else if (proofs.Count == 0)
-    {
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-check2-all fs-1"></i>
-            <p class="mt-2">All proofs have been reviewed!</p>
-        </div>
-    }
     else
     {
-        <div class="table-responsive">
-            <table class="table table-hover align-middle admin-table">
-                <thead class="admin-thead">
-                    <tr>
-                        <th>ID</th>
-                        <th>Worker</th>
-                        <th>Platform</th>
-                        <th>Service</th>
-                        <th>Proof URL</th>
-                        <th>Submitted</th>
-                        <th>Reward</th>
-                        <th>Target URL</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var p in proofs)
-                    {
-                        <tr>
-                            <td>#@p.ProofId</td>
-                            <td>@p.UserName</td>
-                            <td><span class="badge bg-info">@p.Platform</span></td>
-                            <td>@p.Service</td>
-                            <td>
-                                <a href="@p.ProofUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.ProofUrl">
-                                    <i class="bi bi-box-arrow-up-right me-1"></i>View
-                                </a>
-                            </td>
-                            <td>@p.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                            <td class="fw-bold" style="color:var(--success);">@GetCurrencySymbol(p.Currency)@p.Reward.ToString("F2")</td>
-                            <td>
-                                <a href="@p.TaskUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.TaskUrl">
-                                    <i class="bi bi-box-arrow-up-right me-1"></i>View
-                                </a>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-success" @onclick="() => Approve(p.ProofId)">
-                                        <i class="bi bi-check-lg"></i> Approve
-                                    </button>
-                                    <button class="btn btn-sm btn-danger" @onclick="() => ShowRejectModal(p.ProofId)">
-                                        <i class="bi bi-x-lg"></i> Reject
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="filter-bar d-flex flex-wrap gap-2 mb-4">
+            <input type="text" class="form-control" style="flex:2;min-width:160px;" placeholder="Search by worker or service..." @bind="filter.Search" @bind:event="oninput" />
+            <select class="form-select" style="flex:1;min-width:120px;" @bind="filter.Platform">
+                <option value="">All Platforms</option>
+                @foreach (var p in platforms)
+                {
+                    <option value="@p">@p</option>
+                }
+            </select>
+            <button class="btn btn-primary" @onclick="LoadProofs"><i class="bi bi-search me-1"></i>Search</button>
         </div>
+
+        @if (proofs.Count == 0)
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-check2-all fs-1"></i>
+                <p class="mt-2">All proofs have been reviewed!</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle admin-table">
+                    <thead class="admin-thead">
+                        <tr>
+                            <th>ID</th>
+                            <th>Worker</th>
+                            <th>Platform</th>
+                            <th>Service</th>
+                            <th>Proof URL</th>
+                            <th>Submitted</th>
+                            <th>Reward</th>
+                            <th>Target URL</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in proofs)
+                        {
+                            <tr>
+                                <td>#@p.ProofId</td>
+                                <td>@p.UserName</td>
+                                <td><span class="badge bg-info">@p.Platform</span></td>
+                                <td>@p.Service</td>
+                                <td>
+                                    <a href="@p.ProofUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.ProofUrl">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i>View
+                                    </a>
+                                </td>
+                                <td>@p.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td class="fw-bold" style="color:var(--success);">@GetCurrencySymbol(p.Currency)@p.Reward.ToString("F2")</td>
+                                <td>
+                                    <a href="@p.TaskUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.TaskUrl">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i>View
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-success" @onclick="() => Approve(p.ProofId)">
+                                            <i class="bi bi-check-lg"></i> Approve
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" @onclick="() => ShowRejectModal(p.ProofId)">
+                                            <i class="bi bi-x-lg"></i> Reject
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (totalPages > 1)
+            {
+                <nav class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <span class="text-muted small">Showing @(((currentPage - 1) * filter.PageSize) + 1)-@(Math.Min(currentPage * filter.PageSize, totalCount)) of @totalCount proofs</span>
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(!hasPrevious ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)"><i class="bi bi-chevron-left"></i></button>
+                            </li>
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                var pageNum = i;
+                                <li class="page-item @(pageNum == currentPage ? "active" : "")">
+                                    <button class="page-link" @onclick="() => ChangePage(pageNum)">@pageNum</button>
+                                </li>
+                            }
+                            <li class="page-item @(!hasNext ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)"><i class="bi bi-chevron-right"></i></button>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            }
+        }
     }
 </div>
 
@@ -124,9 +163,23 @@
     private string? operationMessage;
     private bool operationSuccess;
 
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private int totalCount;
+    private bool hasPrevious;
+    private bool hasNext;
+    private ProofReviewFilterDto filter = new();
+    private List<string> platforms = new();
+
     protected override async Task OnInitializedAsync()
     {
+        await LoadPlatforms();
         await LoadProofs();
+    }
+
+    private async Task LoadPlatforms()
+    {
+        try { platforms = await TaskService.GetPlatformsAsync(); } catch { }
     }
 
     private async Task LoadProofs()
@@ -136,7 +189,14 @@
         errorMessage = null;
         try
         {
-            proofs = await TaskService.GetProofsPendingReviewAsync();
+            filter.Page = currentPage;
+            var result = await TaskService.GetProofsPendingReviewPagedAsync(filter);
+            proofs = result.Items.ToList();
+            totalCount = result.TotalCount;
+            currentPage = result.Page;
+            totalPages = result.TotalPages;
+            hasPrevious = result.HasPrevious;
+            hasNext = result.HasNext;
         }
         catch (Exception ex)
         {
@@ -150,6 +210,13 @@
         }
     }
 
+    private async Task ChangePage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        await LoadProofs();
+    }
+
     private async Task Approve(int proofId)
     {
         try
@@ -158,7 +225,7 @@
             if (result.IsSuccess)
             {
                 await JS.InvokeVoidAsync("showToast", result.Message, "success");
-                proofs.RemoveAll(p => p.ProofId == proofId);
+                await LoadProofs();
             }
             else
             {
@@ -206,8 +273,8 @@
             if (result.IsSuccess)
             {
                 await JS.InvokeVoidAsync("showToast", "Proof rejected successfully.", "success");
-                proofs.RemoveAll(p => p.ProofId == rejectProofId);
                 CloseRejectModal();
+                await LoadProofs();
             }
             else
             {

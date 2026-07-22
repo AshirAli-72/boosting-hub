@@ -7,6 +7,10 @@
 }
 
 <div class="auth-page">
+    <button class="theme-toggle-btn auth-theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <i class="bi bi-moon-stars dark-icon"></i>
+        <i class="bi bi-sun light-icon"></i>
+    </button>
     <div class="auth-container">
         @if (Model.IsVerified || Model.IsVerificationError || Model.IsSuccess)
         {
@@ -75,7 +79,7 @@
 
                     <div asp-validation-summary="All" class="mb-3"></div>
 
-                    <form method="post">
+                    <form method="post" id="registerForm">
                         <div class="input-group-custom">
                             <label asp-for="Input.Name" class="form-label">Full Name</label>
                             <div class="input-icon-wrapper">
@@ -124,6 +128,23 @@
                             <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                         </div>
 
+                        <!-- Social Accounts Section -->
+                        <div id="socialAccountsSection" style="background:var(--bg-elevated);border:1px solid var(--border-muted);border-radius:12px;padding:16px;margin:16px 0;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <p style="font-size:0.82rem;color:var(--text-muted);margin:0;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
+                                    <i class="bi bi-globe2 me-1"></i> Social Media Accounts <span style="color:var(--accent);">*</span>
+                                </p>
+                            </div>
+                            <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 12px;">
+                                Required to accept platform-specific tasks.
+                            </p>
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="openSocialModal()" style="border-radius:8px;">
+                                <i class="bi bi-plus-circle me-1"></i> Add Social Accounts
+                            </button>
+                            <div id="selectedPlatformsPreview" class="mt-2" style="display:none;"></div>
+                            <div id="socialAccountsHiddenInputs"></div>
+                        </div>
+
                         <button type="submit" class="btn btn-auth w-100">
                             <i class="bi bi-person-plus"></i> Create Account
                         </button>
@@ -139,10 +160,93 @@
     </div>
 </div>
 
+<!-- Social Accounts Modal -->
+<div class="modal fade" id="socialAccountsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="background:var(--bg-card);color:var(--text-primary);">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-semibold"><i class="bi bi-globe2 text-primary me-2"></i>Add Social Media Accounts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 16px;">
+                    Select the platforms you want to add, then paste your profile URL for each.
+                </p>
+
+                <!-- Platform Multi-Select -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium text-secondary" style="font-size:0.85rem;">Select Platforms</label>
+                    <div class="platform-checkbox-grid">
+                        <label class="platform-checkbox-item" data-platform="Instagram">
+                            <input type="checkbox" class="platform-check" value="Instagram" onchange="handlePlatformToggle(this)">
+                            <span class="platform-checkbox-box">
+                                <i class="bi bi-instagram" style="color:#E4405F;"></i> Instagram
+                            </span>
+                        </label>
+                        <label class="platform-checkbox-item" data-platform="Facebook">
+                            <input type="checkbox" class="platform-check" value="Facebook" onchange="handlePlatformToggle(this)">
+                            <span class="platform-checkbox-box">
+                                <i class="bi bi-facebook" style="color:#1877F2;"></i> Facebook
+                            </span>
+                        </label>
+                        <label class="platform-checkbox-item" data-platform="TikTok">
+                            <input type="checkbox" class="platform-check" value="TikTok" onchange="handlePlatformToggle(this)">
+                            <span class="platform-checkbox-box">
+                                <i class="bi bi-tiktok" style="color:var(--text-primary);"></i> TikTok
+                            </span>
+                        </label>
+                        <label class="platform-checkbox-item" data-platform="YouTube">
+                            <input type="checkbox" class="platform-check" value="YouTube" onchange="handlePlatformToggle(this)">
+                            <span class="platform-checkbox-box">
+                                <i class="bi bi-youtube" style="color:#FF0000;"></i> YouTube
+                            </span>
+                        </label>
+                        <label class="platform-checkbox-item" data-platform="Twitter">
+                            <input type="checkbox" class="platform-check" value="Twitter" onchange="handlePlatformToggle(this)">
+                            <span class="platform-checkbox-box">
+                                <i class="bi bi-twitter-x" style="color:var(--text-primary);"></i> Twitter / X
+                            </span>
+                        </label>
+                        <label class="platform-checkbox-item" data-platform="Other">
+                            <input type="checkbox" class="platform-check" value="Other" onchange="handlePlatformToggle(this)">
+                            <span class="platform-checkbox-box">
+                                <i class="bi bi-globe2" style="color:var(--primary);"></i> Other
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dynamic URL Fields -->
+                <div id="platformUrlFields"></div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-secondary flex-fill py-2" data-bs-dismiss="modal" style="border-radius:8px;">Cancel</button>
+                    <button type="button" class="btn btn-primary flex-fill py-2" onclick="saveSocialAccounts()" style="border-radius:8px;">
+                        <i class="bi bi-check-circle me-1"></i> Save Accounts
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/site.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        var savedAccounts = [];
+
+        var platformPatterns = {
+            'Instagram': { regex: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://instagram.com/username', icon: 'bi-instagram', color: '#E4405F' },
+            'Facebook': { regex: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://facebook.com/username', icon: 'bi-facebook', color: '#1877F2' },
+            'TikTok': { regex: /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@@([a-zA-Z0-9._]+)\/?/, placeholder: 'https://tiktok.com/@@username', icon: 'bi-tiktok', color: '#000' },
+            'YouTube': { regex: /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(c\/|channel\/|@@)([a-zA-Z0-9._-]+)\/?/, placeholder: 'https://youtube.com/@@channel', icon: 'bi-youtube', color: '#FF0000' },
+            'Twitter': { regex: /(?:https?:\/\/)?(?:www\.)?(twitter|x)\.com\/([a-zA-Z0-9_]+)\/?/, placeholder: 'https://x.com/username', icon: 'bi-twitter-x', color: '#000' },
+            'Other': { regex: /.+/, placeholder: 'https://your-profile-url.com', icon: 'bi-globe2', color: 'var(--primary)' }
+        };
+
         document.querySelectorAll('[data-val-equalto-other]').forEach(function(el) {
             var other = el.getAttribute('data-val-equalto-other');
             if (other && other.indexOf('.') > -1 && !other.startsWith('[')) {
@@ -162,5 +266,150 @@
                 }
             });</text>
         }
+
+        function openSocialModal() {
+            var modal = new bootstrap.Modal(document.getElementById('socialAccountsModal'));
+            modal.show();
+        }
+
+        function handlePlatformToggle(checkbox) {
+            var platform = checkbox.value;
+            var container = document.getElementById('platformUrlFields');
+            var fieldId = 'url_field_' + platform.replace(/\s+/g, '_');
+
+            if (checkbox.checked) {
+                var pattern = platformPatterns[platform];
+                var fieldHtml = '<div class="platform-url-field mb-3" id="' + fieldId + '">' +
+                    '<div class="d-flex align-items-center gap-2 mb-1">' +
+                    '<i class="bi ' + pattern.icon + '" style="color:' + pattern.color + ';font-size:1rem;"></i>' +
+                    '<label class="form-label fw-medium text-secondary mb-0" style="font-size:0.85rem;">' + platform + ' Profile URL</label>' +
+                    '</div>' +
+                    '<input type="url" class="form-control platform-url-input" data-platform="' + platform + '" ' +
+                    'placeholder="' + pattern.placeholder + '" ' +
+                    'oninput="extractUsername(this, \'' + platform + '\')" ' +
+                    'style="font-size:0.85rem;" />' +
+                    '<div class="d-flex align-items-center gap-2 mt-1" style="font-size:0.78rem;">' +
+                    '<span class="text-muted extracted-username" id="username_' + fieldId + '"></span>' +
+                    '</div>' +
+                    '</div>';
+                container.insertAdjacentHTML('beforeend', fieldHtml);
+            } else {
+                var field = document.getElementById(fieldId);
+                if (field) field.remove();
+                updatePreview();
+            }
+        }
+
+        function extractUsername(input, platform) {
+            var fieldId = 'url_field_' + platform.replace(/\s+/g, '_');
+            var usernameSpan = document.getElementById('username_' + fieldId);
+            var url = input.value.trim();
+
+            if (!url) {
+                usernameSpan.textContent = '';
+                usernameSpan.style.display = 'none';
+                return;
+            }
+
+            var pattern = platformPatterns[platform];
+            var match = url.match(pattern.regex);
+            var username = match ? match[match.length - 1] : '';
+
+            if (username) {
+                usernameSpan.textContent = 'Username: @@' + username;
+                usernameSpan.style.color = 'var(--primary)';
+                usernameSpan.style.fontWeight = '500';
+                usernameSpan.style.display = 'block';
+            } else {
+                usernameSpan.textContent = 'Could not detect username from URL';
+                usernameSpan.style.color = 'var(--text-muted)';
+                usernameSpan.style.fontWeight = '400';
+                usernameSpan.style.display = 'block';
+            }
+        }
+
+        function saveSocialAccounts() {
+            var urlInputs = document.querySelectorAll('.platform-url-input');
+            savedAccounts = [];
+            var hasError = false;
+
+            urlInputs.forEach(function(input) {
+                var platform = input.getAttribute('data-platform');
+                var url = input.value.trim();
+
+                if (!url) {
+                    input.classList.add('is-invalid');
+                    hasError = true;
+                    return;
+                }
+
+                input.classList.remove('is-invalid');
+                var pattern = platformPatterns[platform];
+                var match = url.match(pattern.regex);
+                var username = match ? match[match.length - 1] : url;
+
+                savedAccounts.push({
+                    platform: platform,
+                    username: username,
+                    profileUrl: url.startsWith('http') ? url : 'https://' + url
+                });
+            });
+
+            if (savedAccounts.length === 0 && urlInputs.length > 0) {
+                return;
+            }
+
+            if (hasError) return;
+
+            updatePreview();
+            syncHiddenInputs();
+
+            var modal = bootstrap.Modal.getInstance(document.getElementById('socialAccountsModal'));
+            if (modal) modal.hide();
+        }
+
+        function updatePreview() {
+            var preview = document.getElementById('selectedPlatformsPreview');
+            if (savedAccounts.length === 0) {
+                preview.style.display = 'none';
+                return;
+            }
+
+            var html = '';
+            savedAccounts.forEach(function(acc, i) {
+                var pattern = platformPatterns[acc.platform];
+                html += '<span class="badge bg-primary bg-opacity-10 text-primary me-1 mb-1" style="font-size:0.75rem;padding:4px 8px;border-radius:6px;">' +
+                    '<i class="bi ' + pattern.icon + ' me-1"></i>' + acc.platform + ': @@' + acc.username +
+                    ' <button type="button" class="btn-close btn-close-sm ms-1" onclick="removeAccount(' + i + ')" style="font-size:0.5rem;"></button>' +
+                    '</span>';
+            });
+            preview.innerHTML = html;
+            preview.style.display = 'block';
+        }
+
+        function removeAccount(index) {
+            savedAccounts.splice(index, 1);
+            updatePreview();
+            syncHiddenInputs();
+        }
+
+        function syncHiddenInputs() {
+            var container = document.getElementById('socialAccountsHiddenInputs');
+            container.innerHTML = '';
+            savedAccounts.forEach(function(acc, i) {
+                container.innerHTML += '<input type="hidden" name="Input.SocialMediaAccounts[' + i + '].Platform" value="' + acc.platform + '" />' +
+                    '<input type="hidden" name="Input.SocialMediaAccounts[' + i + '].Username" value="' + acc.username + '" />' +
+                    '<input type="hidden" name="Input.SocialMediaAccounts[' + i + '].ProfileUrl" value="' + acc.profileUrl + '" />';
+            });
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            if (savedAccounts.length === 0) {
+                e.preventDefault();
+                showToast('Please add at least one social media account.', 'danger');
+                openSocialModal();
+                return false;
+            }
+        });
     </script>
 }

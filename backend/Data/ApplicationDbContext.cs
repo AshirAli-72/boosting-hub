@@ -22,6 +22,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Transaction> Transactions { get; set; }
     public DbSet<Account> Accounts { get; set; }
     public DbSet<ActivityLog> ActivityLogs { get; set; }
+    public DbSet<SocialMediaAccount> SocialMediaAccounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -247,6 +248,18 @@ public class ApplicationDbContext : DbContext
             e.HasIndex(l => new { l.SubjectType, l.SubjectId });
             e.HasIndex(l => l.CreatedAt);
             e.HasIndex(l => l.Event);
+        });
+
+        // ── SocialMediaAccount ─────────────────────────────────────────────
+        builder.Entity<SocialMediaAccount>(e =>
+        {
+            e.Property(s => s.Platform).HasMaxLength(100).IsRequired();
+            e.Property(s => s.Username).HasMaxLength(200).IsRequired();
+            e.Property(s => s.ProfileUrl).HasMaxLength(500);
+            e.Property(s => s.CreatedAt).HasColumnType("datetime2");
+            e.HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(s => s.UserId);
+            e.HasIndex(s => new { s.UserId, s.Platform }).IsUnique();
         });
 
     }

@@ -5,7 +5,12 @@
     ViewData["BodyClass"] = "auth-page d-flex align-items-center justify-content-center min-vh-100";
 }
 
-<div class="auth-card glass-panel w-100 mx-auto" style="max-width: 450px;">
+<div class="auth-page" style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;">
+    <button class="theme-toggle-btn auth-theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <i class="bi bi-moon-stars dark-icon"></i>
+        <i class="bi bi-sun light-icon"></i>
+    </button>
+    <div class="auth-card glass-panel w-100 mx-auto" style="max-width: 450px;">
     <div class="auth-card-body p-4 p-md-5 text-center">
         <div class="auth-brand mb-4">
             <div class="auth-brand-icon mx-auto"><i class="bi bi-rocket-takeoff"></i></div>

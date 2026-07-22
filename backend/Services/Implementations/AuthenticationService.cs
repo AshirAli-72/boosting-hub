@@ -111,6 +111,21 @@ public class AuthenticationService : IAuthenticationService
             CreatedAt = DateTime.UtcNow
         });
 
+        if (dto.SocialMediaAccounts?.Any() == true)
+        {
+            foreach (var sm in dto.SocialMediaAccounts.Where(s => !string.IsNullOrWhiteSpace(s.Username)))
+            {
+                _db.SocialMediaAccounts.Add(new SocialMediaAccount
+                {
+                    UserId = user.Id,
+                    Platform = sm.Platform,
+                    Username = sm.Username,
+                    ProfileUrl = sm.ProfileUrl,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
         await _db.SaveChangesAsync(ct);
 
         await _activityLog.LogAsync(
@@ -527,5 +542,58 @@ public class AuthenticationService : IAuthenticationService
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
         return Convert.ToBase64String(bytes);
+    }
+
+    public async Task<Result<List<SocialMediaAccountDto>>> GetSocialMediaAccountsAsync(int userId, CancellationToken ct = default)
+    {
+        var accounts = await _db.SocialMediaAccounts
+            .Where(s => s.UserId == userId)
+            .OrderBy(s => s.Platform)
+            .Select(s => new SocialMediaAccountDto
+            {
+                Id = s.Id,
+                Platform = s.Platform,
+                Username = s.Username,
+                ProfileUrl = s.ProfileUrl
+            })
+            .ToListAsync(ct);
+
+        return Result.Success(accounts);
+    }
+
+    public async Task<Result> AddSocialMediaAccountAsync(int userId, SocialMediaAccountDto dto, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Platform) || string.IsNullOrWhiteSpace(dto.Username))
+            return Result.Failure("Platform and username are required", "INVALID_INPUT");
+
+        var exists = await _db.SocialMediaAccounts
+            .AnyAsync(s => s.UserId == userId && s.Platform == dto.Platform, ct);
+        if (exists)
+            return Result.Failure($"You already have a {dto.Platform} account linked", "DUPLICATE_PLATFORM");
+
+        _db.SocialMediaAccounts.Add(new SocialMediaAccount
+        {
+            UserId = userId,
+            Platform = dto.Platform.Trim(),
+            Username = dto.Username.Trim(),
+            ProfileUrl = dto.ProfileUrl?.Trim(),
+            CreatedAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync(ct);
+
+        return Result.Success($"{dto.Platform} account added successfully");
+    }
+
+    public async Task<Result> DeleteSocialMediaAccountAsync(int userId, int accountId, CancellationToken ct = default)
+    {
+        var account = await _db.SocialMediaAccounts
+            .FirstOrDefaultAsync(s => s.Id == accountId && s.UserId == userId, ct);
+        if (account == null)
+            return Result.Failure("Account not found", "NOT_FOUND");
+
+        _db.SocialMediaAccounts.Remove(account);
+        await _db.SaveChangesAsync(ct);
+
+        return Result.Success($"{account.Platform} account removed");
     }
 }

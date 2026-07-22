@@ -1,0 +1,319 @@
+@page "/user/social-accounts"
+@model BoostingHub.frontend.Pages.Users.Settings.SocialAccountsModel
+@{
+    ViewData["Title"] = "Social Media Accounts";
+    ViewData["BodyClass"] = "user-dashboard-page";
+}
+
+        <div class="admin-header">
+            <div class="d-flex align-items-center gap-3">
+                <a href="/user/settings" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+                <h3 class="mb-0"><i class="bi bi-globe2 text-primary"></i> Social Media Accounts</h3>
+            </div>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> User
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div class="row g-4">
+                <div class="col-lg-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-semibold"><i class="bi bi-link-45deg text-primary me-2"></i>Linked Accounts</h5>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="openAddAccountsModal()">
+                                <i class="bi bi-plus-circle"></i> Add Accounts
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            @if (Model.Accounts.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="admin-table mb-0 align-middle">
+                                        <thead class="admin-thead">
+                                            <tr>
+                                                <th>Platform</th>
+                                                <th>Username</th>
+                                                <th>Profile URL</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var acc in Model.Accounts)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <span class="d-flex align-items-center gap-2">
+                                                            @switch (acc.Platform.ToLower())
+                                                            {
+                                                                case "instagram":
+                                                                    <i class="bi bi-instagram" style="color:#E4405F;font-size:1.1rem;"></i>
+                                                                    break;
+                                                                case "facebook":
+                                                                    <i class="bi bi-facebook" style="color:#1877F2;font-size:1.1rem;"></i>
+                                                                    break;
+                                                                case "tiktok":
+                                                                    <i class="bi bi-tiktok" style="color:var(--text-primary);font-size:1.1rem;"></i>
+                                                                    break;
+                                                                case "youtube":
+                                                                    <i class="bi bi-youtube" style="color:#FF0000;font-size:1.1rem;"></i>
+                                                                    break;
+                                                                case "twitter":
+                                                                    <i class="bi bi-twitter-x" style="color:var(--text-primary);font-size:1.1rem;"></i>
+                                                                    break;
+                                                                default:
+                                                                    <i class="bi bi-globe2" style="color:var(--primary);font-size:1.1rem;"></i>
+                                                                    break;
+                                                            }
+                                                            <span class="fw-medium">@acc.Platform</span>
+                                                        </span>
+                                                    </td>
+                                                    <td>@acc.Username</td>
+                                                    <td>
+                                                        @if (!string.IsNullOrEmpty(acc.ProfileUrl))
+                                                        {
+                                                            <a href="@acc.ProfileUrl" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width:200px;">
+                                                                <i class="bi bi-box-arrow-up-right me-1"></i>View
+                                                            </a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">-</span>
+                                                        }
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <form method="post" asp-page-handler="Delete" asp-route-id="@acc.Id" style="display:inline;" onsubmit="return confirm('Remove this @acc.Platform account?');">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5 text-muted">
+                                    <i class="bi bi-globe2 fs-1"></i>
+                                    <p class="mt-2">No social media accounts linked yet.</p>
+                                    <button type="button" class="btn btn-primary btn-sm mt-2" onclick="openAddAccountsModal()">
+                                        <i class="bi bi-plus-circle me-1"></i>Add Your First Account
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+            </div>
+
+            <!-- Add Accounts Modal -->
+            <div class="modal fade" id="addAccountsModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header border-bottom-0 pb-0">
+                            <h5 class="modal-title fw-semibold"><i class="bi bi-globe2 text-primary me-2"></i>Add Social Media Accounts</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 16px;">
+                                Select the platforms you want to add, then paste your profile URL for each.
+                            </p>
+
+                            <!-- Platform Multi-Select -->
+                            <div class="mb-4">
+                                <label class="form-label fw-medium text-secondary" style="font-size:0.85rem;">Select Platforms</label>
+                                <div class="platform-checkbox-grid">
+                                    @{
+                                        var platforms = new[] {
+                                            new { Name = "Instagram", Icon = "bi-instagram", Color = "#E4405F" },
+                                            new { Name = "Facebook", Icon = "bi-facebook", Color = "#1877F2" },
+                                            new { Name = "TikTok", Icon = "bi-tiktok", Color = "#000" },
+                                            new { Name = "YouTube", Icon = "bi-youtube", Color = "#FF0000" },
+                                            new { Name = "Twitter", Icon = "bi-twitter-x", Color = "#000" },
+                                            new { Name = "Other", Icon = "bi-globe2", Color = "#6366f1" }
+                                        };
+                                    }
+                                    @foreach (var p in platforms)
+                                    {
+                                        var alreadyLinked = Model.Accounts.Any(a => a.Platform == p.Name);
+                                        <label class="platform-checkbox-item @(alreadyLinked ? "linked" : "")" data-platform="@p.Name">
+                                            <input type="checkbox" class="platform-check" value="@p.Name"
+                                                   onchange="handlePlatformToggle(this)"
+                                                   @(alreadyLinked ? "disabled checked" : "")>
+                                            <span class="platform-checkbox-box">
+                                                <i class="bi @p.Icon" style="color:@p.Color;"></i> @p.Name
+                                                @if (alreadyLinked)
+                                                {
+                                                    <i class="bi bi-check-circle-fill text-success ms-1" style="font-size:0.7rem;"></i>
+                                                }
+                                            </span>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Dynamic URL Fields -->
+                            <div id="platformUrlFields"></div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="button" class="btn btn-outline-secondary flex-fill py-2" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary flex-fill py-2" onclick="submitAccounts()">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Accounts
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hidden form for batch submission -->
+            <form method="post" id="accountsForm" asp-page-handler="AddBatch" style="display:none;">
+                <div id="hiddenInputs"></div>
+            </form>
+        </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/site.js"></script>
+    <script>
+        var platformPatterns = {
+            'Instagram': { regex: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://instagram.com/username', icon: 'bi-instagram', color: '#E4405F' },
+            'Facebook': { regex: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://facebook.com/username', icon: 'bi-facebook', color: '#1877F2' },
+            'TikTok': { regex: /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@@([a-zA-Z0-9._]+)\/?/, placeholder: 'https://tiktok.com/@@username', icon: 'bi-tiktok', color: '#000' },
+            'YouTube': { regex: /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(c\/|channel\/|@@)([a-zA-Z0-9._-]+)\/?/, placeholder: 'https://youtube.com/@@channel', icon: 'bi-youtube', color: '#FF0000' },
+            'Twitter': { regex: /(?:https?:\/\/)?(?:www\.)?(twitter|x)\.com\/([a-zA-Z0-9_]+)\/?/, placeholder: 'https://x.com/username', icon: 'bi-twitter-x', color: '#000' },
+            'Other': { regex: /.+/, placeholder: 'https://your-profile-url.com', icon: 'bi-globe2', color: '#6366f1' }
+        };
+
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@Model.SuccessMessage', 'success'); });</text>
+        }
+        @if (TempData["Error"] is string eMsg && !string.IsNullOrEmpty(eMsg))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@eMsg', 'danger'); });</text>
+        }
+
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+
+        function openAddAccountsModal() {
+            var modal = new bootstrap.Modal(document.getElementById('addAccountsModal'));
+            modal.show();
+        }
+
+        function handlePlatformToggle(checkbox) {
+            var platform = checkbox.value;
+            var container = document.getElementById('platformUrlFields');
+            var fieldId = 'url_field_' + platform.replace(/\s+/g, '_');
+
+            if (checkbox.checked) {
+                var pattern = platformPatterns[platform];
+                var fieldHtml = '<div class="platform-url-field mb-3" id="' + fieldId + '">' +
+                    '<div class="d-flex align-items-center gap-2 mb-1">' +
+                    '<i class="bi ' + pattern.icon + '" style="color:' + pattern.color + ';font-size:1rem;"></i>' +
+                    '<label class="form-label fw-medium text-secondary mb-0" style="font-size:0.85rem;">' + platform + ' Profile URL</label>' +
+                    '</div>' +
+                    '<input type="url" class="form-control platform-url-input" data-platform="' + platform + '" ' +
+                    'placeholder="' + pattern.placeholder + '" ' +
+                    'oninput="extractUsername(this, \'' + platform + '\')" ' +
+                    'style="font-size:0.85rem;" />' +
+                    '<div class="d-flex align-items-center gap-2 mt-1" style="font-size:0.78rem;">' +
+                    '<span class="text-muted extracted-username" id="username_' + fieldId + '"></span>' +
+                    '</div>' +
+                    '</div>';
+                container.insertAdjacentHTML('beforeend', fieldHtml);
+            } else {
+                var field = document.getElementById(fieldId);
+                if (field) field.remove();
+            }
+        }
+
+        function extractUsername(input, platform) {
+            var fieldId = 'url_field_' + platform.replace(/\s+/g, '_');
+            var usernameSpan = document.getElementById('username_' + fieldId);
+            var url = input.value.trim();
+
+            if (!url) {
+                usernameSpan.textContent = '';
+                usernameSpan.style.display = 'none';
+                return;
+            }
+
+            var pattern = platformPatterns[platform];
+            var match = url.match(pattern.regex);
+            var username = match ? match[match.length - 1] : '';
+
+            if (username) {
+                usernameSpan.textContent = 'Username: @@' + username;
+                usernameSpan.style.color = 'var(--primary)';
+                usernameSpan.style.fontWeight = '500';
+                usernameSpan.style.display = 'block';
+            } else {
+                usernameSpan.textContent = 'Could not detect username from URL';
+                usernameSpan.style.color = 'var(--text-muted)';
+                usernameSpan.style.fontWeight = '400';
+                usernameSpan.style.display = 'block';
+            }
+        }
+
+        function submitAccounts() {
+            var urlInputs = document.querySelectorAll('.platform-url-input');
+            var hiddenInputs = document.getElementById('hiddenInputs');
+            hiddenInputs.innerHTML = '';
+            var hasError = false;
+            var count = 0;
+
+            urlInputs.forEach(function(input) {
+                var platform = input.getAttribute('data-platform');
+                var url = input.value.trim();
+
+                if (!url) {
+                    input.classList.add('is-invalid');
+                    hasError = true;
+                    return;
+                }
+
+                input.classList.remove('is-invalid');
+                var pattern = platformPatterns[platform];
+                var match = url.match(pattern.regex);
+                var username = match ? match[match.length - 1] : url;
+
+                hiddenInputs.innerHTML += '<input type="hidden" name="NewAccounts[' + count + '].Platform" value="' + platform + '" />' +
+                    '<input type="hidden" name="NewAccounts[' + count + '].Username" value="' + username + '" />' +
+                    '<input type="hidden" name="NewAccounts[' + count + '].ProfileUrl" value="' + (url.startsWith('http') ? url : 'https://' + url) + '" />';
+                count++;
+            });
+
+            if (hasError) {
+                return;
+            }
+
+            if (count === 0) {
+                return;
+            }
+
+            document.getElementById('accountsForm').submit();
+        }
+    </script>
+}

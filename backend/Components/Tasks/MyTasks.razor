@@ -15,126 +15,165 @@
             <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
         </div>
     }
-    else if (tasks.Count == 0)
-    {
-        <div class="text-center py-5">
-            <i class="bi bi-inbox display-1 text-muted"></i>
-            <p class="mt-3 text-muted fs-5">You haven't accepted any tasks yet.</p>
-            <a href="/tasks" class="btn btn-primary mt-2"><i class="bi bi-list-task me-1"></i>Browse Available Tasks</a>
-        </div>
-    }
     else
     {
-        <div class="task-grid">
-            @foreach (var task in tasks)
-            {
-                <div class="task-card @(task.Status == "Completed" ? "task-card-completed" : task.Status == "Submitted" ? "task-card-accepted" : "")" @key="@task.TaskId">
-                    <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-                        <span class="task-platform-badge"><i class="bi bi-globe2 me-1"></i>@task.Platform</span>
-                        <span class="fw-bold fs-5" style="color:var(--success);">@GetCurrencySymbol(task.Currency)@task.Reward.ToString("F2")</span>
-                    </div>
-                    <div class="task-title">@task.Service</div>
-                    @if (!string.IsNullOrEmpty(task.Url))
-                    {
-                        <div class="task-meta-item mb-2">
-                            <i class="bi bi-link-45deg me-1"></i>
-                            <a href="@task.Url" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width:220px;">@task.Url</a>
-                        </div>
-                    }
-                    <div class="task-meta">
-                        <span class="task-meta-item">
-                            <i class="bi bi-hourglass me-1"></i>
-                            @if (task.Status == "Pending")
-                            {
-                                <span>Pending Submission</span>
-                            }
-                            else if (task.VerificationStatus == "PendingReview")
-                            {
-                                <span style="color:var(--warning);">Awaiting Review</span>
-                            }
-                            else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
-                            {
-                                <span style="color:var(--danger);">Rejected</span>
-                            }
-                            else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
-                            {
-                                <span style="color:var(--success);">Completed</span>
-                            }
-                            else if (task.Status == "Submitted")
-                            {
-                                <span style="color:var(--warning);">Awaiting Review</span>
-                            }
-                            else
-                            {
-                                <span style="color:var(--success);">Completed</span>
-                            }
-                        </span>
-                        <span class="task-meta-item">
-                            <i class="bi bi-flag me-1"></i>
-                            @if (task.Status == "Pending")
-                            {
-                                <span style="color:var(--warning);">In Progress</span>
-                            }
-                            else if (task.VerificationStatus == "PendingReview")
-                            {
-                                <span style="color:var(--info);">Under Review</span>
-                            }
-                            else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
-                            {
-                                <span style="color:var(--danger);">Needs Resubmit</span>
-                            }
-                            else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
-                            {
-                                <span style="color:var(--success);">Completed</span>
-                            }
-                            else if (task.Status == "Submitted")
-                            {
-                                <span style="color:var(--info);">Under Review</span>
-                            }
-                            else
-                            {
-                                <span style="color:var(--success);">Completed</span>
-                            }
-                        </span>
-                    </div>
-                    @if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
-                    {
-                        @if (!string.IsNullOrEmpty(task.RejectReason))
-                        {
-                            <div class="mt-2 small text-danger"><i class="bi bi-exclamation-circle me-1"></i>@task.RejectReason</div>
-                        }
-                    }
-                    <div class="task-footer">
-                        @if (task.Status == "Pending")
-                        {
-                            <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId">
-                                <i class="bi bi-upload me-1"></i>Submit Proof
-                            </button>
-                        }
-                        else if (task.Status == "Submitted")
-                        {
-                            <span style="color:var(--warning);"><i class="bi bi-clock me-1"></i>Awaiting Admin Review</span>
-                        }
-                        else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
-                        {
-                            <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId">
-                                <i class="bi bi-upload me-1"></i>Resubmit
-                            </button>
-                        }
-                        else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
-                        {
-                            <span class="d-flex align-items-center gap-2">
-                                <span style="color:var(--success);"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
-                                <span class="badge" style="background:rgba(16,185,129,0.12);color:#10B981;font-size:0.72rem;border-radius:20px;padding:4px 10px;">
-                                    <i class="bi bi-wallet2 me-1"></i>@GetCurrencySymbol(task.Currency)@task.Reward.ToString("F2") earned
-                                </span>
-                            </span>
-                        }
-                        <span class="text-muted small">#@task.TaskId</span>
-                    </div>
-                </div>
-            }
+        <div class="filter-bar d-flex flex-wrap gap-2 mb-4">
+            <input type="text" class="form-control" style="flex:2;min-width:160px;" placeholder="Search tasks..." @bind="filter.Search" @bind:event="oninput" />
+            <select class="form-select" style="flex:1;min-width:120px;" @bind="filter.Status">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <button class="btn btn-primary" @onclick="LoadTasks"><i class="bi bi-search me-1"></i>Search</button>
         </div>
+
+        @if (tasks.Count == 0)
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <p class="mt-3 text-muted fs-5">You haven't accepted any tasks yet.</p>
+                <a href="/tasks" class="btn btn-primary mt-2"><i class="bi bi-list-task me-1"></i>Browse Available Tasks</a>
+            </div>
+        }
+        else
+        {
+            <div class="task-grid task-grid-4">
+                @foreach (var task in tasks)
+                {
+                    <div class="task-card @(task.Status == "Completed" ? "task-card-completed" : task.Status == "Submitted" ? "task-card-accepted" : "")" @key="@task.TaskId">
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                            <span class="task-platform-badge"><i class="bi bi-globe2 me-1"></i>@task.Platform</span>
+                            <span class="fw-bold fs-5" style="color:var(--success);">@GetCurrencySymbol(task.Currency)@task.Reward.ToString("F2")</span>
+                        </div>
+                        <div class="task-title">@task.Service</div>
+                        @if (!string.IsNullOrEmpty(task.Url))
+                        {
+                            <div class="task-meta-item mb-2">
+                                <i class="bi bi-link-45deg me-1"></i>
+                                <a href="@task.Url" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width:220px;">@task.Url</a>
+                            </div>
+                        }
+                        <div class="task-meta">
+                            <span class="task-meta-item">
+                                <i class="bi bi-hourglass me-1"></i>
+                                @if (task.Status == "Pending")
+                                {
+                                    <span>Pending Submission</span>
+                                }
+                                else if (task.VerificationStatus == "PendingReview")
+                                {
+                                    <span style="color:var(--warning);">Awaiting Review</span>
+                                }
+                                else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
+                                {
+                                    <span style="color:var(--danger);">Rejected</span>
+                                }
+                                else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
+                                {
+                                    <span style="color:var(--success);">Completed</span>
+                                }
+                                else if (task.Status == "Submitted")
+                                {
+                                    <span style="color:var(--warning);">Awaiting Review</span>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--success);">Completed</span>
+                                }
+                            </span>
+                            <span class="task-meta-item">
+                                <i class="bi bi-flag me-1"></i>
+                                @if (task.Status == "Pending")
+                                {
+                                    <span style="color:var(--warning);">In Progress</span>
+                                }
+                                else if (task.VerificationStatus == "PendingReview")
+                                {
+                                    <span style="color:var(--info);">Under Review</span>
+                                }
+                                else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
+                                {
+                                    <span style="color:var(--danger);">Needs Resubmit</span>
+                                }
+                                else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
+                                {
+                                    <span style="color:var(--success);">Completed</span>
+                                }
+                                else if (task.Status == "Submitted")
+                                {
+                                    <span style="color:var(--info);">Under Review</span>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--success);">Completed</span>
+                                }
+                            </span>
+                        </div>
+                        @if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
+                        {
+                            @if (!string.IsNullOrEmpty(task.RejectReason))
+                            {
+                                <div class="mt-2 small text-danger"><i class="bi bi-exclamation-circle me-1"></i>@task.RejectReason</div>
+                            }
+                        }
+                        <div class="task-footer">
+                            @if (task.Status == "Pending")
+                            {
+                                <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId">
+                                    <i class="bi bi-upload me-1"></i>Submit Proof
+                                </button>
+                            }
+                            else if (task.Status == "Submitted")
+                            {
+                                <span style="color:var(--warning);"><i class="bi bi-clock me-1"></i>Awaiting Admin Review</span>
+                            }
+                            else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
+                            {
+                                <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId">
+                                    <i class="bi bi-upload me-1"></i>Resubmit
+                                </button>
+                            }
+                            else if (task.Status == "Completed" || task.VerificationStatus == "Approved")
+                            {
+                                <span class="d-flex align-items-center gap-2">
+                                    <span style="color:var(--success);"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
+                                    <span class="badge" style="background:rgba(16,185,129,0.12);color:#10B981;font-size:0.72rem;border-radius:20px;padding:4px 10px;">
+                                        <i class="bi bi-wallet2 me-1"></i>@GetCurrencySymbol(task.Currency)@task.Reward.ToString("F2") earned
+                                    </span>
+                                </span>
+                            }
+                            <span class="text-muted small">#@task.TaskId</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (totalPages > 1)
+            {
+                <nav class="mt-4">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <span class="text-muted small">Showing @(((currentPage - 1) * filter.PageSize) + 1)-@(Math.Min(currentPage * filter.PageSize, totalCount)) of @totalCount tasks</span>
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(!hasPrevious ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => ChangePage(currentPage - 1)"><i class="bi bi-chevron-left"></i></button>
+                            </li>
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                var pageNum = i;
+                                <li class="page-item @(pageNum == currentPage ? "active" : "")">
+                                    <button class="page-link" @onclick="() => ChangePage(pageNum)">@pageNum</button>
+                                </li>
+                            }
+                            <li class="page-item @(!hasNext ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => ChangePage(currentPage + 1)"><i class="bi bi-chevron-right"></i></button>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            }
+        }
     }
 </div>
 
@@ -145,6 +184,13 @@
     private bool isLoading = true;
     private bool hasError;
     private string? errorMessage;
+
+    private int currentPage = 1;
+    private int totalPages = 1;
+    private int totalCount;
+    private bool hasPrevious;
+    private bool hasNext;
+    private MyTaskFilterDto filter = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,7 +204,14 @@
         errorMessage = null;
         try
         {
-            tasks = await TaskService.GetMyTasksAsync(UserId);
+            filter.Page = currentPage;
+            var result = await TaskService.GetMyTasksPagedAsync(UserId, filter);
+            tasks = result.Items.ToList();
+            totalCount = result.TotalCount;
+            currentPage = result.Page;
+            totalPages = result.TotalPages;
+            hasPrevious = result.HasPrevious;
+            hasNext = result.HasNext;
         }
         catch (Exception ex)
         {
@@ -169,6 +222,13 @@
         {
             isLoading = false;
         }
+    }
+
+    private async Task ChangePage(int page)
+    {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        await LoadTasks();
     }
 
     private static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch

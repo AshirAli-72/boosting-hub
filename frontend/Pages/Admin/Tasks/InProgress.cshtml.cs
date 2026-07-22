@@ -16,6 +16,13 @@ namespace BoostingHub.frontend.Pages.Admin.Tasks;
     }
 
     public List<TaskItem> Tasks { get; set; } = new();
+    public int CurrentPage { get; set; } = 1;
+    public int TotalPages { get; set; }
+    public int TotalCount { get; set; }
+    public bool HasPrevious => CurrentPage > 1;
+    public bool HasNext => CurrentPage < TotalPages;
+
+    private const int PageSize = 10;
 
     public string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
     {
@@ -39,8 +46,10 @@ namespace BoostingHub.frontend.Pages.Admin.Tasks;
         public DateTime CreatedAt { get; set; }
     }
 
-    public async Task OnGetAsync()
+    public async Task OnGetAsync([FromQuery] int page = 1)
     {
+        CurrentPage = page < 1 ? 1 : page;
+
         try
         {
             var completedCounts = await _db.TaskCompletes
@@ -49,27 +58,47 @@ namespace BoostingHub.frontend.Pages.Admin.Tasks;
                 .Select(g => new { TaskId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.TaskId, x => x.Count);
 
-            var tasks = await _db.TaskGenerates
+            var query = _db.TaskGenerates
+                .AsNoTracking()
                 .OrderByDescending(t => t.CreatedAt)
-                .ToListAsync();
-
-            Tasks = tasks
-                .Select(t =>
+                .Select(t => new
                 {
-                    var done = completedCounts.GetValueOrDefault(t.Id, 0);
-                    return new TaskItem
-                    {
-                        Id = t.Id,
-                        Platform = t.Platform,
-                        Service = t.Service,
-                        Quantity = t.Quantity,
-                        CompletedCount = done,
-                        Reward = t.Reward,
-                        Currency = t.Currency,
-                        CreatedAt = t.CreatedAt
-                    };
-                })
+                    t.Id,
+                    t.Platform,
+                    t.Service,
+                    t.Quantity,
+                    t.Reward,
+                    t.Currency,
+                    t.CreatedAt,
+                    CompletedCount = completedCounts.ContainsKey(t.Id) ? completedCounts[t.Id] : 0
+                });
+
+            var allItems = await query.ToListAsync();
+
+            var filtered = allItems
                 .Where(t => t.CompletedCount < t.Quantity)
+                .ToList();
+
+            TotalCount = filtered.Count;
+            TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
+
+            if (CurrentPage > TotalPages && TotalPages > 0)
+                CurrentPage = TotalPages;
+
+            Tasks = filtered
+                .Skip((CurrentPage - 1) * PageSize)
+                .Take(PageSize)
+                .Select(t => new TaskItem
+                {
+                    Id = t.Id,
+                    Platform = t.Platform,
+                    Service = t.Service,
+                    Quantity = t.Quantity,
+                    CompletedCount = t.CompletedCount,
+                    Reward = t.Reward,
+                    Currency = t.Currency,
+                    CreatedAt = t.CreatedAt
+                })
                 .ToList();
         }
         catch

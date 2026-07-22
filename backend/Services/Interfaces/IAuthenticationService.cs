@@ -16,4 +16,7 @@ public interface IAuthenticationService
     Task<Result<UserDto>> GetCurrentUserAsync(int userId, CancellationToken ct = default);
     Task<Result> UpdateProfileAsync(int userId, UpdateProfileDto dto, HttpContext httpContext, CancellationToken ct = default);
     Task<Result> VerifyEmailChangeAsync(string email, string token, CancellationToken ct = default);
+    Task<Result<List<SocialMediaAccountDto>>> GetSocialMediaAccountsAsync(int userId, CancellationToken ct = default);
+    Task<Result> AddSocialMediaAccountAsync(int userId, SocialMediaAccountDto dto, CancellationToken ct = default);
+    Task<Result> DeleteSocialMediaAccountAsync(int userId, int accountId, CancellationToken ct = default);
 }

@@ -59,22 +59,33 @@
                                             <td>@Model.GetCurrencySymbol(task.Currency)@task.Reward.ToString("N2")</td>
                                             <td>@task.CreatedAt.ToString("yyyy-MM-dd")</td>
                                         </tr>
-}
-
-@functions {
-    static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
-    {
-        "PKR" => "₨",
-        "EUR" => "€",
-        "GBP" => "£",
-        "INR" => "₹",
-        "BDT" => "৳",
-        _ => "$"
-    };
-}
+                                    }
                                 </tbody>
                             </table>
                         </div>
+
+                        @if (Model.TotalPages > 1)
+                        {
+                            <nav class="mt-4">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <span class="text-muted small">Showing @(((Model.CurrentPage - 1) * 10) + 1)-@(Math.Min(Model.CurrentPage * 10, Model.TotalCount)) of @Model.TotalCount tasks</span>
+                                    <ul class="pagination mb-0">
+                                        <li class="page-item @(!Model.HasPrevious ? "disabled" : "")">
+                                            <a class="page-link" href="?page=@(Model.CurrentPage - 1)"><i class="bi bi-chevron-left"></i></a>
+                                        </li>
+                                        @for (int i = 1; i <= Model.TotalPages; i++)
+                                        {
+                                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                                <a class="page-link" href="?page=@i">@i</a>
+                                            </li>
+                                        }
+                                        <li class="page-item @(!Model.HasNext ? "disabled" : "")">
+                                            <a class="page-link" href="?page=@(Model.CurrentPage + 1)"><i class="bi bi-chevron-right"></i></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </nav>
+                        }
                     }
                 </div>
             </div>
