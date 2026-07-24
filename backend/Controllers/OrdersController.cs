@@ -37,7 +37,7 @@ public class OrdersController : ControllerBase
         if (pkg == null)
             return BadRequest(new { message = "Selected package not found." });
 
-        var orderCurrency = string.IsNullOrWhiteSpace(dto.Currency) ? "PKR" : dto.Currency.ToUpperInvariant();
+        var orderCurrency = (dto.Currency ?? string.Empty).Trim().ToUpperInvariant();
 
         var order = new Orders
         {

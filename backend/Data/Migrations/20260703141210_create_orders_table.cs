@@ -24,7 +24,7 @@ namespace BoostingHub.backend.Data.Migrations
                    description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     quantity = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     package_id = table.Column<int>(type: "int", nullable: true),
-                    currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false, defaultValue: "PKR"),
+                    currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     status = table.Column<int>(type: "int", nullable: false),
                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                },

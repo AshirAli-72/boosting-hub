@@ -18,7 +18,7 @@ public class Orders
     // migration: orders.quantity is nvarchar(1000) (nullable)
     [Column("quantity")] public string? Quantity { get; set; }
     [Column("package_id")] public int? PackageId { get; set; }
-    [Column("currency", TypeName = "nvarchar(10)")] public string Currency { get; set; } = "PKR";
+    [Column("currency", TypeName = "nvarchar(10)")] public string Currency { get; set; } = string.Empty;
     [Column("status")] public int Status { get; set; } = 2;
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
