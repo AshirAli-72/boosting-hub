@@ -151,10 +151,18 @@ public class DashboardService : IDashboardService
         var registeredToday = filteredUsers.Count(u => u.CreatedAt >= today);
 
         var totalOrders = await _db.Orders.CountAsync();
-        var totalRevenue = await _db.Orders
-            .Where(o => o.Status == StatusHelper.OrderApproved && o.PackageId != null)
-            .Join(_db.Packages, o => o.PackageId, p => p.Id, (o, p) => p.Price)
-            .SumAsync();
+        decimal totalRevenue = 0;
+        try
+        {
+            totalRevenue = await _db.Orders
+                .Where(o => o.Status == StatusHelper.OrderApproved && o.PackageId != null)
+                .Join(_db.Packages, o => o.PackageId, p => p.Id, (o, p) => p.Price)
+                .SumAsync();
+        }
+        catch
+        {
+            totalRevenue = 0;
+        }
 
         // Order chart — only last 7 days
         var sevenDaysAgo = today.AddDays(-6);
