@@ -46,11 +46,11 @@ public class DashboardService : IDashboardService
                 (tc, t) => new { t.Reward, t.Currency })
             .ToListAsync();
 
-        var walletCurrency = "USD";
+        var walletCurrency = "PKR";
         var convertedTotalRewards = 0m;
         foreach (var r in totalRewards)
         {
-            convertedTotalRewards += WalletService.ConvertCurrencyStatic(r.Reward, r.Currency, walletCurrency);
+            convertedTotalRewards += WalletService.ConvertCurrencyStatic(r.Reward, r.Currency, "PKR");
         }
 
         var sevenDaysAgo = DateTime.UtcNow.Date.AddDays(-6);
@@ -95,7 +95,7 @@ public class DashboardService : IDashboardService
             convertedTotalRewards = 0m;
             foreach (var r in totalRewards)
             {
-                convertedTotalRewards += WalletService.ConvertCurrencyStatic(r.Reward, r.Currency, wallet.Currency);
+                convertedTotalRewards += WalletService.ConvertCurrencyStatic(r.Reward, r.Currency, "PKR");
             }
         }
 
@@ -151,7 +151,10 @@ public class DashboardService : IDashboardService
         var registeredToday = filteredUsers.Count(u => u.CreatedAt >= today);
 
         var totalOrders = await _db.Orders.CountAsync();
-        var totalRevenue = await _db.Orders.Where(o => o.Status == StatusHelper.OrderApproved).SumAsync(o => o.Budget);
+        var totalRevenue = await _db.Orders
+            .Where(o => o.Status == StatusHelper.OrderApproved && o.PackageId != null)
+            .Join(_db.Packages, o => o.PackageId, p => p.Id, (o, p) => p.Price)
+            .SumAsync();
 
         // Order chart — only last 7 days
         var sevenDaysAgo = today.AddDays(-6);

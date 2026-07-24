@@ -14,23 +14,27 @@ public class ReportService : IReportService
 
     public async Task<RevenueReportDto> GetRevenueReportAsync()
     {
-        var orders = await _db.Orders.AsNoTracking().ToListAsync();
+        var ordersWithPackages = await _db.Orders
+            .AsNoTracking()
+            .GroupJoin(_db.Packages, o => o.PackageId, p => p.Id, (o, p) => new { Order = o, Packages = p })
+            .SelectMany(x => x.Packages.DefaultIfEmpty(), (x, pkg) => new { x.Order, Package = pkg })
+            .ToListAsync();
 
-        var totalRevenue   = orders.Where(o => o.Status == StatusHelper.OrderApproved).Sum(o => o.Budget);
-        var totalOrders    = orders.Count;
-        var approvedOrders = orders.Count(o => o.Status == StatusHelper.OrderApproved);
-        var pendingOrders  = orders.Count(o => o.Status == StatusHelper.OrderPending);
-        var rejectedOrders = orders.Count(o => o.Status == StatusHelper.OrderRejected);
-        var avgOrderValue  = totalOrders > 0 ? orders.Sum(o => o.Budget) / totalOrders : 0;
+        var totalRevenue   = ordersWithPackages.Where(x => x.Order.Status == StatusHelper.OrderApproved).Sum(x => x.Package?.Price ?? 0);
+        var totalOrders    = ordersWithPackages.Count;
+        var approvedOrders = ordersWithPackages.Count(x => x.Order.Status == StatusHelper.OrderApproved);
+        var pendingOrders  = ordersWithPackages.Count(x => x.Order.Status == StatusHelper.OrderPending);
+        var rejectedOrders = ordersWithPackages.Count(x => x.Order.Status == StatusHelper.OrderRejected);
+        var avgOrderValue  = totalOrders > 0 ? ordersWithPackages.Sum(x => x.Package?.Price ?? 0) / totalOrders : 0;
 
         var since = DateTime.UtcNow.Date.AddDays(-6);
         var dailyRevenue = new Dictionary<string, decimal>();
         for (var i = 0; i < 7; i++)
         {
             var day = since.AddDays(i);
-            var dayRevenue = orders
-                .Where(o => o.Status == StatusHelper.OrderApproved && o.CreatedAt.Date == day)
-                .Sum(o => o.Budget);
+            var dayRevenue = ordersWithPackages
+                .Where(x => x.Order.Status == StatusHelper.OrderApproved && x.Order.CreatedAt.Date == day)
+                .Sum(x => x.Package?.Price ?? 0);
             dailyRevenue[day.ToString("MMM dd")] = dayRevenue;
         }
 
@@ -119,6 +123,43 @@ public class ReportService : IReportService
             ApprovedProofs   = approvedProofs,
             RejectedProofs   = rejectedProofs,
             DailyCompletions = daily
+        };
+    }
+
+    public async Task<OrdersReportDto> GetOrdersReportAsync()
+    {
+        var orders = await _db.Orders.AsNoTracking().ToListAsync();
+        var packages = await _db.Packages.AsNoTracking().ToListAsync();
+        var pkgMap = packages.ToDictionary(p => p.Id, p => p.Price);
+
+        var totalOrders = orders.Count;
+        var approvedOrders = orders.Count(o => o.Status == StatusHelper.OrderApproved);
+        var pendingOrders = orders.Count(o => o.Status == 2);
+        var rejectedOrders = orders.Count(o => o.Status == StatusHelper.OrderRejected);
+
+        var totalRevenue = orders
+            .Where(o => o.Status == StatusHelper.OrderApproved && o.PackageId.HasValue)
+            .Sum(o => pkgMap.GetValueOrDefault(o.PackageId!.Value, 0));
+
+        var avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+        var since = DateTime.UtcNow.Date.AddDays(-6);
+        var dailyOrders = new Dictionary<string, int>();
+        for (var i = 0; i < 7; i++)
+        {
+            var day = since.AddDays(i);
+            dailyOrders[day.ToString("MMM dd")] = orders.Count(o => o.CreatedAt.Date == day);
+        }
+
+        return new OrdersReportDto
+        {
+            TotalOrders    = totalOrders,
+            ApprovedOrders = approvedOrders,
+            PendingOrders  = pendingOrders,
+            RejectedOrders = rejectedOrders,
+            TotalRevenue   = totalRevenue,
+            AvgOrderValue  = avgOrderValue,
+            DailyOrders    = dailyOrders
         };
     }
 }

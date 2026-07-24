@@ -29,7 +29,12 @@ public class RevenueModel : PageModel
 
         var since = DateTime.UtcNow.Date.AddDays(-6);
 
+        var packages = await _db.Packages.ToDictionaryAsync(p => p.Id);
+
         var allOrders = await _db.Orders.AsNoTracking().OrderByDescending(o => o.CreatedAt).ToListAsync();
+        foreach (var o in allOrders)
+            if (o.PackageId.HasValue && packages.TryGetValue(o.PackageId.Value, out var p)) o.Budget = p.Price;
+
         TotalOrders     = allOrders.Count;
         TotalRevenue    = allOrders.Where(o => o.Status == StatusHelper.OrderApproved).Sum(o => o.Budget);
         AvgOrderValue   = TotalOrders > 0 ? allOrders.Sum(o => o.Budget) / TotalOrders : 0;

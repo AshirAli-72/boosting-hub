@@ -1,0 +1,8 @@
+.report-metric-value.text-teal { color: #2DD4BF; }
+.report-metric-value.text-green { color: #10B981; }
+.report-metric-value.text-yellow { color: #F59E0B; }
+.report-metric-value.text-red { color: #EF4444; }
+
+.report-bar-fill.bar-teal {
+    background: linear-gradient(90deg, #0D9488, #0F766E);
+}

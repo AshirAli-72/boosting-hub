@@ -156,7 +156,7 @@
                                         <td>@(o.FullName ?? o.Email ?? "—")</td>
                                         <td>@o.Platform</td>
                                         <td>@o.Service</td>
-                                        <td class="fw-semibold">$@o.Budget.ToString("N2")</td>
+                                        <td class="fw-semibold">@o.Budget.ToString("N2")</td>
                                         <td>
                                             @{
                                                 var oBadgeClass = o.Status == StatusHelper.OrderApproved ? "report-badge-success"

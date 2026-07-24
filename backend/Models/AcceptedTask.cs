@@ -10,7 +10,7 @@ public class AcceptedTask
     [Column("user_id")] public int UserId { get; set; }
     [Column("task_id")] public int TaskId { get; set; }
     [Column("accepted_at")] public DateTime AcceptedAt { get; set; } = DateTime.UtcNow;
-    [Column("status")] public int Status { get; set; } = 1;
+    [Column("status", TypeName = "nvarchar(50)")] public string Status { get; set; } = "1";
 
     public User User { get; set; } = null!;
     public TaskGenerate Task { get; set; } = null!;

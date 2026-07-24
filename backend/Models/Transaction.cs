@@ -15,7 +15,7 @@ public class Transaction
     [Column("description")] public string Description { get; set; } = string.Empty;
     [Column("reference_type")] public string? ReferenceType { get; set; }
     [Column("reference_id")] public int? ReferenceId { get; set; }
-    [Column("status")] public int Status { get; set; } = 1;
+    [Column("status", TypeName = "nvarchar(50)")] public string Status { get; set; } = "1";
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Wallet Wallet { get; set; } = null!;

@@ -22,8 +22,9 @@ namespace BoostingHub.backend.Data.Migrations
                     quantity = table.Column<int>(type: "int", nullable: false),
                     url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     reward = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false, defaultValue: "USD"),
+                    currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    expiry_date = table.Column<DateTime>(type: "datetime2", nullable: true),
                     status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>

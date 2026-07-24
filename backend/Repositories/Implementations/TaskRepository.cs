@@ -46,7 +46,7 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
                 tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
 
             ProofRequired = false,
-            ExpiresAt = t.Order.CreatedAt.AddDays(3),
+            ExpiresAt = t.ExpiryDate,
 
             Status = StatusHelper.TaskGenerateStatusToString(t.Status),
             CreatedAt = t.CreatedAt
@@ -135,7 +135,7 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
                     tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
 
                 ProofRequired = false,
-                ExpiresAt = t.Order.CreatedAt.AddDays(3),
+                ExpiresAt = t.ExpiryDate,
 
                 Status = StatusHelper.TaskGenerateStatusToString(t.Status),
                 CreatedAt = t.CreatedAt
@@ -170,7 +170,7 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
             t.Quantity,
             Completed = _context.TaskCompletes.Count(tc =>
                 tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
-            ExpiresAt = t.Order.CreatedAt.AddDays(3),
+            ExpiresAt = t.ExpiryDate,
             t.Reward,
             t.CreatedAt,
             t.Platform

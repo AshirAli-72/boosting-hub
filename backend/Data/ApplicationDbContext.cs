@@ -23,6 +23,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Account> Accounts { get; set; }
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<SocialMediaAccount> SocialMediaAccounts { get; set; }
+    public DbSet<Package> Packages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -84,9 +85,8 @@ public class ApplicationDbContext : DbContext
             e.Property(c => c.Description).HasMaxLength(1000);
             e.Property(c => c.SocialMediaUrl).HasMaxLength(500);
             e.Property(c => c.Status).HasMaxLength(50);
-            e.Property(c => c.Currency).HasMaxLength(10);
             e.Property(c => c.CreatedAt).HasColumnType("datetime2");
-            e.Property(c => c.Budget).HasColumnType("decimal(18,2)");
+            e.Property(c => c.PackageId).IsRequired(false);
             e.HasIndex(c => c.Status);
         });
 
@@ -260,6 +260,17 @@ public class ApplicationDbContext : DbContext
             e.HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(s => s.UserId);
             e.HasIndex(s => new { s.UserId, s.Platform }).IsUnique();
+        });
+
+        // ── Package ─────────────────────────────────────────────────────────
+        builder.Entity<Package>(e =>
+        {
+            e.Property(p => p.Platform).HasMaxLength(200).IsRequired();
+            e.Property(p => p.Service).HasMaxLength(200).IsRequired();
+            e.Property(p => p.Price).HasColumnType("decimal(18,2)");
+            e.Property(p => p.CreatedAt).HasColumnType("datetime2");
+            e.Property(p => p.UpdatedAt).HasColumnType("datetime2");
+            e.HasIndex(p => new { p.Platform, p.Service });
         });
 
     }

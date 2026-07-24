@@ -22,9 +22,19 @@ public class IndexModel : PageModel
         var role = HttpContext.Session.GetString("UserRole");
         if (role != "Admin") return RedirectToPage("/Account/Login");
 
+        var packages = await _db.Packages.ToDictionaryAsync(p => p.Id);
+
         Orders = await _db.Orders
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
+
+        foreach (var order in Orders)
+        {
+            if (order.PackageId.HasValue && packages.TryGetValue(order.PackageId.Value, out var pkg))
+            {
+                order.Budget = pkg.Price;
+            }
+        }
 
         return Page();
     }

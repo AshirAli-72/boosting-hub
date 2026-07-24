@@ -13,9 +13,10 @@ public class TaskGenerate
     [Column("quantity")] public int Quantity { get; set; }
     [Column("url")] public string Url { get; set; } = string.Empty;
     [Column("reward")] public decimal Reward { get; set; }
-    [Column("currency", TypeName = "nvarchar(10)")] public string Currency { get; set; } = "USD";
+    [Column("currency", TypeName = "nvarchar(10)")] public string Currency { get; set; } = "PKR";
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    [Column("status")] public int Status { get; set; } = 1;
+    [Column("expiry_date")] public DateTime? ExpiryDate { get; set; }
+    [Column("status", TypeName = "nvarchar(50)")] public string Status { get; set; } = "1";
 
     public Orders Order { get; set; } = null!;
     public ICollection<TaskComplete> TaskCompletes { get; set; } = new List<TaskComplete>();

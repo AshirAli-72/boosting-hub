@@ -1,9 +1,10 @@
 @using BoostingHub.backend.DTOs
+@inject IJSRuntime JS
 
 <div class="task-card @(Task.UserStatus == "Accepted" ? "task-card-accepted" : Task.UserStatus == "Completed" ? "task-card-completed" : "") @(IsSelected ? "task-card-selected" : "")" @onclick="OnSelect" role="button" tabindex="0">
     <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
         <span class="task-platform-badge"><i class="bi bi-globe2 me-1"></i>@Task.Platform</span>
-        <span class="text-warning fw-bold fs-5">@GetCurrencySymbol(Task.Currency)@(Task.RewardAmount.ToString("F2"))</span>
+        <span class="text-warning fw-bold fs-5">@_convertedSymbol@(_convertedAmount.ToString("F2"))</span>
     </div>
     <div class="d-flex align-items-center gap-2 mb-2">
         <span class="task-meta-item"><i class="bi bi-tag me-1"></i>@Task.Service</span>
@@ -34,13 +35,45 @@
     [Parameter] public bool IsSelected { get; set; }
     [Parameter] public EventCallback OnSelect { get; set; }
 
-    private static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
+    private string _convertedSymbol = "\u20A8";
+    private decimal _convertedAmount;
+
+    private static readonly Dictionary<string, decimal> PkrRates = new()
     {
-        "PKR" => "₨",
-        "EUR" => "\u20AC",
-        "GBP" => "\u00A3",
-        "INR" => "\u20B9",
-        "BDT" => "\u09F3",
-        _ => "$"
+        ["PKR"] = 1, ["USD"] = 285, ["EUR"] = 310, ["GBP"] = 360,
+        ["INR"] = 3.43m, ["BDT"] = 2.59m, ["SAR"] = 76, ["AED"] = 77.7m,
+        ["CAD"] = 208, ["AUD"] = 186, ["TRY"] = 8.8m, ["BRL"] = 56,
+        ["JPY"] = 1.91m, ["CNY"] = 39.3m, ["KRW"] = 0.21m, ["NGN"] = 0.18m,
+        ["PHP"] = 5, ["IDR"] = 0.018m, ["MYR"] = 61, ["THB"] = 8,
+        ["EGP"] = 5.9m, ["ZAR"] = 15.5m, ["MXN"] = 16.5m,
+        ["KWD"] = 930, ["QAR"] = 78, ["BHD"] = 755, ["OMR"] = 742
     };
+
+    private static readonly Dictionary<string, string> Symbols = new()
+    {
+        ["PKR"] = "\u20A8", ["INR"] = "\u20B9", ["BDT"] = "\u09F3", ["GBP"] = "\u00A3",
+        ["EUR"] = "\u20AC", ["USD"] = "$", ["CAD"] = "C$", ["AUD"] = "A$",
+        ["SAR"] = "\uFDFC", ["AED"] = "AED ", ["TRY"] = "\u20BA", ["BRL"] = "R$",
+        ["JPY"] = "\u00A5", ["CNY"] = "\u00A5", ["KRW"] = "\u20A9", ["NGN"] = "\u20A6",
+        ["PHP"] = "\u20B1", ["IDR"] = "Rp", ["MYR"] = "RM", ["THB"] = "\u0E3F",
+        ["EGP"] = "E\u00A3", ["ZAR"] = "R", ["MXN"] = "Mex$"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _convertedAmount = Task.RewardAmount;
+        try
+        {
+            var cur = await JS.InvokeAsync<string>("__getUserCurrency");
+            if (string.IsNullOrEmpty(cur)) cur = "PKR";
+            _convertedSymbol = Symbols.TryGetValue(cur, out var s) ? s : cur + " ";
+            var rate = PkrRates.TryGetValue(cur, out var r) ? r : 1m;
+            _convertedAmount = rate > 0 ? Math.Round(Task.RewardAmount / rate, 2) : Task.RewardAmount;
+        }
+        catch
+        {
+            _convertedSymbol = "\u20A8";
+            _convertedAmount = Task.RewardAmount;
+        }
+    }
 }

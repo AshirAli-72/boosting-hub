@@ -15,6 +15,7 @@ public class TaskService : ITaskService
     private readonly IWalletService _walletService;
     private readonly IProofVerificationService _proofVerification;
     private readonly IActivityLogService _activityLog;
+    private readonly INotificationService _notificationService;
     private const int MaxActiveTasks = 10;
     private const int DailyTaskLimit = 25;
 
@@ -23,13 +24,15 @@ public class TaskService : ITaskService
         ILogger<TaskService> logger,
         IWalletService walletService,
         IProofVerificationService proofVerification,
-        IActivityLogService activityLog)
+        IActivityLogService activityLog,
+        INotificationService notificationService)
     {
         _db = db;
         _logger = logger;
         _walletService = walletService;
         _proofVerification = proofVerification;
         _activityLog = activityLog;
+        _notificationService = notificationService;
     }
 
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
@@ -107,7 +110,7 @@ public class TaskService : ITaskService
                 UserStatus = userStatus,
                 Status = StatusHelper.TaskGenerateStatusToString(t.Status),
                 CreatedAt = t.CreatedAt,
-                ExpiresAt = t.CreatedAt.AddDays(3)
+                ExpiresAt = t.ExpiryDate
             };
         }).ToList();
 
@@ -172,7 +175,7 @@ public class TaskService : ITaskService
         {
             var completion = await _db.TaskCompletes
                 .Where(tc => tc.TaskId == taskId && tc.UserId == userId.Value)
-                .Select(tc => (int?)tc.Status)
+                .Select(tc => tc.Status)
                 .FirstOrDefaultAsync();
             if (completion == StatusHelper.TaskCompleteCompleted)
             {
@@ -180,9 +183,9 @@ public class TaskService : ITaskService
                     .CountAsync(tc => tc.TaskId == taskId && tc.Status == StatusHelper.TaskCompleteCompleted);
                 userStatus = totalCompleted >= task.Quantity ? "Completed" : "Accepted";
             }
-            else if (completion.HasValue && completion != StatusHelper.TaskCompleteCancelled)
+            else if (completion != null && completion != StatusHelper.TaskCompleteCancelled)
                 userStatus = "Accepted";
-            else if (!completion.HasValue && await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId.Value && a.TaskId == taskId))
+            else if (completion == null && await _db.AcceptedTasks.AnyAsync(a => a.UserId == userId.Value && a.TaskId == taskId))
                 userStatus = "Accepted";
         }
 
@@ -202,7 +205,7 @@ public class TaskService : ITaskService
             UserStatus = userStatus,
             Status = StatusHelper.TaskGenerateStatusToString(task.Status),
             CreatedAt = task.CreatedAt,
-            ExpiresAt = task.CreatedAt.AddDays(3)
+            ExpiresAt = task.ExpiryDate
         });
     }
 
@@ -505,7 +508,7 @@ public class TaskService : ITaskService
             await _walletService.CreditRewardAsync(proof.UserId, proof.Task.Reward, proof.TaskId, proof.Id, proof.Task.Currency);
 
             var wallet = await _walletService.GetWalletByUserIdAsync(proof.UserId);
-            var displayCurrency = wallet?.Currency ?? "USD";
+            var displayCurrency = wallet?.Currency ?? "PKR";
             var displayAmount = wallet != null
                 ? WalletService.ConvertCurrencyStatic(proof.Task.Reward, proof.Task.Currency, displayCurrency)
                 : proof.Task.Reward;
@@ -530,6 +533,48 @@ public class TaskService : ITaskService
                 userRole: "Admin", evt: "ProofApproved", description: $"Proof #{proofId} approved for task #{proof.TaskId}",
                 subjectType: "TaskProof", subjectId: proofId, subjectName: null,
                 newValues: JsonSerializer.Serialize(new { VerificationStatus = StatusHelper.VerificationApproved, Reward = proof.Task.Reward }));
+
+            try
+            {
+                var completedCount = await _db.TaskCompletes
+                    .CountAsync(tc => tc.TaskId == proof.TaskId && tc.Status == StatusHelper.TaskCompleteCompleted);
+
+                if (completedCount >= proof.Task.Quantity)
+                {
+                    var adminRoleIds = await _db.Roles
+                        .Where(r => r.RoleTitle != null && r.RoleTitle.Contains("Admin"))
+                        .Select(r => r.Id)
+                        .ToListAsync();
+
+                    var adminUserIds = await _db.UserHasRoles
+                        .Where(ur => adminRoleIds.Contains(ur.RoleId))
+                        .Select(ur => ur.UserId)
+                        .Distinct()
+                        .ToListAsync();
+
+                    if (adminUserIds.Count == 0)
+                    {
+                        var adminUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == "admin@gmail.com");
+                        if (adminUser != null)
+                            adminUserIds.Add(adminUser.Id);
+                    }
+
+                    var notifications = adminUserIds.Select(adminId => new CreateNotificationDto
+                    {
+                        UserId = adminId,
+                        Type = "TaskCompleted",
+                        Title = "Task Fully Completed",
+                        Message = $"Task #{proof.TaskId} ({proof.Task.Platform} - {proof.Task.Service}) has been fully completed! All {proof.Task.Quantity} slots are filled.",
+                        Data = $"{{\"taskId\":{proof.TaskId},\"orderId\":{proof.Task.OrderId}}}"
+                    }).ToList();
+
+                    await _notificationService.CreateBulkNotificationAsync(notifications);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to notify admins about task completion for task {TaskId}", proof.TaskId);
+            }
 
             return Result.Success($"Proof approved! {displayCurrency} {displayAmount:F2} credited to worker's wallet.");
         }

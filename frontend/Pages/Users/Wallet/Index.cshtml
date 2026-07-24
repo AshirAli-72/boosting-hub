@@ -44,7 +44,7 @@
                             <tbody>
                                 <tr>
                                     <td class="fw-bold fs-5" id="displayBalance">@Model.WalletData.Currency @Model.WalletData.TotalBalance.ToString("N2")</td>
-                                    <td>
+                                     <td>
                                         <select class="form-select form-select-sm" style="width:auto;display:inline-block;" id="currencySelect" onchange="changeCurrency(this.value)">
                                             <option value="USD" selected="@(Model.WalletData.Currency == "USD")">$ USD</option>
                                             <option value="EUR" selected="@(Model.WalletData.Currency == "EUR")">€ EUR</option>
@@ -52,12 +52,26 @@
                                             <option value="PKR" selected="@(Model.WalletData.Currency == "PKR")">₨ PKR</option>
                                             <option value="INR" selected="@(Model.WalletData.Currency == "INR")">₹ INR</option>
                                             <option value="BDT" selected="@(Model.WalletData.Currency == "BDT")">৳ BDT</option>
+                                            <option value="SAR" selected="@(Model.WalletData.Currency == "SAR")">﷼ SAR</option>
+                                            <option value="AED" selected="@(Model.WalletData.Currency == "AED")">د.إ AED</option>
+                                            <option value="TRY" selected="@(Model.WalletData.Currency == "TRY")">₺ TRY</option>
+                                            <option value="NGN" selected="@(Model.WalletData.Currency == "NGN")">₦ NGN</option>
+                                            <option value="JPY" selected="@(Model.WalletData.Currency == "JPR")">¥ JPY</option>
+                                            <option value="CNY" selected="@(Model.WalletData.Currency == "CNY")">¥ CNY</option>
+                                            <option value="KRW" selected="@(Model.WalletData.Currency == "KRW")">₩ KRW</option>
+                                            <option value="PHP" selected="@(Model.WalletData.Currency == "PHP")">₱ PHP</option>
+                                            <option value="IDR" selected="@(Model.WalletData.Currency == "IDR")">Rp IDR</option>
+                                            <option value="MYR" selected="@(Model.WalletData.Currency == "MYR")">RM MYR</option>
+                                            <option value="THB" selected="@(Model.WalletData.Currency == "THB")">฿ THB</option>
+                                            <option value="EGP" selected="@(Model.WalletData.Currency == "EGP")">E£ EGP</option>
+                                            <option value="ZAR" selected="@(Model.WalletData.Currency == "ZAR")">R ZAR</option>
+                                            <option value="MXN" selected="@(Model.WalletData.Currency == "MXN")">Mex$ MXN</option>
                                         </select>
                                     </td>
                                     <td id="displayWithdrawn">@Model.WalletData.Currency @Model.WalletData.Withdrawn.ToString("N2")</td>
                                     <td>@Model.WalletData.CreatedAt.ToString("yyyy-MM-dd")</td>
                                     <td>
-                                        @if (StatusHelper.WalletStatusToInt(Model.WalletData.Status) == StatusHelper.WalletActive)
+                                        @if (Model.WalletData.Status == "active")
                                         {
                                             <span class="badge bg-success">Active</span>
                                         }
@@ -133,37 +147,43 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/site.js"></script>
     <script>
-        var originalBalance = @Model.WalletData.TotalBalance;
-        var originalWithdrawn = @Model.WalletData.Withdrawn;
-        var originalCurrency = '@Model.WalletData.Currency';
-        var currentDisplayCurrency = originalCurrency;
+        var pkrBalance = @Model.WalletData.TotalBalance;
+        var pkrWithdrawn = @Model.WalletData.Withdrawn;
+        var displayCurrency = '@Model.WalletData.Currency';
 
-        var currencySymbols = { USD: '$', EUR: '€', GBP: '£', PKR: '₨', INR: '₹', BDT: '৳' };
-
-        var exchangeRates = {
-            USD: 1,
-            EUR: 0.92,
-            GBP: 0.79,
-            PKR: 278.50,
-            INR: 83.12,
-            BDT: 109.85
+        var currencySymbols = {
+            USD:'$', EUR:'€', GBP:'£', PKR:'₨', INR:'₹', BDT:'৳',
+            SAR:'﷼', AED:'د.إ', TRY:'₺', NGN:'₦', JPY:'¥', CNY:'¥',
+            KRW:'₩', PHP:'₱', IDR:'Rp', MYR:'RM', THB:'฿', EGP:'E£',
+            ZAR:'R', MXN:'Mex$'
         };
 
-        function convertAmount(amount, fromCurrency, toCurrency) {
-            var inUSD = amount / exchangeRates[fromCurrency];
-            return inUSD * exchangeRates[toCurrency];
+        var pkrRates = {
+            USD:285, EUR:310, GBP:360, PKR:1, INR:3.43, BDT:2.59,
+            SAR:76, AED:77.7, TRY:8.85, NGN:445, JPY:42.75, CNY:2.07,
+            KRW:380, PHP:16, IDR:4500, MYR:1.34, THB:10.1, EGP:13.7,
+            ZAR:5.25, MXN:16.8
+        };
+
+        function convertFromPkr(amountPkr, toCurrency) {
+            if (toCurrency === 'PKR') return amountPkr;
+            var rate = pkrRates[toCurrency];
+            if (!rate) return amountPkr;
+            return amountPkr / rate;
+        }
+
+        function formatCur(amount, currency) {
+            var sym = currencySymbols[currency] || '$';
+            var converted = convertFromPkr(amount, currency);
+            return sym + ' ' + converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         function updateDisplay(currency) {
-            var convertedBalance = convertAmount(originalBalance, originalCurrency, currency);
-            var convertedWithdrawn = convertAmount(originalWithdrawn, originalCurrency, currency);
-            var symbol = currencySymbols[currency] || '$';
-
-            document.getElementById('displayBalance').textContent = symbol + ' ' + convertedBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('displayWithdrawn').textContent = symbol + ' ' + convertedWithdrawn.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('modalCurrencySymbol').textContent = symbol;
-            document.getElementById('modalBalance').textContent = symbol + ' ' + convertedBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            currentDisplayCurrency = currency;
+            document.getElementById('displayBalance').textContent = formatCur(pkrBalance, currency);
+            document.getElementById('displayWithdrawn').textContent = formatCur(pkrWithdrawn, currency);
+            document.getElementById('modalCurrencySymbol').textContent = currencySymbols[currency] || '$';
+            document.getElementById('modalBalance').textContent = formatCur(pkrBalance, currency);
+            displayCurrency = currency;
         }
 
         async function changeCurrency(currency) {
@@ -174,20 +194,34 @@
                 });
                 const data = await resp.json();
                 if (resp.ok && data.success) {
-                    originalBalance = data.balance;
-                    originalWithdrawn = data.withdrawn;
-                    originalCurrency = data.currency;
-                    currentDisplayCurrency = data.currency;
+                    displayCurrency = data.currency;
                     document.getElementById('currencySelect').value = data.currency;
                     updateDisplay(data.currency);
                 } else {
                     showToast(data.message || 'Failed to update currency', 'danger');
-                    document.getElementById('currencySelect').value = currentDisplayCurrency;
-                    updateDisplay(currentDisplayCurrency);
+                    document.getElementById('currencySelect').value = displayCurrency;
+                    updateDisplay(displayCurrency);
                 }
             } catch (e) {
-                showToast('Network error - display updated locally', 'warning');
+                updateDisplay(currency);
             }
+        }
+
+        function detectWalletCurrency() {
+            if (typeof __getUserCurrency === 'function') {
+                __getUserCurrency().then(function(cur) {
+                    if (cur && pkrRates[cur]) {
+                        displayCurrency = cur;
+                        document.getElementById('currencySelect').value = cur;
+                        updateDisplay(cur);
+                        changeCurrency(cur);
+                    }
+                }).catch(function() {});
+            }
+        }
+
+        if (displayCurrency === 'PKR') {
+            detectWalletCurrency();
         }
 
         function toggleProfileMenu() {

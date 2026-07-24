@@ -186,71 +186,81 @@
                 </div>
             </section>
 
-            <section class="section" id="users-section">
+            <!-- ── How It Works: Earners ── -->
+            <section class="section" id="how-earners">
                 <div class="section-header">
-                    <div class="section-label"><i class="bi bi-people-fill"></i> Our Community</div>
-                    <h2 class="section-title section-title-light">Recently Joined Creators</h2>
-                    <p class="section-subtitle">Real people who registered and are growing their social presence with Boosting Hub.</p>
+                    <div class="section-label"><i class="bi bi-cash-coin"></i> Earn Money</div>
+                    <h2 class="section-title section-title-light">How Earners Work</h2>
+                    <p class="section-subtitle">Complete simple social media tasks and earn real money. It's that easy.</p>
                 </div>
-                <div class="users-grid">
-                    @{
-                        var recentUsers = ViewData["RecentUsers"] as List<BoostingHub.backend.Models.User> ?? new();
-                        if (recentUsers.Count == 0)
-                        {
-                            <div class="user-joined-card">
-                                <div class="user-joined-avatar" style="background:linear-gradient(135deg,var(--primary),var(--accent));">BH</div>
-                                <div class="user-joined-info">
-                                    <h4>Be the First!</h4>
-                                    <p>Join our growing community of creators.</p>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            foreach (var user in recentUsers)
-                            {
-                                var initials = string.IsNullOrEmpty(user.Name) ? "?" : string.Join("", user.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[..1])).ToUpper();
-                                var colors = new[] { "#6366F1,#F43F5E", "#3B82F6,#1D4ED8", "#10B981,#059669", "#F59E0B,#D97706", "#EF4444,#B91C1C", "#EC4899,#BE185D", "#6366F1,#4F46E5", "#14B8A6,#0F766E" };
-                                var colorIdx = user.Id % colors.Length;
-                                var displayName = user.Name ?? "User";
-                                var timeAgo = (DateTime.UtcNow - user.CreatedAt).TotalDays switch
-                                {
-                                    < 1 => "today",
-                                    < 2 => "yesterday",
-                                    < 7 => $"{(int)(DateTime.UtcNow - user.CreatedAt).TotalDays} days ago",
-                                    < 30 => $"{(int)(DateTime.UtcNow - user.CreatedAt).TotalDays / 7} weeks ago",
-                                    _ => $"since {user.CreatedAt:MMM yyyy}"
-                                };
-                                <div class="user-joined-card">
-                                    <div class="user-joined-avatar" style="background:linear-gradient(135deg,@colors[colorIdx]);">@initials</div>
-                                    <div class="user-joined-info">
-                                        <h4>@displayName</h4>
-                                        <p>Joined @timeAgo</p>
-                                    </div>
-                                    <div class="user-joined-badge"><i class="bi bi-patch-check-fill"></i></div>
-                                </div>
-                            }
-                        }
-                    }
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-icon purple"><i class="bi bi-person-plus"></i></div>
+                        <h3>Create Account</h3>
+                        <p>Sign up for free in seconds. Link your social media accounts to get started.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-icon green"><i class="bi bi-list-task"></i></div>
+                        <h3>Browse Tasks</h3>
+                        <p>Explore available tasks like follows, likes, views, and comments across platforms.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-icon blue"><i class="bi bi-check2-all"></i></div>
+                        <h3>Complete & Earn</h3>
+                        <p>Finish tasks, submit proof, and get paid instantly to your wallet. Withdraw anytime.</p>
+                    </div>
                 </div>
             </section>
 
-            <!-- ── Client Requirements Section ── -->
+            <!-- ── How It Works: Order Givers ── -->
+            <section class="section-light" id="how-orderers">
+                <div class="section-header">
+                    <div class="section-label"><i class="bi bi-rocket-takeoff"></i> Grow Faster</div>
+                    <h2 class="section-title section-title-dark">How Order Givers Work</h2>
+                    <p class="section-subtitle section-subtitle-dark">Place orders for real social media engagement. Our community handles the rest.</p>
+                </div>
+                <div class="steps-grid">
+                    <div class="step-card light">
+                        <div class="step-number">1</div>
+                        <div class="step-icon purple"><i class="bi bi-megaphone"></i></div>
+                        <h3>Submit Requirements</h3>
+                        <p>Choose your platform, service type, and package. Tell us what engagement you need.</p>
+                    </div>
+                    <div class="step-card light">
+                        <div class="step-number">2</div>
+                        <div class="step-icon green"><i class="bi bi-clipboard-check"></i></div>
+                        <h3>Admin Reviews</h3>
+                        <p>Our team reviews your order, publishes tasks for our community of earners to complete.</p>
+                    </div>
+                    <div class="step-card light">
+                        <div class="step-number">3</div>
+                        <div class="step-icon blue"><i class="bi bi-graph-up-arrow"></i></div>
+                        <h3>Watch Growth</h3>
+                        <p>Real users complete your tasks. Track progress on your dashboard and see real results.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Clients Section ── -->
             <section class="inquiry-section" id="get-started">
                 <div class="section-header">
-                    <div class="section-label"><i class="bi bi-send-fill"></i> Get Started</div>
+                    <div class="section-label"><i class="bi bi-people-fill"></i> Clients</div>
                     <h2 class="section-title section-title-light">Submit Your Requirements</h2>
-                    <p class="section-subtitle">Tell us what you need — choose your Platforms, Service Types, and Budget. Our admin reviews and publishes tasks for our users.</p>
+                    <p class="section-subtitle">Choose your Platform, Service, and Quantity — available packages appear automatically. Pay to confirm your order.</p>
+                    <div id="iq-currency-badge" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 16px;border-radius:20px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:var(--primary);font-size:0.85rem;font-weight:700;" title="Prices displayed in your local currency"></div>
                 </div>
+
                 <div class="inquiry-form-card">
                     <div id="inquirySuccess" style="display:none;" class="inquiry-success">
-                        <i class="bi bi-check-circle-fill"></i>&nbsp; Your request has been submitted! We'll review it shortly.
+                        <i class="bi bi-check-circle-fill"></i>&nbsp; Payment confirmed! Your order is now active.
                     </div>
                     <div id="inquiryError" style="display:none;" class="alert alert-danger" style="border-radius:12px;">
                         <i class="bi bi-exclamation-triangle-fill"></i>&nbsp; <span id="inquiryErrorText"></span>
                     </div>
-                    <form id="inquiryForm" onsubmit="submitInquiry(event)">
-                        <!-- Contact Information -->
+                    <form id="inquiryForm" onsubmit="return false;">
                         <div class="inquiry-section-group">
                             <div class="inquiry-group-title"><i class="bi bi-person-badge"></i> Contact Information</div>
                             <div class="inquiry-grid">
@@ -265,67 +275,32 @@
                             </div>
                         </div>
 
-                        <!-- Campaign Details -->
                         <div class="inquiry-section-group">
                             <div class="inquiry-group-title"><i class="bi bi-sliders"></i> Campaign Details</div>
                             <div class="inquiry-grid">
-                                <div class="inquiry-field inquiry-field-full" style="position:relative;">
-                                    <label>Platforms <span>*</span></label>
-                                    <div class="custom-select-container" style="position:relative;">
-                                        <div id="iq-platform-dropdown-box" onclick="document.getElementById('platform-options').style.display = document.getElementById('platform-options').style.display === 'block' ? 'none' : 'block'" style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
-                                            <span id="iq-platform-selected" style="color:#6c757d;">Choose platforms...</span>
-                                            <i class="bi bi-chevron-down"></i>
-                                        </div>
-                                        <div id="platform-options" style="display:none;position:absolute;top:100%;left:0;width:100%;background:var(--bg-card);border:1px solid var(--border-muted);border-radius:10px;margin-top:4px;z-index:1000;max-height:200px;overflow-y:auto;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Instagram" class="iq-platform-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">Instagram</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="YouTube" class="iq-platform-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">YouTube</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="TikTok" class="iq-platform-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">TikTok</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Twitter" class="iq-platform-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">Twitter / X</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Facebook" class="iq-platform-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">Facebook</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="LinkedIn" class="iq-platform-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...')">LinkedIn</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="inquiry-field inquiry-field-full" style="position:relative;">
-                                    <label>Service Types <span>*</span></label>
-                                    <div class="custom-select-container" style="position:relative;">
-                                        <div id="iq-service-dropdown-box" onclick="document.getElementById('service-options').style.display = document.getElementById('service-options').style.display === 'block' ? 'none' : 'block'" style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
-                                            <span id="iq-service-selected" style="color:#6c757d;">Choose service types...</span>
-                                            <i class="bi bi-chevron-down"></i>
-                                        </div>
-                                        <div id="service-options" style="display:none;position:absolute;top:100%;left:0;width:100%;background:var(--bg-card);border:1px solid var(--border-muted);border-radius:10px;margin-top:4px;z-index:1000;max-height:200px;overflow-y:auto;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Followers" class="iq-service-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Followers</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Likes" class="iq-service-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Likes</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Views" class="iq-service-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Views</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Comments" class="iq-service-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Comments</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Shares" class="iq-service-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Shares</label>
-                                            <label style="display:block !important;text-align:left !important;padding:8px 14px;margin:0;cursor:pointer;font-weight:normal;width:100%;box-sizing:border-box;"><input type="checkbox" value="Subscribers" class="iq-service-cb" style="margin-right:8px; width:auto !important; display:inline-block !important; vertical-align:middle;" onchange="updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...')">Subscribers</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Dynamic per-service quantity fields -->
-                                <div class="inquiry-field inquiry-field-full" id="iq-service-details-wrapper" style="display:none;">
-                                    <label>Service Quantities <span>*</span></label>
-                                    <div id="iq-service-details"></div>
-                                </div>
-                                <!-- Shared Target URL -->
-                                <div class="inquiry-field inquiry-field-full" id="iq-url-wrapper" style="display:none;">
-                                    <label>Target URL <span>*</span></label>
-                                    <input type="url" id="iq-url" placeholder="https://instagram.com/your-profile" style="width:100%;border:1px solid var(--border-muted);border-radius:10px;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;" />
+                                <div class="inquiry-field inquiry-field-full">
+                                    <label>Platform <span>*</span></label>
+                                    <select id="iq-platform" required onchange="onIqPlatformChange()">
+                                        <option value="">Choose platform...</option>
+                                    </select>
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
-                                    <label>Budget <span>*</span></label>
-                                    <div class="input-group" style="display:flex;gap:0;">
-                                        <select id="iq-currency" style="width:90px;border:1px solid var(--border-muted);border-radius:10px 0 0 10px;background:var(--bg-card);color:var(--text-primary);padding:10px 6px;font-size:0.9rem;outline:none;">
-                                            <option value="USD">$ USD</option>
-                                            <option value="EUR">€ EUR</option>
-                                            <option value="GBP">£ GBP</option>
-                                            <option value="PKR">₨ PKR</option>
-                                            <option value="INR">₹ INR</option>
-                                            <option value="BDT">৳ BDT</option>
-                                        </select>
-                                        <input type="number" id="iq-budget" min="1" step="0.01" placeholder="e.g. 50.00" required style="border-radius:0 10px 10px 0;flex:1;border:1px solid var(--border-muted);border-left:none;background:var(--bg-card);color:var(--text-primary);padding:10px 14px;outline:none;" />
+                                    <label>Services <span>*</span></label>
+                                    <div class="iq-svc-dropdown" id="iq-svc-dropdown">
+                                        <div class="iq-svc-dropdown-btn" onclick="toggleSvcDropdown()">
+                                            <span id="iq-svc-label">Choose services...</span>
+                                            <i class="bi bi-chevron-down"></i>
+                                        </div>
+                                        <div class="iq-svc-dropdown-menu" id="iq-svc-menu"></div>
                                     </div>
+                                </div>
+                                <div class="inquiry-field inquiry-field-full" id="iq-service-qty-container" style="display:none;">
+                                    <label>Service Quantities <span>*</span></label>
+                                    <div id="iq-service-qty-area"></div>
+                                </div>
+                                <div class="inquiry-field inquiry-field-full">
+                                    <label>Target URL <span>*</span></label>
+                                    <input type="url" id="iq-url" placeholder="https://instagram.com/your-profile" required />
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Description <small>(optional)</small></label>
@@ -334,8 +309,173 @@
                             </div>
                         </div>
 
-                        <button type="submit" id="inquirySubmitBtn" class="btn-hero-primary w-100 mt-3" style="justify-content:center;">
-                            <i class="bi bi-send"></i> Submit Requirements
+                        <div id="iq-services-area"></div>
+
+                        <div id="iq-order-summary" style="display:none;" class="iq-order-summary">
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0;">
+                                <div>
+                                    <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">Total Amount</div>
+                                    <div id="iq-total-price" style="font-size:1.8rem;font-weight:900;color:var(--text-primary);">0.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" id="inquirySubmitBtn" class="btn-hero-primary w-100 mt-3" style="justify-content:center;" onclick="openPaymentModal()">
+                            <i class="bi bi-credit-card"></i> Proceed to Payment
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ── Payment Modal ── -->
+            <div class="pkg-modal-overlay" id="paymentOverlay" onclick="closePaymentModal()"></div>
+            <div class="pkg-modal" id="paymentModal" style="max-width:520px;">
+                <div class="pkg-modal-header">
+                    <h5><i class="bi bi-shield-lock" style="color:var(--primary);"></i> Secure Checkout</h5>
+                    <button class="pkg-modal-close" onclick="closePaymentModal()">&times;</button>
+                </div>
+                <div class="pkg-modal-body" style="padding:0;">
+                    <div style="padding:24px 24px 0;">
+                        <div class="payment-summary" style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:16px;padding:20px;margin-bottom:24px;">
+                            <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+                                <span style="color:var(--text-secondary);font-size:0.88rem;display:flex;align-items:center;gap:6px;"><i class="bi bi-grid-3x3-gap" style="color:var(--primary);font-size:0.85rem;"></i> Platform</span>
+                                <strong id="pay-platform" style="color:var(--text-primary);font-size:0.92rem;">-</strong>
+                            </div>
+                            <div id="pay-items" style="margin-bottom:14px;"></div>
+                            <div style="height:1px;background:var(--border-subtle);margin:14px 0;"></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                <span style="color:var(--text-secondary);font-size:0.85rem;"><i class="bi bi-cash-stack" style="margin-right:4px;"></i> Currency</span>
+                                <select id="pay-currency-select" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border-subtle);background:var(--bg-surface);color:var(--text-primary);font-size:0.85rem;font-weight:600;cursor:pointer;" onchange="updatePayCurrency()">
+                                    <option value="PKR">PKR (Rs)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (&euro;)</option>
+                                    <option value="GBP">GBP (&pound;)</option>
+                                    <option value="INR">INR (&#8377;)</option>
+                                    <option value="SAR">SAR</option>
+                                    <option value="AED">AED</option>
+                                    <option value="CAD">CAD (C$)</option>
+                                    <option value="AUD">AUD (A$)</option>
+                                    <option value="TRY">TRY</option>
+                                    <option value="BDT">BDT</option>
+                                    <option value="BRL">BRL (R$)</option>
+                                    <option value="JPY">JPY (&yen;)</option>
+                                    <option value="CNY">CNY</option>
+                                    <option value="KRW">KRW</option>
+                                    <option value="NGN">NGN</option>
+                                    <option value="PHP">PHP</option>
+                                    <option value="IDR">IDR</option>
+                                    <option value="MYR">MYR</option>
+                                    <option value="THB">THB</option>
+                                    <option value="EGP">EGP</option>
+                                    <option value="ZAR">ZAR</option>
+                                    <option value="MXN">MXN</option>
+                                </select>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <span style="color:var(--text-primary);font-weight:800;font-size:0.95rem;">Total</span>
+                                <strong id="pay-total" style="font-size:1.5rem;color:var(--primary);font-weight:900;">0.00</strong>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:20px;">
+                            <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Choose Payment Method</div>
+                            <div class="pay-methods-grid">
+                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'stripe')">
+                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#635BFF,#7A73FF);">
+                                        <i class="bi bi-credit-card-2-front"></i>
+                                    </div>
+                                    <div class="pay-method-info">
+                                        <span class="pay-method-name">Card Payment</span>
+                                        <span class="pay-method-desc">Visa, Mastercard, AMEX</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
+                                </button>
+                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'paypal')">
+                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#0070BA,#003087);">
+                                        <i class="bi bi-paypal"></i>
+                                    </div>
+                                    <div class="pay-method-info">
+                                        <span class="pay-method-name">PayPal</span>
+                                        <span class="pay-method-desc">Pay with PayPal balance</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
+                                </button>
+                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'crypto')">
+                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#F7931A,#E8850E);">
+                                        <i class="bi bi-bitcoin"></i>
+                                    </div>
+                                    <div class="pay-method-info">
+                                        <span class="pay-method-name">Cryptocurrency</span>
+                                        <span class="pay-method-desc">BTC, ETH, USDT</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
+                                </button>
+                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'bank')">
+                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#10B981,#059669);">
+                                        <i class="bi bi-bank"></i>
+                                    </div>
+                                    <div class="pay-method-info">
+                                        <span class="pay-method-name">Bank Transfer</span>
+                                        <span class="pay-method-desc">Direct bank deposit</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="pay-secure-badge" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:12px;margin-bottom:20px;">
+                            <i class="bi bi-shield-lock-fill" style="color:#10B981;font-size:0.9rem;"></i>
+                            <span style="color:#10B981;font-size:0.82rem;font-weight:600;">256-bit SSL Encrypted &middot; Your data is secure</span>
+                        </div>
+                    </div>
+
+                    <div style="padding:16px 24px 24px;border-top:1px solid var(--border-subtle);">
+                        <button type="button" id="payConfirmBtn" class="pay-confirm-btn" onclick="confirmPayment()">
+                            <i class="bi bi-lock-fill"></i> Confirm & Pay
+                        </button>
+                        <p style="color:var(--text-muted);font-size:0.75rem;margin-top:10px;text-align:center;">Your order will be reviewed by our admin team after payment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Contact Us Section ── -->
+            <section class="section" id="contact">
+                <div class="section-header">
+                    <div class="section-label"><i class="bi bi-envelope-fill"></i> Contact Us</div>
+                    <h2 class="section-title section-title-light">Get In Touch</h2>
+                    <p class="section-subtitle">Have questions or need custom engagement packages? We're here to help.</p>
+                </div>
+                <div class="inquiry-form-card">
+                    <div id="contactSuccess" style="display:none;" class="inquiry-success">
+                        <i class="bi bi-check-circle-fill"></i>&nbsp; Message sent! We'll get back to you within 24 hours.
+                    </div>
+                    <form id="contactForm" onsubmit="submitContact(event)">
+                        <div class="inquiry-grid">
+                            <div class="inquiry-field">
+                                <label>Name <span>*</span></label>
+                                <input type="text" id="ct-name" placeholder="Your name" required />
+                            </div>
+                            <div class="inquiry-field">
+                                <label>Email <span>*</span></label>
+                                <input type="email" id="ct-email" placeholder="you@example.com" required />
+                            </div>
+                            <div class="inquiry-field inquiry-field-full">
+                                <label>Subject <span>*</span></label>
+                                <select id="ct-subject" required>
+                                    <option value="">Choose a topic...</option>
+                                    <option value="general">General Inquiry</option>
+                                    <option value="custom">Custom Package Request</option>
+                                    <option value="support">Technical Support</option>
+                                    <option value="business">Business Partnership</option>
+                                </select>
+                            </div>
+                            <div class="inquiry-field inquiry-field-full">
+                                <label>Message <span>*</span></label>
+                                <textarea id="ct-message" rows="4" placeholder="Tell us how we can help you..." required></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" id="contactSubmitBtn" class="btn-hero-primary w-100 mt-3" style="justify-content:center;">
+                            <i class="bi bi-send"></i> Send Message
                         </button>
                     </form>
                 </div>
@@ -442,7 +582,7 @@
                             <a href="/admin/reports" class="sidebar-link @(rp.StartsWith("/admin/reports") ? "active" : "")"><i class="bi bi-bar-chart-line"></i> Reports</a>
                             <a href="/admin/in-progress" class="sidebar-link @(rp == "/admin/in-progress" ? "active" : "")"><i class="bi bi-hourglass-split"></i> In Progress</a>
                             <a href="/admin/completed" class="sidebar-link @(rp == "/admin/completed" ? "active" : "")"><i class="bi bi-check2-all"></i> Completed</a>
-                            <a href="/admin/inquiries" class="sidebar-link @(rp == "/admin/inquiries" ? "active" : "")"><i class="bi bi-inbox"></i> Client Requirements</a>
+                            <a href="/admin/inquiries" class="sidebar-link @(rp == "/admin/inquiries" ? "active" : "")"><i class="bi bi-inbox"></i> Clients</a>
                             <a href="/admin/proof-review" class="sidebar-link @(rp == "/admin/proof-review" ? "active" : "")"><i class="bi bi-shield-check"></i> Proof Review</a>
                             <a href="/admin/activity-logs" class="sidebar-link @(rp.StartsWith("/admin/activity-logs") ? "active" : "")"><i class="bi bi-clock-history"></i> Activity Log</a>
                             <div class="sidebar-divider"></div>
@@ -516,182 +656,526 @@
             updateThemeIcons(savedTheme === 'light');
         });
 
-        function updateMultiSelect(className, displayId, defaultText) {
-            const checkboxes = document.querySelectorAll('.' + className + ':checked');
-            const displaySpan = document.getElementById(displayId);
-            
-            if (checkboxes.length === 0) {
-                displaySpan.textContent = defaultText;
-                displaySpan.style.color = '#6c757d';
-            } else {
-                const selected = Array.from(checkboxes).map(cb => cb.value);
-                displaySpan.textContent = selected.join(', ');
-                displaySpan.style.color = 'var(--text-primary)';
-            }
+        var iqServiceData = {};
+        var iqDetectedCurrency = 'USD';
+        var iqDetectedSymbol = '$';
+        var iqBaseCurrency = 'PKR';
+        var iqPkrRates = {
+            'USD': 285, 'EUR': 310, 'GBP': 360, 'PKR': 1,
+            'INR': 3.43, 'BDT': 2.59, 'SAR': 76, 'AED': 77.7,
+            'CAD': 208, 'AUD': 186, 'TRY': 8.8,
+            'BRL': 56, 'JPY': 1.91, 'CNY': 39.3, 'KRW': 0.21,
+            'NGN': 0.18, 'PHP': 5.0, 'IDR': 0.018, 'MYR': 61,
+            'THB': 8.0, 'EGP': 5.9, 'ZAR': 15.5, 'MXN': 16.5,
+            'KWD': 930, 'QAR': 78, 'BHD': 755, 'OMR': 742
+        };
 
-            // If it's the service selector, rebuild per-service qty rows
-            if (className === 'iq-service-cb') {
-                rebuildServiceDetails();
+        function convertFromPkr(amountPkr, toCurrency) {
+            if (toCurrency === 'PKR') return amountPkr;
+            var rate = iqPkrRates[toCurrency];
+            if (!rate) return amountPkr;
+            return amountPkr / rate;
+        }
+
+        var iqCurrencySymbols = {
+            'PKR': '\u20A8', 'INR': '\u20B9', 'BDT': '\u09F3', 'GBP': '\u00A3',
+            'EUR': '\u20AC', 'USD': '$', 'CAD': 'C$', 'AUD': 'A$', 'NZD': 'NZ$',
+            'SAR': '\uFDFC', 'AED': '\u062F. ', 'TRY': '\u20BA', 'BRL': 'R$',
+            'JPY': '\u00A5', 'CNY': '\u00A5', 'KRW': '\u20A9', 'NGN': '\u20A6',
+            'PHP': '\u20B1', 'IDR': 'Rp', 'MYR': 'RM', 'THB': '\u0E3F',
+            'EGP': 'E\u00A3', 'ZAR': 'R', 'MXN': 'Mex$'
+        };
+
+        function formatPrice(amount) {
+            var converted = convertFromPkr(amount, iqDetectedCurrency);
+            return iqDetectedSymbol + parseFloat(converted).toFixed(2);
+        }
+
+        function updateCurrencyBadge() {
+            var badge = document.getElementById('iq-currency-badge');
+            if (badge) {
+                badge.textContent = iqDetectedSymbol + ' ' + iqDetectedCurrency;
+                badge.title = 'Prices displayed in ' + iqDetectedCurrency + ' (' + iqDetectedSymbol + ')';
             }
         }
 
-        function rebuildServiceDetails() {
-            const selectedServices = Array.from(document.querySelectorAll('.iq-service-cb:checked')).map(cb => cb.value);
-            const wrapper = document.getElementById('iq-service-details-wrapper');
-            const urlWrapper = document.getElementById('iq-url-wrapper');
-            const container = document.getElementById('iq-service-details');
+        function detectCurrency() {
+            fetch('https://ipapi.co/json/')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.currency_code) {
+                        iqDetectedCurrency = data.currency_code;
+                        iqDetectedSymbol = iqCurrencySymbols[data.currency_code] || '$';
+                        if (window.__userCurrencyCache !== undefined) window.__userCurrencyCache = data.currency_code;
+                        updateCurrencyBadge();
+                        refreshAllPrices();
+                    }
+                })
+                .catch(function() {
+                    detectCurrencyFallback();
+                });
+        }
 
-            if (selectedServices.length === 0) {
-                wrapper.style.display = 'none';
-                urlWrapper.style.display = 'none';
-                container.innerHTML = '';
-                return;
+        function detectCurrencyFallback() {
+            try {
+                var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+                var tzMap = {
+                    'Karachi': 'PKR', 'Lahore': 'PKR', 'Islamabad': 'PKR',
+                    'Kolkata': 'INR', 'Mumbai': 'INR', 'Delhi': 'INR', 'Calcutta': 'INR',
+                    'Dhaka': 'BDT',
+                    'London': 'GBP',
+                    'New_York': 'USD', 'Los_Angeles': 'USD', 'Chicago': 'USD', 'Denver': 'USD', 'Phoenix': 'USD', 'Anchorage': 'USD', 'Honolulu': 'USD',
+                    'Toronto': 'CAD', 'Vancouver': 'CAD', 'Winnipeg': 'CAD', 'Halifax': 'CAD', 'Edmonton': 'CAD',
+                    'Sydney': 'AUD', 'Melbourne': 'AUD', 'Brisbane': 'AUD', 'Perth': 'AUD', 'Adelaide': 'AUD', 'Darwin': 'AUD',
+                    'Auckland': 'NZD',
+                    'Riyadh': 'SAR', 'Dubai': 'AED', 'Qatar': 'QAR', 'Bahrain': 'BHD', 'Kuwait': 'KWT', 'Muscat': 'OMR', 'Tehran': 'IRR',
+                    'Istanbul': 'TRY',
+                    'Sao_Paulo': 'BRL', 'Fortaleza': 'BRL', 'Belem': 'BRL', 'Manaus': 'BRL',
+                    'Tokyo': 'JPY', 'Shanghai': 'CNY', 'Chongqing': 'CNY', 'Harbin': 'CNY', 'Urumqi': 'CNY', 'Seoul': 'KRW',
+                    'Lagos': 'NGN', 'Johannesburg': 'ZAR', 'Cairo': 'EGP', 'Nairobi': 'KES',
+                    'Manila': 'PHP', 'Jakarta': 'IDR', 'Bangkok': 'THB', 'Kuala_Lumpur': 'MYR',
+                    'Singapore': 'SGD', 'Hong_Kong': 'HKD', 'Taipei': 'TWD',
+                    'Moscow': 'RUB', 'Kiev': 'UAH', 'Warsaw': 'PLN', 'Prague': 'CZK', 'Budapest': 'HUF', 'Bucharest': 'RON',
+                    'Stockholm': 'SEK', 'Oslo': 'NOK', 'Copenhagen': 'DKK', 'Helsinki': 'EUR',
+                    'Berlin': 'EUR', 'Paris': 'EUR', 'Rome': 'EUR', 'Madrid': 'EUR', 'Amsterdam': 'EUR',
+                    'Mexico_City': 'MXN', 'Monterrey': 'MXN', 'Bogota': 'COP', 'Lima': 'PEN', 'Santiago': 'CLP',
+                    'Buenos_Aires': 'ARS', 'Montevideo': 'UYU', 'La_Paz': 'BOB',
+                    'Colombo': 'LKR', 'Kathmandu': 'NPR', 'Almaty': 'KZT', 'Tashkent': 'UZB'
+                };
+                for (var key in tzMap) {
+                    if (tz.indexOf(key) !== -1) {
+                        iqDetectedCurrency = tzMap[key];
+                        iqDetectedSymbol = iqCurrencySymbols[tzMap[key]] || '$';
+                        if (window.__userCurrencyCache !== undefined) window.__userCurrencyCache = tzMap[key];
+                        updateCurrencyBadge();
+                        refreshAllPrices();
+                        return;
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function refreshAllPrices() {
+            for (var s in iqServiceData) {
+                var d = iqServiceData[s];
+                if (d.unitPrice > 0) updateServiceAmount(s);
             }
+            updateOrderSummary();
+        }
 
-            wrapper.style.display = 'block';
-            urlWrapper.style.display = 'block';
+        var iqServiceIcons = {
+            'Followers': 'bi-people-fill', 'Likes': 'bi-heart-fill', 'Comments': 'bi-chat-fill',
+            'Subscribers': 'bi-play-btn-fill', 'Shares': 'bi-share-fill', 'Views': 'bi-eye-fill',
+            'Views/Likes': 'bi-eye-fill', 'Watch Time': 'bi-clock-fill',
+            'Impressions': 'bi-lightning-fill', 'Reach': 'bi-broadcast', 'Saves': 'bi-bookmark-fill'
+        };
 
-            // Preserve existing values when toggling services
-            const existing = {};
-            container.querySelectorAll('.service-detail-row').forEach(row => {
-                const s = row.dataset.service;
-                existing[s] = row.querySelector('.iq-service-qty')?.value || '';
-            });
+        function getIcon(s) { return iqServiceIcons[s] || 'bi-star-fill'; }
 
-            const serviceIcons = {
-                Followers: 'bi-people-fill',
-                Likes: 'bi-heart-fill',
-                Views: 'bi-eye-fill',
-                Comments: 'bi-chat-dots-fill',
-                Shares: 'bi-share-fill',
-                Subscribers: 'bi-bell-fill'
-            };
-            const serviceColors = {
-                Followers: '#6366F1', Likes: '#EF4444', Views: '#3B82F6',
-                Comments: '#10B981', Shares: '#F59E0B', Subscribers: '#EC4899'
-            };
+        function getServiceThemeClass(service) {
+            var s = service.toLowerCase();
+            if (s.indexOf('follower') !== -1 || s.indexOf('subscriber') !== -1) return 'theme-purple';
+            if (s.indexOf('like') !== -1) return 'theme-red';
+            if (s.indexOf('comment') !== -1 || s.indexOf('chat') !== -1) return 'theme-blue';
+            if (s.indexOf('share') !== -1 || s.indexOf('reach') !== -1) return 'theme-green';
+            if (s.indexOf('view') !== -1 || s.indexOf('watch') !== -1) return 'theme-yellow';
+            return 'theme-gray';
+        }
 
-            container.innerHTML = selectedServices.map(s => {
-                const icon = serviceIcons[s] || 'bi-star-fill';
-                const color = serviceColors[s] || '#6366F1';
-                const exVal = existing[s] || '';
-                return `
-                <div class="service-detail-row" data-service="${s}" style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--border-muted);border-radius:12px;padding:12px 16px;margin-bottom:10px;">
-                    <div style="display:flex;align-items:center;gap:8px;min-width:130px;">
-                        <span style="width:32px;height:32px;border-radius:8px;background:${color}22;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi ${icon}" style="color:${color};font-size:0.95rem;"></i>
-                        </span>
-                        <span style="font-weight:600;font-size:0.95rem;color:var(--text-primary);">${s}</span>
-                    </div>
-                    <div style="flex:1;">
-                        <input type="number" class="iq-service-qty" min="1" placeholder="Enter quantity"
-                            value="${exVal}"
-                            style="width:100%;border:1px solid var(--border-muted);border-radius:8px;background:var(--bg-card);color:var(--text-primary);padding:8px 12px;outline:none;font-size:0.9rem;" />
-                    </div>
-                </div>`;
-            }).join('');
+        function onIqPlatformChange() {
+            var menu = document.getElementById('iq-svc-menu');
+            menu.innerHTML = '<p style="padding:12px 16px;color:var(--text-muted);font-size:0.85rem;">Loading services...</p>';
+            menu.classList.remove('open');
+            document.querySelectorAll('#iq-svc-menu input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+            updateSvcLabel();
+            document.getElementById('iq-service-qty-area').innerHTML = '';
+            document.getElementById('iq-services-area').innerHTML = '';
+            document.getElementById('iq-order-summary').style.display = 'none';
+            iqServiceData = {};
+            updateServiceQtyVisibility();
+            var platform = document.getElementById('iq-platform').value;
+            if (!platform) { menu.innerHTML = ''; return; }
+            fetch('/api/packages/services/' + encodeURIComponent(platform))
+                .then(function(r) { return r.ok ? r.json() : []; })
+                .then(function(services) {
+                    if (!services.length) { menu.innerHTML = '<p style="padding:12px 16px;color:var(--text-muted);font-size:0.85rem;">No services available.</p>'; return; }
+                    menu.innerHTML = services.map(function(s) {
+                        return '<label class="iq-svc-option"><input type="checkbox" value="' + s + '" onchange="onServiceToggle(this)" /> <i class="bi ' + getIcon(s) + '"></i> ' + s + '</label>';
+                    }).join('');
+                })
+                .catch(function() { menu.innerHTML = '<p style="padding:12px 16px;color:var(--danger);font-size:0.85rem;">Failed to load services.</p>'; });
+        }
+
+        function toggleSvcDropdown() {
+            var menu = document.getElementById('iq-svc-menu');
+            menu.classList.toggle('open');
+        }
+
+        function updateSvcLabel() {
+            var checked = [];
+            document.querySelectorAll('#iq-svc-menu input[type=checkbox]:checked').forEach(function(cb) { checked.push(cb.value); });
+            document.getElementById('iq-svc-label').textContent = checked.length ? checked.join(', ') : 'Choose services...';
         }
 
         document.addEventListener('click', function(e) {
-            const platformBox = document.getElementById('iq-platform-dropdown-box');
-            const platformOpts = document.getElementById('platform-options');
-            const serviceBox = document.getElementById('iq-service-dropdown-box');
-            const serviceOpts = document.getElementById('service-options');
-            
-            if (platformBox && platformOpts && !platformBox.contains(e.target) && !platformOpts.contains(e.target)) {
-                platformOpts.style.display = 'none';
-            }
-            if (serviceBox && serviceOpts && !serviceBox.contains(e.target) && !serviceOpts.contains(e.target)) {
-                serviceOpts.style.display = 'none';
-            }
+            var dd = document.getElementById('iq-svc-dropdown');
+            if (dd && !dd.contains(e.target)) { document.getElementById('iq-svc-menu').classList.remove('open'); }
         });
-        async function submitInquiry(e) {
-            e.preventDefault();
 
-            const platformCheckboxes = document.querySelectorAll('.iq-platform-cb:checked');
-            const serviceCheckboxes = document.querySelectorAll('.iq-service-cb:checked');
+        function onServiceToggle(cb) {
+            var service = cb.value;
+            var platform = document.getElementById('iq-platform').value;
+            if (!platform) { cb.checked = false; updateSvcLabel(); alert('Please select a platform first.'); return; }
+            updateSvcLabel();
+
+            if (cb.checked) {
+                iqServiceData[service] = { packages: [], selectedPkg: null, qty: 0, price: 0, unitPrice: 0 };
+                addServiceSection(service);
+                fetchServicePrice(service, platform);
+            } else {
+                delete iqServiceData[service];
+                var sec = document.getElementById('iq-sec-' + service);
+                if (sec) sec.remove();
+            }
+            updateServiceQtyVisibility();
+            updateOrderSummary();
+        }
+
+        async function fetchServicePrice(service, platform) {
+            try {
+                var resp = await fetch('/api/packages/by-platform-service?platform=' + encodeURIComponent(platform) + '&service=' + encodeURIComponent(service));
+                if (!resp.ok) return;
+                var packages = (await resp.json()).filter(function(p) { return p.isActive; });
+                iqServiceData[service].packages = packages;
+                if (!packages.length) return;
+                var pkg = packages[0];
+                iqServiceData[service].selectedPkg = pkg.id;
+                iqServiceData[service].unitPrice = pkg.price;
+                document.getElementById('iq-pkg-id-' + service).value = pkg.id;
+                updateServiceAmount(service);
+            } catch(e) { console.warn('Failed to fetch price for', service, e); }
+        }
+
+        function updateServiceAmount(service) {
+            var d = iqServiceData[service];
+            var unitEl = document.getElementById('iq-unit-' + service);
+            if (!unitEl || !d.unitPrice) return;
+            unitEl.innerHTML = formatPrice(d.unitPrice) + ' / unit';
+            unitEl.style.display = 'inline-flex';
+        }
+
+        function addServiceSection(service) {
+            var area = document.getElementById('iq-service-qty-area');
+            var div = document.createElement('div');
+            div.id = 'iq-sec-' + service;
+            div.className = 'iq-svc-qty-section-wrapper';
             
-            var platform = Array.from(platformCheckboxes).map(cb => cb.value).join(',');
-            var service = Array.from(serviceCheckboxes).map(cb => cb.value).join(',');
+            var iconClass = getIcon(service);
+            var themeClass = getServiceThemeClass(service);
             
-            if (!platform) { alert('Please select at least one Platform.'); return; }
-            if (!service) { alert('Please select at least one Service Type.'); return; }
+            div.innerHTML =
+                '<div class="iq-svc-qty-row-card">' +
+                    '<div class="iq-svc-qty-left">' +
+                        '<div class="iq-svc-qty-icon-box ' + themeClass + '">' +
+                            '<i class="bi ' + iconClass + '"></i>' +
+                        '</div>' +
+                        '<span class="iq-svc-qty-title">' + service + '</span>' +
+                        '<span class="iq-svc-qty-unit-price" id="iq-unit-' + service + '" style="display:none;"></span>' +
+                    '</div>' +
+                    '<div class="iq-svc-qty-right">' +
+                        '<div class="iq-svc-qty-input-box">' +
+                            '<input type="number" id="iq-qty-' + service + '" min="1" placeholder="Enter quantity" oninput="onServiceQtyChange(\'' + service + '\')" onwheel="return false" />' +
+                        '</div>' +
+                        '<button type="button" class="iq-svc-qty-row-remove" onclick="removeService(\'' + service + '\')" title="Remove"><i class="bi bi-x-lg"></i></button>' +
+                    '</div>' +
+                '</div>' +
+                '<input type="hidden" id="iq-pkg-id-' + service + '" />';
+            area.appendChild(div);
+        }
 
-            // Collect per-service qty
-            const serviceRows = document.querySelectorAll('.service-detail-row');
-            if (serviceRows.length === 0) { alert('Please select at least one Service Type.'); return; }
+        function removeService(service) {
+            delete iqServiceData[service];
+            var sec = document.getElementById('iq-sec-' + service);
+            if (sec) sec.remove();
+            var cb = document.querySelector('#iq-svc-menu input[value="' + service + '"]');
+            if (cb) cb.checked = false;
+            updateSvcLabel();
+            updateServiceQtyVisibility();
+            updateOrderSummary();
+        }
 
-            let allValid = true;
-            const serviceDetails = [];
-            serviceRows.forEach(row => {
-                const s = row.dataset.service;
-                const qty = parseInt(row.querySelector('.iq-service-qty').value);
-                if (!qty || qty < 1) { row.querySelector('.iq-service-qty').focus(); allValid = false; }
-                serviceDetails.push({ service: s, quantity: qty });
-            });
-            if (!allValid) { alert('Please fill in a valid Quantity for each service.'); return; }
+        async         function onServiceQtyChange(service) {
+            var qty = parseInt(document.getElementById('iq-qty-' + service).value) || 0;
+            iqServiceData[service].qty = qty;
+            if (qty > 0 && iqServiceData[service].unitPrice > 0) {
+                iqServiceData[service].price = iqServiceData[service].unitPrice * qty;
+            } else {
+                iqServiceData[service].price = 0;
+            }
+            updateServiceAmount(service);
+            updateOrderSummary();
+        }
 
-            const url = document.getElementById('iq-url').value.trim();
-            if (!url) { document.getElementById('iq-url').focus(); alert('Please enter your Target URL.'); return; }
+        function updateOrderSummary() {
+            var total = 0;
+            var platform = document.getElementById('iq-platform').value;
+            for (var s in iqServiceData) {
+                var d = iqServiceData[s];
+                if (d.selectedPkg && d.unitPrice > 0 && d.qty > 0) {
+                    total += d.unitPrice * d.qty;
+                }
+            }
+            var el = document.getElementById('iq-order-summary');
+            if (total > 0) {
+                el.style.animation = 'none';
+                void el.offsetHeight;
+                el.style.display = 'block';
+                el.style.animation = '';
+                document.getElementById('iq-total-price').textContent = formatPrice(total);
+            } else {
+                el.style.display = 'none';
+            }
+        }
 
-            // Use max qty as the primary quantity
-            const qty = Math.max(...serviceDetails.map(d => d.quantity));
-            // Embed per-service qty info into description
-            const serviceQtyStr = serviceDetails.map(d => `${d.service}:${d.quantity}`).join(';');
+        function updateServiceQtyVisibility() {
+            var container = document.getElementById('iq-service-qty-container');
+            var hasServices = Object.keys(iqServiceData).length > 0;
+            if (container) {
+                container.style.display = hasServices ? 'block' : 'none';
+            }
+        }
 
-            const budget = parseFloat(document.getElementById('iq-budget').value);
-            const currency = document.getElementById('iq-currency').value;
-            const name = document.getElementById('iq-name').value;
-            const email = document.getElementById('iq-email').value;
-            const description = document.getElementById('iq-description').value;
+        document.addEventListener('DOMContentLoaded', function() { loadIqPlatforms(); detectCurrency(); updateCurrencyBadge(); });
 
-            const btn = document.getElementById('inquirySubmitBtn');
+        async function loadIqPlatforms() {
+            try {
+                var resp = await fetch('/api/packages/platforms');
+                if (!resp.ok) return;
+                var platforms = await resp.json();
+                var sel = document.getElementById('iq-platform');
+                if (!sel) return;
+                platforms.forEach(function(p) {
+                    var opt = document.createElement('option');
+                    opt.value = p; opt.textContent = p;
+                    sel.appendChild(opt);
+                });
+            } catch(e) {}
+        }
+
+        var selectedPayMethod = null;
+        var payCurrency = 'PKR';
+
+        function updatePayCurrency() {
+            var sel = document.getElementById('pay-currency-select');
+            if (sel) payCurrency = sel.value;
+            refreshPaymentModalPrices();
+        }
+
+        function refreshPaymentModalPrices() {
+            var curSel = document.getElementById('pay-currency-select');
+            var cur = curSel ? curSel.value : payCurrency;
+            var sym = iqCurrencySymbols[cur] || '$';
+            var total = 0;
+            var itemsHtml = '';
+            var itemCount = 0;
+            for (var s in iqServiceData) {
+                var d = iqServiceData[s];
+                if (d.selectedPkg) {
+                    var pkrTotal = d.unitPrice * d.qty;
+                    var converted = iqPkrRates[cur] ? pkrTotal / iqPkrRates[cur] : pkrTotal;
+                    total += converted;
+                    itemCount++;
+                    var unitConverted = iqPkrRates[cur] ? d.unitPrice / iqPkrRates[cur] : d.unitPrice;
+                    itemsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;' + (itemCount > 1 ? 'border-top:1px solid var(--border-subtle);' : '') + '">' +
+                        '<div style="flex:1;min-width:0;">' +
+                            '<div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);margin-bottom:3px;">' + s + '</div>' +
+                            '<div style="font-size:0.78rem;color:var(--text-muted);">' + d.qty.toLocaleString() + ' \u00d7 ' + sym + parseFloat(unitConverted).toFixed(2) + '/unit</div>' +
+                        '</div>' +
+                        '<div style="font-size:0.95rem;font-weight:800;color:var(--primary);white-space:nowrap;margin-left:16px;">' + sym + parseFloat(converted).toFixed(2) + '</div>' +
+                    '</div>';
+                }
+            }
+            var payItems = document.getElementById('pay-items');
+            var payTotal = document.getElementById('pay-total');
+            if (payItems) payItems.innerHTML = itemsHtml;
+            if (payTotal) payTotal.textContent = sym + parseFloat(total).toFixed(2);
+        }
+
+        function selectPayMethod(el, method) {
+            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
+            el.classList.add('selected');
+            selectedPayMethod = method;
+        }
+
+        function openPaymentModal() {
+            selectedPayMethod = null;
+            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
+            var name = document.getElementById('iq-name').value.trim();
+            var email = document.getElementById('iq-email').value.trim();
+            var platform = document.getElementById('iq-platform').value;
+            var url = document.getElementById('iq-url').value.trim();
+
+            if (!name || !email || !platform || !url) {
+                alert('Please fill in all required fields.'); return;
+            }
+
+            // Set currency selector to detected currency
+            var curSel = document.getElementById('pay-currency-select');
+            if (curSel && iqDetectedCurrency) {
+                var optExists = false;
+                for (var i = 0; i < curSel.options.length; i++) {
+                    if (curSel.options[i].value === iqDetectedCurrency) { optExists = true; break; }
+                }
+                if (optExists) curSel.value = iqDetectedCurrency;
+            }
+            payCurrency = curSel ? curSel.value : 'PKR';
+
+            var hasSelection = false;
+            var total = 0;
+            var itemCount = 0;
+            var cur = payCurrency;
+            var sym = iqCurrencySymbols[cur] || '$';
+            var itemsHtml = '';
+            for (var s in iqServiceData) {
+                var d = iqServiceData[s];
+                if (d.selectedPkg) {
+                    var pkrTotal = d.unitPrice * d.qty;
+                    var converted = iqPkrRates[cur] ? pkrTotal / iqPkrRates[cur] : pkrTotal;
+                    hasSelection = true;
+                    total += converted;
+                    itemCount++;
+                    var unitConverted = iqPkrRates[cur] ? d.unitPrice / iqPkrRates[cur] : d.unitPrice;
+                    itemsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;' + (itemCount > 1 ? 'border-top:1px solid var(--border-subtle);' : '') + '">' +
+                        '<div style="flex:1;min-width:0;">' +
+                            '<div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);margin-bottom:3px;">' + s + '</div>' +
+                            '<div style="font-size:0.78rem;color:var(--text-muted);">' + d.qty.toLocaleString() + ' \u00d7 ' + sym + parseFloat(unitConverted).toFixed(2) + '/unit</div>' +
+                        '</div>' +
+                        '<div style="font-size:0.95rem;font-weight:800;color:var(--primary);white-space:nowrap;margin-left:16px;">' + sym + parseFloat(converted).toFixed(2) + '</div>' +
+                    '</div>';
+                }
+            }
+            if (!hasSelection) { alert('Please select a package for at least one service.'); return; }
+
+            document.getElementById('pay-platform').textContent = platform;
+            document.getElementById('pay-items').innerHTML = itemsHtml;
+            document.getElementById('pay-total').textContent = sym + parseFloat(total).toFixed(2);
+
+            document.getElementById('paymentOverlay').style.display = 'block';
+            document.getElementById('paymentModal').style.display = 'block';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentOverlay').style.display = 'none';
+            document.getElementById('paymentModal').style.display = 'none';
+            selectedPayMethod = null;
+            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
+            var btn = document.getElementById('payConfirmBtn');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay'; }
+        }
+
+        async function confirmPayment() {
+            if (!selectedPayMethod) {
+                alert('Please select a payment method to continue.');
+                return;
+            }
+            var btn = document.getElementById('payConfirmBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
 
+            var name = document.getElementById('iq-name').value.trim();
+            var email = document.getElementById('iq-email').value.trim();
+            var platform = document.getElementById('iq-platform').value;
+            var url = document.getElementById('iq-url').value.trim();
+            var description = document.getElementById('iq-description').value.trim();
+            var payMethodLabel = selectedPayMethod.charAt(0).toUpperCase() + selectedPayMethod.slice(1);
+
+            var selectedServices = [];
+            for (var s in iqServiceData) {
+                var d = iqServiceData[s];
+                if (d.selectedPkg) {
+                    selectedServices.push({ service: s, packageId: d.selectedPkg, quantity: d.qty });
+                }
+            }
+
+            var allOk = true;
+            var lastMsg = '';
+            for (var i = 0; i < selectedServices.length; i++) {
+                var item = selectedServices[i];
+                try {
+                    var resp = await fetch('/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            fullName: name, email: email, platform: platform,
+                            service: item.service, quantity: item.quantity, socialMediaUrl: url,
+                            packageId: item.packageId, description: description || '',
+                            currency: payCurrency
+                        })
+                    });
+                    var data = await resp.json();
+                    if (!resp.ok) { allOk = false; lastMsg = data.message || 'Failed'; break; }
+                } catch(err) { allOk = false; lastMsg = 'Network error'; break; }
+            }
+
+            if (allOk) {
+                closePaymentModal();
+                document.getElementById('inquirySuccess').style.display = 'flex';
+                document.getElementById('inquiryError').style.display = 'none';
+                document.getElementById('inquiryForm').reset();
+                document.querySelectorAll('#iq-svc-menu input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+                updateSvcLabel();
+                document.getElementById('iq-service-qty-area').innerHTML = '';
+                document.getElementById('iq-services-area').innerHTML = '';
+                document.getElementById('iq-order-summary').style.display = 'none';
+                iqServiceData = {};
+                updateServiceQtyVisibility();
+                selectedPayMethod = null;
+                document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
+                setTimeout(function() { document.getElementById('inquirySuccess').style.display = 'none'; }, 5000);
+            } else {
+                var errEl = document.getElementById('inquiryError');
+                if (errEl) { errEl.style.display = 'block'; document.getElementById('inquiryErrorText').textContent = lastMsg; }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
+            }
+        }
+
+
+        function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+        async function submitContact(e) {
+            e.preventDefault();
+            const name = document.getElementById('ct-name').value.trim();
+            const email = document.getElementById('ct-email').value.trim();
+            const subject = document.getElementById('ct-subject').value;
+            const message = document.getElementById('ct-message').value.trim();
+            if (!name || !email || !subject || !message) { alert('Please fill in all fields.'); return; }
+            const btn = document.getElementById('contactSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
             try {
                 const resp = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        fullName: name,
-                        email: email,
-                        platform: platform,
-                        service: service,
-                        quantity: qty,
-                        socialMediaUrl: url,
-                        budget: budget,
-                        currency: currency,
-                        description: (description ? description + '\n' : '') + 'Service quantities: ' + serviceQtyStr
+                        fullName: name, email: email, platform: 'Contact',
+                        service: subject, quantity: 1, socialMediaUrl: '',
+                        packageId: null, description: 'Contact Form: ' + message
                     })
                 });
-                const data = await resp.json();
                 if (resp.ok) {
-                    document.getElementById('inquirySuccess').style.display = 'flex';
-                    document.getElementById('inquiryError').style.display = 'none';
-                    document.getElementById('inquiryForm').reset();
-                    document.querySelectorAll('.iq-platform-cb, .iq-service-cb').forEach(cb => cb.checked = false);
-                    updateMultiSelect('iq-platform-cb', 'iq-platform-selected', 'Choose platforms...');
-                    updateMultiSelect('iq-service-cb', 'iq-service-selected', 'Choose service types...');
-                    document.getElementById('iq-service-details').innerHTML = '';
-                    document.getElementById('iq-service-details-wrapper').style.display = 'none';
-                    document.getElementById('iq-url-wrapper').style.display = 'none';
-                    document.getElementById('iq-url').value = '';
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-send"></i> Submit Requirements';
-                    setTimeout(function() {
-                        document.getElementById('inquirySuccess').style.display = 'none';
-                    }, 5000);
-                } else {
-                    var errEl = document.getElementById('inquiryError');
-                    if (errEl) { errEl.style.display = 'block'; document.getElementById('inquiryErrorText').textContent = data.message || 'Submission failed.'; }
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-send"></i> Submit Requirements';
+                    document.getElementById('contactSuccess').style.display = 'flex';
+                    document.getElementById('contactForm').reset();
+                    setTimeout(function() { document.getElementById('contactSuccess').style.display = 'none'; }, 5000);
                 }
-            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send"></i> Send Message';
+            } catch(err) {
                 alert('Network error. Please try again.');
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-send"></i> Submit Requirements';
+                btn.innerHTML = '<i class="bi bi-send"></i> Send Message';
             }
         }
         document.addEventListener('DOMContentLoaded', () => {
@@ -725,6 +1209,155 @@
                 overlay.classList.toggle('open');
             }
         }
+    </script>
+    <script>
+        function toggleNotifDropdown() {
+            var dd = document.getElementById('notifDropdown');
+            if (!dd) return;
+            var isOpen = dd.classList.contains('show');
+            dd.classList.toggle('show');
+            if (!isOpen) {
+                loadNotifications();
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            var wrapper = document.getElementById('notifBellWrapper');
+            var dd = document.getElementById('notifDropdown');
+            if (wrapper && dd && !wrapper.contains(e.target)) {
+                dd.classList.remove('show');
+            }
+        });
+
+        var notifTypeMap = {
+            'NewOrder': { icon: 'bi-cart-check', css: 'notif-new-order' },
+            'ProofReview': { icon: 'bi-shield-check', css: 'notif-proof-review' },
+            'ProofApproved': { icon: 'bi-check-circle', css: 'notif-proof-approved' },
+            'ProofRejected': { icon: 'bi-x-circle', css: 'notif-proof-rejected' },
+            'TaskCompleted': { icon: 'bi-trophy', css: 'notif-task-completed' },
+            'NewTaskAvailable': { icon: 'bi-lightning', css: 'notif-new-task' },
+            'NewUserRegistered': { icon: 'bi-person-plus', css: 'notif-new-order' }
+        };
+
+        function timeAgo(dateStr) {
+            var now = new Date();
+            var date = new Date(dateStr);
+            var seconds = Math.floor((now - date) / 1000);
+            if (seconds < 60) return 'just now';
+            var minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + 'm ago';
+            var hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + 'h ago';
+            var days = Math.floor(hours / 24);
+            if (days < 7) return days + 'd ago';
+            return date.toLocaleDateString();
+        }
+
+        function renderNotifItem(n) {
+            var typeInfo = notifTypeMap[n.type] || { icon: 'bi-bell', css: 'notif-new-order' };
+            var unreadClass = n.isRead ? '' : ' unread';
+            return '<div class="notif-item' + unreadClass + '" onclick="markNotifRead(' + n.id + ')">' +
+                '<div class="notif-icon ' + typeInfo.css + '"><i class="bi ' + typeInfo.icon + '"></i></div>' +
+                '<div class="notif-content">' +
+                    '<div class="notif-title">' + escapeHtml(n.title) + '</div>' +
+                    '<div class="notif-message">' + escapeHtml(n.message) + '</div>' +
+                    '<div class="notif-time">' + timeAgo(n.createdAt) + '</div>' +
+                '</div>' +
+            '</div>';
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateBadge(count) {
+            var badge = document.getElementById('notifBadge');
+            var bell = document.querySelector('.notification-bell-btn');
+            if (!badge) return;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'block';
+                if (bell) bell.classList.add('has-unread');
+            } else {
+                badge.style.display = 'none';
+                if (bell) bell.classList.remove('has-unread');
+            }
+        }
+
+        async function loadNotifications() {
+            try {
+                var resp = await fetch('/api/notifications?pageSize=15');
+                console.log('[Notif] API status:', resp.status);
+                if (!resp.ok) {
+                    var errText = await resp.text();
+                    console.warn('[Notif] API error:', resp.status, errText);
+                    return;
+                }
+                var data = await resp.json();
+                console.log('[Notif] data:', data);
+                var list = document.getElementById('notifList');
+                if (!list) return;
+
+                updateBadge(data.unreadCount);
+
+                if (!data.notifications || data.notifications.length === 0) {
+                    list.innerHTML = '<div class="notif-empty"><i class="bi bi-bell-slash"></i><p>No notifications yet</p></div>';
+                    return;
+                }
+
+                list.innerHTML = data.notifications.map(renderNotifItem).join('');
+            } catch (e) {
+                console.warn('Failed to load notifications', e);
+            }
+        }
+
+        async function markNotifRead(id) {
+            try {
+                await fetch('/api/notifications/' + id + '/read', { method: 'PUT' });
+                loadNotifications();
+            } catch (e) {
+                console.warn('Failed to mark notification read', e);
+            }
+        }
+
+        async function markAllNotifsRead() {
+            try {
+                await fetch('/api/notifications/read-all', { method: 'PUT' });
+                loadNotifications();
+            } catch (e) {
+                console.warn('Failed to mark all notifications read', e);
+            }
+        }
+
+        (function initNotifications() {
+            var headerRights = document.querySelectorAll('.admin-header-right');
+            if (!headerRights.length) return;
+
+            var bellHtml = '<div class="notification-bell-wrapper" id="notifBellWrapper">' +
+                '<button class="notification-bell-btn" id="notifBellBtn" onclick="toggleNotifDropdown()">' +
+                    '<i class="bi bi-bell"></i>' +
+                    '<span class="notif-badge" id="notifBadge" style="display:none;">0</span>' +
+                '</button>' +
+                '<div class="notif-dropdown" id="notifDropdown">' +
+                    '<div class="notif-dropdown-header">' +
+                        '<h6>Notifications</h6>' +
+                        '<button class="notif-mark-all" onclick="markAllNotifsRead()">Mark all read</button>' +
+                    '</div>' +
+                    '<div class="notif-dropdown-body" id="notifList">' +
+                        '<div class="notif-empty"><i class="bi bi-bell-slash"></i><p>No notifications yet</p></div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+
+            headerRights.forEach(function(el) {
+                el.insertAdjacentHTML('afterbegin', bellHtml);
+            });
+
+            loadNotifications();
+            setInterval(loadNotifications, 30000);
+        })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

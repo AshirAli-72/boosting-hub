@@ -5,14 +5,44 @@
     ViewData["Title"] = "Dashboard";
     ViewData["BodyClass"] = "user-dashboard-page";
 
-    string CurrencySymbol(string? currency) => (currency?.ToUpper() ?? "USD") switch {
+    string CurrencySymbol(string? currency) => (currency?.ToUpper() ?? "PKR") switch {
         "PKR" => "₨",
         "EUR" => "€",
         "GBP" => "£",
         "INR" => "₹",
         "BDT" => "৳",
+        "SAR" => "﷼",
+        "AED" => "د.إ",
+        "TRY" => "₺",
+        "NGN" => "₦",
+        "JPY" => "¥",
+        "CNY" => "¥",
+        "KRW" => "₩",
+        "PHP" => "₱",
+        "IDR" => "Rp",
+        "MYR" => "RM",
+        "THB" => "฿",
+        "EGP" => "E£",
+        "ZAR" => "R",
+        "MXN" => "Mex$",
         _ => "$"
     };
+
+    var pkrToDisplay = Model.Dashboard.WalletCurrency?.ToUpper() ?? "PKR";
+    decimal[] pkrRateArr = new decimal[] {285, 310, 360, 1, 3.43m, 2.59m, 76, 77.7m, 8.85m, 445, 42.75m, 2.07m, 380, 16, 4500, 1.34m, 10.1m, 13.7m, 5.25m, 16.8m};
+    string[] pkrRateCurs = new string[] {"USD","EUR","GBP","PKR","INR","BDT","SAR","AED","TRY","NGN","JPY","CNY","KRW","PHP","IDR","MYR","THB","EGP","ZAR","MXN"};
+    decimal walletBalPkr = Model.Dashboard.WalletBalance;
+    decimal walletBalConverted = walletBalPkr;
+    var rateIdx = Array.IndexOf(pkrRateCurs, pkrToDisplay);
+    if (rateIdx >= 0 && pkrRateArr[rateIdx] > 0)
+        walletBalConverted = Math.Round(walletBalPkr / pkrRateArr[rateIdx], 2);
+
+    decimal rewardsPkr = Model.Dashboard.TotalRewards;
+    decimal rewardsConverted = rewardsPkr;
+    rateIdx = Array.IndexOf(pkrRateCurs, pkrToDisplay);
+    if (rateIdx >= 0 && pkrRateArr[rateIdx] > 0)
+        rewardsConverted = Math.Round(rewardsPkr / pkrRateArr[rateIdx], 2);
+
     var sym = CurrencySymbol(Model.Dashboard.WalletCurrency);
 }
 
@@ -67,7 +97,7 @@
                         <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-wallet2"></i></div>
                         <div class="stat-info">
                             <span class="stat-label" style="color:rgba(255,255,255,0.75);">Wallet Balance</span>
-                            <span class="stat-value" style="color:#fff;">@sym@Model.Dashboard.WalletBalance.ToString("N2")</span>
+                            <span class="stat-value" style="color:#fff;">@sym@walletBalConverted.ToString("N2")</span>
                             <span class="stat-label" style="color:rgba(255,255,255,0.75);font-size:0.7rem;">@Model.Dashboard.WalletStatus</span>
                         </div>
                     </div>

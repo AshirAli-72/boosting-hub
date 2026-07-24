@@ -22,6 +22,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly IConfiguration _config;
     private readonly IWebHostEnvironment _env;
     private readonly IActivityLogService _activityLog;
+    private readonly INotificationService _notificationService;
 
     public AuthenticationService(
         ApplicationDbContext db,
@@ -30,7 +31,8 @@ public class AuthenticationService : IAuthenticationService
         ILogger<AuthenticationService> logger,
         IConfiguration config,
         IWebHostEnvironment env,
-        IActivityLogService activityLog)
+        IActivityLogService activityLog,
+        INotificationService notificationService)
     {
         _db = db;
         _tokenService = tokenService;
@@ -40,6 +42,7 @@ public class AuthenticationService : IAuthenticationService
         _config = config;
         _env = env;
         _activityLog = activityLog;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterDto dto, HttpContext httpContext, CancellationToken ct = default)
@@ -105,9 +108,9 @@ public class AuthenticationService : IAuthenticationService
         {
             UserId = user.Id,
             TotalBalance = 0,
-            Currency = "USD",
+            Currency = "PKR",
             Withdrawn = 0,
-            Status = StatusHelper.WalletActive,
+            Status = "active",
             CreatedAt = DateTime.UtcNow
         });
 
@@ -133,6 +136,25 @@ public class AuthenticationService : IAuthenticationService
             userRole: "User", evt: "Registered", description: $"User {user.Email} registered (local auto-verified)",
             subjectType: "User", subjectId: user.Id, subjectName: user.Name,
             httpContext: httpContext, ct: ct);
+
+        var adminUserIds = await _db.UserHasRoles
+            .Include(ur => ur.Role)
+            .Where(ur => ur.Role != null && ur.Role.RoleTitle != null && ur.Role.RoleTitle.Contains("Admin"))
+            .Select(ur => ur.UserId)
+            .ToListAsync(ct);
+
+        if (adminUserIds.Any())
+        {
+            var notifications = adminUserIds.Select(adminId => new CreateNotificationDto
+            {
+                UserId = adminId,
+                Type = "NewUserRegistered",
+                Title = "New User Registered",
+                Message = $"{user.Name} has joined BoostingHub.",
+                Data = $"{{\"userId\":{user.Id}}}"
+            }).ToList();
+            await _notificationService.CreateBulkNotificationAsync(notifications);
+        }
 
         var authResponse = await _tokenService.GenerateTokensAsync(user);
         authResponse.User = new UserDto
@@ -391,13 +413,32 @@ public class AuthenticationService : IAuthenticationService
         {
             UserId = user.Id,
             TotalBalance = 0,
-            Currency = "USD",
+            Currency = "PKR",
             Withdrawn = 0,
-            Status = StatusHelper.WalletActive,
+            Status = "active",
             CreatedAt = DateTime.UtcNow
         });
 
         await _db.SaveChangesAsync(ct);
+
+        var adminUserIds = await _db.UserHasRoles
+            .Include(ur => ur.Role)
+            .Where(ur => ur.Role != null && ur.Role.RoleTitle != null && ur.Role.RoleTitle.Contains("Admin"))
+            .Select(ur => ur.UserId)
+            .ToListAsync(ct);
+
+        if (adminUserIds.Any())
+        {
+            var notifications = adminUserIds.Select(adminId => new CreateNotificationDto
+            {
+                UserId = adminId,
+                Type = "NewUserRegistered",
+                Title = "New User Registered",
+                Message = $"{user.Name} has joined BoostingHub.",
+                Data = $"{{\"userId\":{user.Id}}}"
+            }).ToList();
+            await _notificationService.CreateBulkNotificationAsync(notifications);
+        }
 
         var authResponse = await _tokenService.GenerateTokensAsync(user);
         authResponse.User = new UserDto

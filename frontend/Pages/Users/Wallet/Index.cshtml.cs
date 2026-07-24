@@ -24,7 +24,7 @@ public class IndexModel : PageModel
     public class WalletDto
     {
         public decimal TotalBalance { get; set; }
-        public string Currency { get; set; } = "USD";
+        public string Currency { get; set; } = "PKR";
         public decimal Withdrawn { get; set; }
         public DateTime CreatedAt { get; set; }
         public string Status { get; set; } = "Active";
@@ -63,7 +63,7 @@ public class IndexModel : PageModel
         if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
             return new JsonResult(new { success = false, message = "Not logged in" });
 
-        var valid = new[] { "USD", "EUR", "GBP", "PKR", "INR", "BDT" };
+        var valid = new[] { "USD", "EUR", "GBP", "PKR", "INR", "BDT", "SAR", "AED", "TRY", "NGN", "JPY", "CNY", "KRW", "PHP", "IDR", "MYR", "THB", "EGP", "ZAR", "MXN" };
         if (!valid.Contains(currency))
             return new JsonResult(new { success = false, message = "Invalid currency" });
 
@@ -112,7 +112,7 @@ public class IndexModel : PageModel
             return RedirectToPage();
         }
 
-        var walletCurrency = wallet?.Currency ?? "USD";
+        var walletCurrency = wallet?.Currency ?? "PKR";
         var sym = walletCurrency switch { "PKR" => "₨", "EUR" => "€", "GBP" => "£", "INR" => "₹", "BDT" => "৳", _ => "$" };
         await _walletService.WithdrawAsync(userId, WithdrawAmount);
         TempData["Success"] = $"Withdrawal of {sym}{WithdrawAmount:N2} ({walletCurrency}) requested to {defaultAccount.AccountTitle} ({defaultAccount.MobileNumber})";

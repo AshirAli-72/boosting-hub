@@ -18,7 +18,7 @@ public class ProofReviewDto
     public string Service { get; set; } = string.Empty;
     public string TaskUrl { get; set; } = string.Empty;
     public decimal Reward { get; set; }
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "PKR";
     public DateTime SubmittedAt { get; set; }
     public string VerificationStatus { get; set; } = string.Empty;
     public string? RejectReason { get; set; }

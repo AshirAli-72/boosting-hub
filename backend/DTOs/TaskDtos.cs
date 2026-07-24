@@ -16,7 +16,7 @@ public class AvailableTaskDto
 
     // rewards/targets
     public decimal RewardAmount { get; set; }                  // task_generate.reward
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "PKR";
     public int TargetQuantity { get; set; }                  // task_generate.quantity
     public int CompletedQuantity { get; set; }              // computed from task_complete
 
@@ -51,7 +51,7 @@ public class TaskDetailDto
     public string Url { get; set; } = string.Empty;
 
     public decimal RewardAmount { get; set; }
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "PKR";
     public int TargetQuantity { get; set; }
     public int CompletedQuantity { get; set; }
 
@@ -140,7 +140,7 @@ public class MyTaskDto
     public string Service { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
     public decimal Reward { get; set; }
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "PKR";
     public string Status { get; set; } = string.Empty;
     public DateTime AcceptedAt { get; set; }
     public string? ProofUrl { get; set; }
@@ -164,9 +164,9 @@ public class SubmitOrderDto
     public string Service { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public string? SocialMediaUrl { get; set; }
-    public decimal Budget { get; set; }
-    public string Currency { get; set; } = "USD";
+    public int PackageId { get; set; }
     public string? Description { get; set; }
+    public string? Currency { get; set; }
 }
 
 public class MyTaskFilterDto

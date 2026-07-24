@@ -22,3 +22,18 @@
         setTimeout(function () { toast.remove(); }, 350);
     }, 4500);
 }
+
+window.__userCurrencyCache = null;
+window.__getUserCurrency = function() {
+    if (window.__userCurrencyCache) return Promise.resolve(window.__userCurrencyCache);
+    return fetch('https://ipapi.co/json/')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.currency_code) {
+                window.__userCurrencyCache = data.currency_code;
+                return data.currency_code;
+            }
+            return 'PKR';
+        })
+        .catch(function() { return 'PKR'; });
+};

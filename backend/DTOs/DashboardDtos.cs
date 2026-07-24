@@ -7,7 +7,7 @@ public class UserDashboardDto
     public int PendingTasks { get; set; }
     public decimal TotalRewards { get; set; }
     public decimal WalletBalance { get; set; }
-    public string WalletCurrency { get; set; } = "USD";
+    public string WalletCurrency { get; set; } = "PKR";
     public string WalletStatus { get; set; } = "Inactive";
     public ChartDataDto LineChart { get; set; } = new();
     public ChartDataDto PieChart { get; set; } = new();

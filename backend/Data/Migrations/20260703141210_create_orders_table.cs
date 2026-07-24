@@ -22,11 +22,11 @@ namespace BoostingHub.backend.Data.Migrations
                    service = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                    social_media_url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                    description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                   quantity = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                   budget = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                   status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                   created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
-                   currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false)
+                    quantity = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    package_id = table.Column<int>(type: "int", nullable: true),
+                    currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false, defaultValue: "PKR"),
+                    status = table.Column<int>(type: "int", nullable: false),
+                   created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
                },
                constraints: table =>
                {

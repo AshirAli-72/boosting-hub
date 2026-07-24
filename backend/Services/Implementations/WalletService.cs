@@ -25,7 +25,7 @@ public class WalletService : IWalletService
         return await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
     }
 
-    public async Task<Wallet> CreateOrUpdateWalletAsync(int userId, decimal totalBalance, string currency, decimal withdrawn, int status)
+    public async Task<Wallet> CreateOrUpdateWalletAsync(int userId, decimal totalBalance, string currency, decimal withdrawn, string status = "active")
     {
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
 
@@ -63,9 +63,9 @@ public class WalletService : IWalletService
             {
                 UserId = userId,
                 TotalBalance = amount,
-                Currency = "USD",
+                Currency = "PKR",
                 Withdrawn = 0,
-                Status = StatusHelper.WalletActive,
+                Status = "active",
                 CreatedAt = DateTime.UtcNow
             };
             _db.Wallets.Add(wallet);
@@ -78,24 +78,21 @@ public class WalletService : IWalletService
         await _db.SaveChangesAsync();
     }
 
-    public async Task CreditRewardAsync(int userId, decimal amount, int taskId, int proofId, string taskCurrency = "USD")
+    public async Task CreditRewardAsync(int userId, decimal amount, int taskId, int proofId, string taskCurrency = "PKR")
     {
         var wallet = await GetOrCreateWalletAsync(userId);
 
-        var convertedAmount = ConvertCurrency(amount, taskCurrency, wallet.Currency);
         var balanceBefore = wallet.TotalBalance;
-        wallet.TotalBalance += convertedAmount;
+        wallet.TotalBalance += amount;
 
         _db.Transactions.Add(new Transaction
         {
             WalletId = wallet.Id,
             UserId = userId,
             Type = "credit",
-            Amount = convertedAmount,
+            Amount = amount,
             BalanceAfter = wallet.TotalBalance,
-            Description = taskCurrency != wallet.Currency
-                ? $"Reward earned for completing task #{taskId} ({taskCurrency} {amount:F2} → {wallet.Currency} {convertedAmount:F2})"
-                : $"Reward earned for completing task #{taskId}",
+            Description = $"Reward earned for completing task #{taskId}",
             ReferenceType = "TaskReward",
             ReferenceId = taskId,
             Status = StatusHelper.TransactionCompleted,
@@ -104,16 +101,16 @@ public class WalletService : IWalletService
 
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("Credited {Amount} {Currency} to wallet {WalletId} for task {TaskId} (proof {ProofId})",
-            convertedAmount, wallet.Currency, wallet.Id, taskId, proofId);
+        _logger.LogInformation("Credited {Amount} PKR to wallet {WalletId} for task {TaskId} (proof {ProofId})",
+            amount, wallet.Id, taskId, proofId);
 
         var creditUser = await _db.Users.FindAsync(userId);
         await _activityLog.LogAsync(
             userId: userId, userName: creditUser?.Name, userEmail: creditUser?.Email,
             userRole: "System", evt: "WalletCredited",
-            description: $"{wallet.Currency} {convertedAmount:F2} credited for task #{taskId}",
+            description: $"₨{amount:F2} credited for task #{taskId}",
             subjectType: "Wallet", subjectId: wallet.Id, subjectName: creditUser?.Email,
-            newValues: JsonSerializer.Serialize(new { Amount = convertedAmount, Currency = wallet.Currency, BalanceAfter = wallet.TotalBalance, TaskId = taskId }),
+            newValues: JsonSerializer.Serialize(new { Amount = amount, Currency = "PKR", BalanceAfter = wallet.TotalBalance, TaskId = taskId }),
             ct: CancellationToken.None);
     }
 
@@ -151,9 +148,9 @@ public class WalletService : IWalletService
             {
                 UserId = userId,
                 TotalBalance = 0,
-                Currency = "USD",
+                Currency = "PKR",
                 Withdrawn = 0,
-                Status = StatusHelper.WalletActive,
+                Status = "active",
                 CreatedAt = DateTime.UtcNow
             };
             _db.Wallets.Add(wallet);
@@ -185,12 +182,6 @@ public class WalletService : IWalletService
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
         if (wallet == null) return false;
 
-        var oldCurrency = wallet.Currency;
-        if (!string.Equals(oldCurrency, currency, StringComparison.OrdinalIgnoreCase))
-        {
-            wallet.TotalBalance = ConvertCurrency(wallet.TotalBalance, oldCurrency, currency);
-            wallet.Withdrawn = ConvertCurrency(wallet.Withdrawn, oldCurrency, currency);
-        }
         wallet.Currency = currency;
         await _db.SaveChangesAsync();
         return true;

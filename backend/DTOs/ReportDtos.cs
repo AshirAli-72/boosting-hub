@@ -32,3 +32,14 @@ public class TasksReportDto
     public int RejectedProofs { get; set; }
     public Dictionary<string, int> DailyCompletions { get; set; } = new();
 }
+
+public class OrdersReportDto
+{
+    public int TotalOrders { get; set; }
+    public int ApprovedOrders { get; set; }
+    public int PendingOrders { get; set; }
+    public int RejectedOrders { get; set; }
+    public decimal TotalRevenue { get; set; }
+    public decimal AvgOrderValue { get; set; }
+    public Dictionary<string, int> DailyOrders { get; set; } = new();
+}

@@ -161,7 +161,7 @@ body.light-mode .auth-theme-toggle:hover {
 .input-icon-wrapper .input-icon {
     position: absolute; left: 16px; top: 50%;
     transform: translateY(-50%);
-    color: var(--text-muted, rgba(250,250,250,0.45)); font-size: 1.1rem;
+    color: #71717A; font-size: 1.1rem;
     z-index: 4; pointer-events: none; transition: color 0.2s;
 }
 .input-icon-wrapper .form-control,

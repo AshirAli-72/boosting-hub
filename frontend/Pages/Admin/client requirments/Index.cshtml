@@ -2,12 +2,12 @@
 @model BoostingHub.frontend.Pages.Admin.Inquiries.IndexModel
 @using BoostingHub.backend.Common
 @{
-    ViewData["Title"] = "Client Requirements";
+    ViewData["Title"] = "Clients";
     ViewData["BodyClass"] = "admin-page";
 }
 
         <div class="admin-header">
-            <h3><i class="bi bi-inbox text-primary"></i> Client Requirements (Orders)</h3>
+            <h3><i class="bi bi-inbox text-primary"></i> Clients</h3>
             <div class="admin-header-right">
                 <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
                     <i class="bi bi-moon-stars fs-5"></i>
@@ -27,7 +27,7 @@
             <div class="admin-card mb-4 border-0 shadow-sm" style="background:var(--bg-card); border-radius:16px;">
                 <div class="admin-card-header d-flex justify-content-between align-items-center" style="padding:20px 24px; border-bottom:1px solid var(--border-subtle);">
                     <h5 class="m-0"><i class="bi bi-list-check text-primary me-2"></i> All Orders</h5>
-                    <span class="badge" style="background:var(--primary); color:#fff; font-size:0.85rem; padding:6px 12px; border-radius:20px;">@Model.Orders.Count Total</span>
+                        <span class="badge" style="background:var(--primary); color:#fff; font-size:0.85rem; padding:6px 12px; border-radius:20px;">@Model.Orders.Count Total</span>
                 </div>
                 <div class="admin-card-body p-0">
                     <div class="table-responsive">
@@ -39,7 +39,7 @@
                                     <th>Platform(s)</th>
                                     <th>Service(s)</th>
                                     <th>Quantity</th>
-                                    <th>Budget</th>
+                                    <th>Amount</th>
                                     <th>URL</th>
                                     <th>Status</th>
                                     <th>Date</th>
@@ -70,7 +70,7 @@
                                                 }
                                             </td>
                                             <td><span class="fw-semibold">@item.Quantity</span></td>
-                                            <td><span class="fw-bold text-success">@item.Currency @item.Budget.ToString("N2")</span></td>
+                                            <td><span class="fw-bold text-success">@item.Budget.ToString("N2")</span></td>
                                             <td>
                                                 @if (!string.IsNullOrEmpty(item.SocialMediaUrl))
                                                 {
@@ -87,7 +87,7 @@
                                                 }
                                                 else if (item.Status == StatusHelper.OrderApproved)
                                                 {
-                                                    <span class="inquiry-status-badge inquiry-status-approved">Approved</span>
+                                                    <span class="inquiry-status-badge inquiry-status-approved">Paid</span>
                                                 }
                                                 else
                                                 {
@@ -99,23 +99,6 @@
                                             </td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
-                                                @if (item.Status == StatusHelper.OrderPending)
-                                                    {
-                                                        <button class="btn btn-sm btn-success approve-btn"
-                                                                id="approve-btn-@item.Id"
-                                                                data-id="@item.Id"
-                                                                onclick="approveOrder(@item.Id)"
-                                                                style="border-radius:8px; font-weight:500; padding:4px 12px;">
-                                                            <i class="bi bi-check-lg"></i> Approve
-                                                        </button>
-                                                        <button class="btn btn-sm btn-danger reject-btn"
-                                                                id="reject-btn-@item.Id"
-                                                                data-id="@item.Id"
-                                                                onclick="rejectOrder(@item.Id)"
-                                                                style="border-radius:8px; font-weight:500; padding:4px 12px;">
-                                                            <i class="bi bi-x-lg"></i> Reject
-                                                        </button>
-                                                    }
                                                     <button class="btn btn-sm btn-outline-primary" type="button"
                                                             data-bs-toggle="collapse" data-bs-target="#collapse-@item.Id"
                                                             style="border-radius:8px; font-weight:500; padding:4px 10px;">
@@ -144,8 +127,8 @@
                                                                 <li><strong>Services:</strong> @item.Service</li>
                                                                 <li><strong>Quantity:</strong> @item.Quantity</li>
                                                                 <li><strong>Description:</strong> @item.Description</li>
-                                                                <li><strong>Budget:</strong> @item.Currency @item.Budget.ToString("N2")</li>
-                                                                <li><strong>Status:</strong> @item.Status</li>
+                                                                <li><strong>Amount:</strong> @item.Budget.ToString("N2")</li>
+                                                                <li><strong>Status:</strong> @StatusHelper.OrderStatusToString(item.Status)</li>
                                                             </ul>
                                                         </div>
                                                     </div>
@@ -184,62 +167,5 @@
                 if (m) m.style.display = 'none';
             }
         });
-
-        async function approveOrder(id) {
-            if (!confirm('Approve this order? Tasks will be generated and published for users.')) return;
-            var btn = document.getElementById('approve-btn-' + id);
-            var rejectBtn = document.getElementById('reject-btn-' + id);
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Approving...';
-            try {
-                const resp = await fetch('/api/orders/' + id + '/approve', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
-                });
-                const data = await resp.json();
-                if (resp.ok) {
-                    showToast(data.message, 'success');
-                    btn.outerHTML = '<span class="inquiry-status-badge inquiry-status-approved">Approved</span>';
-                    if (rejectBtn) rejectBtn.remove();
-                } else {
-                    showToast(data.message || 'Failed to approve.', 'danger');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-check-lg"></i> Approve';
-                }
-            } catch (e) {
-                showToast('Network error. Please try again.', 'danger');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-lg"></i> Approve';
-            }
-        }
-
-        async function rejectOrder(id) {
-            if (!confirm('Reject this order?')) return;
-            var btn = document.getElementById('reject-btn-' + id);
-            var approveBtn = document.getElementById('approve-btn-' + id);
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
-            try {
-                const resp = await fetch('/api/orders/' + id + '/reject', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                const data = await resp.json();
-                if (resp.ok) {
-                    showToast(data.message, 'success');
-                    btn.outerHTML = '<span class="inquiry-status-badge inquiry-status-rejected">Rejected</span>';
-                    if (approveBtn) approveBtn.remove();
-                } else {
-                    showToast(data.message || 'Failed to reject.', 'danger');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-x-lg"></i> Reject';
-                }
-            } catch (e) {
-                showToast('Network error. Please try again.', 'danger');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-x-lg"></i> Reject';
-            }
-        }
     </script>
 }

@@ -17,10 +17,12 @@ public class Orders
 
     // migration: orders.quantity is nvarchar(1000) (nullable)
     [Column("quantity")] public string? Quantity { get; set; }
-    [Column("budget")] public decimal Budget { get; set; }
-    [Column("currency")] public string Currency { get; set; } = "USD";
+    [Column("package_id")] public int? PackageId { get; set; }
+    [Column("currency", TypeName = "nvarchar(10)")] public string Currency { get; set; } = "PKR";
     [Column("status")] public int Status { get; set; } = 2;
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [NotMapped] public decimal Budget { get; set; }
 
     public ICollection<TaskGenerate> TaskGenerates { get; set; } = new List<TaskGenerate>();
 }

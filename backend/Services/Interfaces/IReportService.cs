@@ -7,4 +7,5 @@ public interface IReportService
     Task<RevenueReportDto> GetRevenueReportAsync();
     Task<UsersReportDto> GetUsersReportAsync();
     Task<TasksReportDto> GetTasksReportAsync();
+    Task<OrdersReportDto> GetOrdersReportAsync();
 }

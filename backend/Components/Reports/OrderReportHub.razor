@@ -1,0 +1,89 @@
+@inject IReportService ReportService
+
+<div class="report-hub-card">
+
+    @if (isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="report-metrics-grid">
+            <div class="report-metric">
+                <span class="report-metric-label">Total Orders</span>
+                <span class="report-metric-value" style="color:#0D9488;">@TotalOrders</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Approved</span>
+                <span class="report-metric-value" style="color:#10B981;">@ApprovedOrders</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Pending</span>
+                <span class="report-metric-value" style="color:#F59E0B;">@PendingOrders</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Rejected</span>
+                <span class="report-metric-value" style="color:#EF4444;">@RejectedOrders</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Total Revenue</span>
+                <span class="report-metric-value" style="color:#10B981;">₨@TotalRevenue.ToString("N0")</span>
+            </div>
+            <div class="report-metric">
+                <span class="report-metric-label">Avg. Order Value</span>
+                <span class="report-metric-value">₨@AvgOrderValue.ToString("N0")</span>
+            </div>
+        </div>
+
+        @if (DailyOrders.Any())
+        {
+            <div class="mt-3">
+                <div class="report-chart-label">Orders (Last 7 Days)</div>
+                <div class="report-bar-chart">
+                    @{ var maxVal = DailyOrders.Values.Any() ? DailyOrders.Values.Max() : 1; }
+                    @foreach (var kvp in DailyOrders)
+                    {
+                        var pct = maxVal > 0 ? (double)kvp.Value / (double)maxVal * 100 : 0;
+                        <div class="report-bar-item">
+                            <div class="report-bar-label">@kvp.Key</div>
+                            <div class="report-bar-track">
+                                <div class="report-bar-fill" style="width:@pct.ToString("F0")%;background:linear-gradient(90deg,#0D9488,#0F766E);"></div>
+                            </div>
+                            <div class="report-bar-val">@kvp.Value</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private int TotalOrders;
+    private int ApprovedOrders;
+    private int PendingOrders;
+    private int RejectedOrders;
+    private decimal TotalRevenue;
+    private decimal AvgOrderValue;
+    private Dictionary<string, int> DailyOrders = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var data = await ReportService.GetOrdersReportAsync();
+            TotalOrders    = data.TotalOrders;
+            ApprovedOrders = data.ApprovedOrders;
+            PendingOrders  = data.PendingOrders;
+            RejectedOrders = data.RejectedOrders;
+            TotalRevenue   = data.TotalRevenue;
+            AvgOrderValue  = data.AvgOrderValue;
+            DailyOrders    = data.DailyOrders;
+        }
+        catch { }
+        finally { isLoading = false; }
+    }
+}

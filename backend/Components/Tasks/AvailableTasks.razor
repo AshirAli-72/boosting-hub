@@ -97,7 +97,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="d-flex flex-column gap-2">
-                                    <div><strong>Your Reward:</strong> <span class="text-success fw-bold fs-5">@GetCurrencySymbol(selectedTask.Currency)@(selectedTask.RewardAmount.ToString("F2"))</span></div>
+                                    <div><strong>Your Reward:</strong> <span class="text-success fw-bold fs-5">@_convertedSymbol@(_detailConvertedAmount.ToString("F2"))</span></div>
                                     <div><strong>Slots:</strong> <span>@(selectedTask.TargetQuantity - selectedTask.CompletedQuantity) open / @selectedTask.CompletedQuantity completed</span></div>
                                     <div><strong>Status:</strong> <span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;">@selectedTask.Status</span></div>
                                     <div><strong>My Status:</strong>
@@ -117,7 +117,7 @@
                                 </div>
                             </div>
                         </div>
-                        @if (!string.IsNullOrEmpty(selectedTask.Description))
+                        @if (!string.IsNullOrWhiteSpace(selectedTask.Description))
                         {
                             <div class="mt-3 p-3" style="background:rgba(255,255,255,0.03);border-radius:10px;">
                                 <strong class="d-block mb-1"><i class="bi bi-chat-left-text text-primary me-1"></i>Description:</strong>
@@ -187,12 +187,49 @@
     private int? selectedTaskId;
     private TaskDetailDto? selectedTask;
     private HashSet<string> userPlatforms = new();
+    private string _convertedSymbol = "\u20A8";
+    private decimal _detailConvertedAmount;
+
+    private static readonly Dictionary<string, decimal> PkrRates = new()
+    {
+        ["PKR"] = 1, ["USD"] = 285, ["EUR"] = 310, ["GBP"] = 360,
+        ["INR"] = 3.43m, ["BDT"] = 2.59m, ["SAR"] = 76, ["AED"] = 77.7m,
+        ["CAD"] = 208, ["AUD"] = 186, ["TRY"] = 8.8m, ["BRL"] = 56,
+        ["JPY"] = 1.91m, ["CNY"] = 39.3m, ["KRW"] = 0.21m, ["NGN"] = 0.18m,
+        ["PHP"] = 5, ["IDR"] = 0.018m, ["MYR"] = 61, ["THB"] = 8,
+        ["EGP"] = 5.9m, ["ZAR"] = 15.5m, ["MXN"] = 16.5m,
+        ["KWD"] = 930, ["QAR"] = 78, ["BHD"] = 755, ["OMR"] = 742
+    };
+
+    private static readonly Dictionary<string, string> Symbols = new()
+    {
+        ["PKR"] = "\u20A8", ["INR"] = "\u20B9", ["BDT"] = "\u09F3", ["GBP"] = "\u00A3",
+        ["EUR"] = "\u20AC", ["USD"] = "$", ["CAD"] = "C$", ["AUD"] = "A$",
+        ["SAR"] = "\uFDFC", ["AED"] = "AED ", ["TRY"] = "\u20BA", ["BRL"] = "R$",
+        ["JPY"] = "\u00A5", ["CNY"] = "\u00A5", ["KRW"] = "\u20A9", ["NGN"] = "\u20A6",
+        ["PHP"] = "\u20B1", ["IDR"] = "Rp", ["MYR"] = "RM", ["THB"] = "\u0E3F",
+        ["EGP"] = "E\u00A3", ["ZAR"] = "R", ["MXN"] = "Mex$"
+    };
+    private string _userCurrency = "PKR";
 
     protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            _userCurrency = await JS.InvokeAsync<string>("__getUserCurrency");
+            if (string.IsNullOrEmpty(_userCurrency)) _userCurrency = "PKR";
+            _convertedSymbol = Symbols.TryGetValue(_userCurrency, out var s) ? s : _userCurrency + " ";
+        }
+        catch { _userCurrency = "PKR"; }
         await LoadFilterData();
         await LoadUserPlatforms();
         await LoadTasks();
+    }
+
+    private decimal ConvertReward(decimal amountPkr)
+    {
+        var rate = PkrRates.TryGetValue(_userCurrency, out var r) ? r : 1m;
+        return rate > 0 ? Math.Round(amountPkr / rate, 2) : amountPkr;
     }
 
     private async Task LoadFilterData()
@@ -243,7 +280,11 @@
         try
         {
             var result = await TaskService.GetTaskDetailAsync(taskId, UserId);
-            if (result.IsSuccess) selectedTask = result.Data;
+            if (result.IsSuccess && result.Data != null)
+            {
+                selectedTask = result.Data;
+                _detailConvertedAmount = ConvertReward(selectedTask.RewardAmount);
+            }
         }
         catch { selectedTask = null; }
     }
@@ -282,14 +323,4 @@
     }
 
     private bool HasActiveFilters() => !string.IsNullOrEmpty(filter.Search) || !string.IsNullOrEmpty(filter.Platform);
-
-    private static string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
-    {
-        "PKR" => "\u20A8",
-        "EUR" => "\u20AC",
-        "GBP" => "\u00A3",
-        "INR" => "\u20B9",
-        "BDT" => "\u09F3",
-        _ => "$"
-    };
 }

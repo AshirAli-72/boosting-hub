@@ -48,7 +48,7 @@
                     <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-currency-dollar"></i></div>
                     <div class="stat-info">
                         <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Revenue</span>
-                        <span class="stat-value" style="color:#fff;">$@Model.TotalRevenue.ToString("N2")</span>
+                        <span class="stat-value" style="color:#fff;">@Model.TotalRevenue.ToString("N2")</span>
                     </div>
                 </div>
                 <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
@@ -69,7 +69,7 @@
                     <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calculator"></i></div>
                     <div class="stat-info">
                         <span class="stat-label" style="color:rgba(255,255,255,0.75);">Avg Order Value</span>
-                        <span class="stat-value" style="color:#fff;">$@Model.AvgOrderValue.ToString("N2")</span>
+                        <span class="stat-value" style="color:#fff;">@Model.AvgOrderValue.ToString("N2")</span>
                     </div>
                 </div>
             </div>
@@ -147,7 +147,7 @@
                                         <td>@(o.FullName ?? o.Email ?? "—")</td>
                                         <td>@o.Platform</td>
                                         <td>@o.Service</td>
-                                        <td class="fw-semibold">$@o.Budget.ToString("N2")</td>
+                                        <td class="fw-semibold">@o.Budget.ToString("N2")</td>
                                         <td><span class="report-badge report-badge-success">@o.Status</span></td>
                                         <td>@o.CreatedAt.ToString("MMM dd, yyyy")</td>
                                     </tr>
