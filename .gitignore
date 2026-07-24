@@ -19,7 +19,7 @@ obj/
 Thumbs.db   
 
 ## Build
-packages/
+/packages/
 *.nupkg
 
 ## Secrets

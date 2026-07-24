@@ -1,0 +1,267 @@
+@page "/admin/settings/packages"
+@model BoostingHub.frontend.Pages.Admin.Settings.Packages.IndexModel
+@{
+    ViewData["Title"] = "Manage Packages";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+        <div class="admin-header">
+            <h3><i class="bi bi-box-seam text-primary"></i> Manage Packages</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> Admin
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div id="pkgAlert" style="display:none;" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                <span id="pkgAlertText"></span>
+                <button type="button" class="btn-close" onclick="document.getElementById('pkgAlert').style.display='none'"></button>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="/admin/settings" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Settings
+                </a>
+                <button class="btn btn-sm btn-primary" onclick="openPkgModal()">
+                    <i class="bi bi-plus-lg"></i> Add Package
+                </button>
+            </div>
+            <div id="pkgCardsContainer" class="pkg-cards-grid">
+                <div class="text-center py-4" style="color:var(--text-muted);grid-column:1/-1;">
+                    <span class="spinner-border spinner-border-sm me-2"></span> Loading packages...
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Package Modal ── -->
+        <div class="pkg-modal-overlay" id="pkgModalOverlay" onclick="closePkgModal()"></div>
+        <div class="pkg-modal" id="pkgModal">
+            <div class="pkg-modal-header">
+                <h5 id="pkgModalTitle">Add Package</h5>
+                <button class="pkg-modal-close" onclick="closePkgModal()">&times;</button>
+            </div>
+            <form id="pkgForm" onsubmit="savePackage(event)">
+                <input type="hidden" id="pm-id" />
+                <div class="pkg-modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Platform <span class="text-danger">*</span></label>
+                        <select id="pm-platform" class="pkg-form-input" required>
+                            <option value="">Choose platform...</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Twitter">Twitter</option>
+                            <option value="TikTok">TikTok</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Service <span class="text-danger">*</span></label>
+                        <select id="pm-service" class="pkg-form-input" required>
+                            <option value="">Choose service...</option>
+                            <option value="Followers">Followers</option>
+                            <option value="Likes">Likes</option>
+                            <option value="Comments">Comments</option>
+                            <option value="Subscribers">Subscribers</option>
+                            <option value="Shares">Shares</option>
+                            <option value="Views">Views</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Price per Unit (PKR) <span class="text-danger">*</span></label>
+                        <input type="number" id="pm-price" class="pkg-form-input" step="0.01" min="0" required placeholder="e.g. 5 (price per like/follower)" />
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input type="checkbox" id="pm-active" class="form-check-input" checked />
+                            <label class="form-check-label fw-semibold" for="pm-active">Active</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="pkg-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" onclick="closePkgModal()">Cancel</button>
+                    <button type="submit" id="pm-save-btn" class="btn btn-primary">
+                        <i class="bi bi-check-lg"></i> Create Package
+                    </button>
+                </div>
+            </form>
+        </div>
+
+@section Scripts {
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+
+        let allPackages = [];
+
+        var platformIcons = {
+            'Instagram': 'bi-instagram', 'Facebook': 'bi-facebook', 'YouTube': 'bi-youtube',
+            'Twitter': 'bi-twitter-x', 'TikTok': 'bi-tiktok'
+        };
+        var platformColors = {
+            'Instagram': '#E1306C', 'Facebook': '#1877F2', 'YouTube': '#FF0000',
+            'Twitter': '#1DA1F2', 'TikTok': '#000000'
+        };
+
+        async function loadPackages() {
+            try {
+                const resp = await fetch('/api/packages/all-for-admin');
+                if (!resp.ok) throw new Error('Failed');
+                allPackages = await resp.json();
+                renderCards();
+            } catch(e) {
+                document.getElementById('pkgCardsContainer').innerHTML =
+                    '<div class="text-center py-4" style="color:var(--danger);grid-column:1/-1;">Failed to load packages.</div>';
+            }
+        }
+
+        function renderCards() {
+            const container = document.getElementById('pkgCardsContainer');
+            if (!allPackages.length) {
+                container.innerHTML = '<div class="text-center py-4" style="color:var(--text-muted);grid-column:1/-1;">No packages yet. Click "Add Package" to create one.</div>';
+                return;
+            }
+
+            var grouped = {};
+            allPackages.forEach(function(p) {
+                var key = p.platform + '|||' + p.service;
+                if (!grouped[key]) grouped[key] = { platform: p.platform, service: p.service, packages: [] };
+                grouped[key].packages.push(p);
+            });
+
+            container.innerHTML = Object.values(grouped).map(function(group) {
+                var icon = platformIcons[group.platform] || 'bi-globe';
+                var color = platformColors[group.platform] || '#6366F1';
+                var totalTiers = group.packages.length;
+                var activeCount = group.packages.filter(function(p) { return p.isActive; }).length;
+
+                var tiersHtml = group.packages.map(function(p) {
+                    var statusDot = p.isActive
+                        ? '<span class="pkg-tier-active" title="Active"></span>'
+                        : '<span class="pkg-tier-inactive" title="Inactive"></span>';
+                    return '<div class="pkg-tier-row">' +
+                        '<div class="pkg-tier-left">' +
+                            statusDot +
+                            '<span class="pkg-tier-price">' + p.price.toFixed(2) + ' PKR</span>' +
+                            '<span class="pkg-tier-sep">/</span>' +
+                            '<span class="pkg-tier-qty">per unit</span>' +
+                        '</div>' +
+                        '<div class="pkg-tier-actions">' +
+                            '<button class="pkg-tier-btn pkg-tier-btn-edit" title="Edit" onclick="editPackage(' + p.id + ')"><i class="bi bi-pencil"></i></button>' +
+                            '<button class="pkg-tier-btn pkg-tier-btn-delete" title="Delete" onclick="deletePackage(' + p.id + ', \'' + esc(group.platform) + ' - ' + esc(group.service) + ' (' + p.price.toFixed(2) + ' PKR/unit)\')"><i class="bi bi-trash3"></i></button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                return '<div class="pkg-group-card">' +
+                    '<div class="pkg-group-header">' +
+                        '<div class="pkg-group-icon" style="background:' + color + '20;color:' + color + ';">' +
+                            '<i class="bi ' + icon + '"></i>' +
+                        '</div>' +
+                        '<div class="pkg-group-info">' +
+                            '<div class="pkg-group-title">' + esc(group.platform) + ' <span class="pkg-group-sep">&bull;</span> ' + esc(group.service) + '</div>' +
+                            '<div class="pkg-group-meta">' + totalTiers + ' tier' + (totalTiers > 1 ? 's' : '') + ' &middot; ' + activeCount + ' active</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="pkg-group-tiers">' + tiersHtml + '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+        function openPkgModal(id, platform, service) {
+            document.getElementById('pkgModalOverlay').style.display = 'block';
+            document.getElementById('pkgModal').style.display = 'block';
+            if (id) {
+                const p = allPackages.find(x => x.id === id);
+                if (!p) return;
+                document.getElementById('pkgModalTitle').textContent = 'Edit Package';
+                document.getElementById('pm-save-btn').innerHTML = '<i class="bi bi-check-lg"></i> Update Package';
+                document.getElementById('pm-id').value = p.id;
+                document.getElementById('pm-platform').value = p.platform;
+                document.getElementById('pm-service').value = p.service;
+                document.getElementById('pm-price').value = p.price;
+                document.getElementById('pm-active').checked = p.isActive;
+            } else {
+                document.getElementById('pkgModalTitle').textContent = 'Add Package';
+                document.getElementById('pm-save-btn').innerHTML = '<i class="bi bi-check-lg"></i> Create Package';
+                document.getElementById('pkgForm').reset();
+                document.getElementById('pm-id').value = '';
+                document.getElementById('pm-active').checked = true;
+                if (platform) document.getElementById('pm-platform').value = platform;
+                if (service) document.getElementById('pm-service').value = service;
+            }
+        }
+
+        function closePkgModal() {
+            document.getElementById('pkgModalOverlay').style.display = 'none';
+            document.getElementById('pkgModal').style.display = 'none';
+        }
+
+        function editPackage(id) { openPkgModal(id); }
+
+        async function savePackage(e) {
+            e.preventDefault();
+            const id = document.getElementById('pm-id').value;
+            const body = {
+                platform: document.getElementById('pm-platform').value.trim(),
+                service: document.getElementById('pm-service').value.trim(),
+                price: parseFloat(document.getElementById('pm-price').value),
+                isActive: document.getElementById('pm-active').checked
+            };
+            const url = id ? '/api/packages/' + id : '/api/packages';
+            const method = id ? 'PUT' : 'POST';
+            try {
+                const resp = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (resp.ok) {
+                    closePkgModal();
+                    showAlert(id ? 'Package updated.' : 'Package created.');
+                    loadPackages();
+                } else {
+                    const data = await resp.json();
+                    alert(data.message || 'Save failed.');
+                }
+            } catch(err) { alert('Network error.'); }
+        }
+
+        async function deletePackage(id, label) {
+            if (!confirm('Delete "' + label + '"? This cannot be undone.')) return;
+            try {
+                const resp = await fetch('/api/packages/' + id, { method: 'DELETE' });
+                if (resp.ok) { showAlert('Package deleted.'); loadPackages(); }
+                else { const data = await resp.json(); alert(data.message || 'Delete failed.'); }
+            } catch(e) { alert('Network error.'); }
+        }
+
+        function showAlert(msg) {
+            const el = document.getElementById('pkgAlert');
+            document.getElementById('pkgAlertText').textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 4000);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPackages);
+    </script>
+}
