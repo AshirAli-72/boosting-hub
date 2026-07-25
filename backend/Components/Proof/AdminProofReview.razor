@@ -120,28 +120,26 @@
 
 @if (showRejectModal)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);position:fixed;inset:0;z-index:1060;display:flex;align-items:center;justify-content:center;">
-        <div class="modal-dialog modal-dialog-centered" style="margin:0;max-width:480px;width:90vw;">
-            <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
-                <div class="modal-header border-bottom-0">
-                    <h5 class="modal-title fw-semibold"><i class="bi bi-x-circle text-danger"></i> Reject Proof #@rejectProofId</h5>
-                    <button type="button" class="btn-close" @onclick="CloseRejectModal"></button>
+    <div id="reject-modal-overlay" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px);">
+        <div style="background:var(--bg-card,#1e293b);border:1px solid var(--border-muted,rgba(255,255,255,0.1));border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:440px;max-width:92vw;overflow:hidden;">
+            <div style="padding:20px 24px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.06));display:flex;align-items:center;justify-content:space-between;">
+                <h5 style="margin:0;font-size:1rem;font-weight:600;color:var(--text-primary,#f1f5f9);"><i class="bi bi-x-circle text-danger me-2"></i>Reject Proof #@rejectProofId</h5>
+                <button type="button" @onclick="CloseRejectModal" style="background:none;border:none;color:var(--text-muted,#94a3b8);font-size:1.2rem;cursor:pointer;padding:0;line-height:1;">&times;</button>
+            </div>
+            <div style="padding:20px 24px;">
+                <div style="margin-bottom:16px;">
+                    <label style="display:block;margin-bottom:6px;font-weight:500;font-size:0.85rem;color:var(--text-secondary,#94a3b8);">Rejection Reason</label>
+                    <textarea class="form-control" rows="3" @bind="rejectReason" placeholder="Provide a reason for rejection..." style="background:var(--bg-elevated,rgba(255,255,255,0.05));border:1px solid var(--border-muted,rgba(255,255,255,0.1));color:var(--text-primary,#f1f5f9);border-radius:10px;padding:10px 14px;"></textarea>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-medium text-secondary">Rejection Reason</label>
-                        <textarea class="form-control" rows="3" @bind="rejectReason" placeholder="Provide a reason for rejection..."></textarea>
-                    </div>
-                    <div class="d-flex gap-2 justify-content-end">
-                        <button class="btn btn-secondary" @onclick="CloseRejectModal">Cancel</button>
-                        <button class="btn btn-danger" @onclick="Reject" disabled="@(string.IsNullOrWhiteSpace(rejectReason))">
-                            <i class="bi bi-x-lg"></i> Reject
-                        </button>
-                    </div>
-                    @if (!string.IsNullOrEmpty(operationMessage))
-                    {
-                        <div class="mt-2 small @(operationSuccess ? "text-success" : "text-danger")">@operationMessage</div>
-                    }
+                @if (!string.IsNullOrEmpty(operationMessage))
+                {
+                    <div style="padding:10px 14px;border-radius:8px;font-size:0.85rem;margin-bottom:12px;@(operationSuccess ? "background:rgba(16,185,129,0.12);color:#34D399;border-left:4px solid #10B981;" : "background:rgba(239,68,68,0.12);color:#F87171;border-left:4px solid #EF4444;")">@operationMessage</div>
+                }
+                <div style="display:flex;justify-content:flex-end;gap:8px;">
+                    <button class="btn btn-secondary" @onclick="CloseRejectModal" style="background:var(--bg-elevated,rgba(255,255,255,0.08));color:var(--text-primary,#f1f5f9);border:1px solid var(--border-muted,rgba(255,255,255,0.1));border-radius:8px;padding:8px 16px;font-size:0.85rem;">Cancel</button>
+                    <button class="btn btn-danger" @onclick="Reject" disabled="@(string.IsNullOrWhiteSpace(rejectReason))" style="border-radius:8px;padding:8px 16px;font-size:0.85rem;">
+                        <i class="bi bi-x-lg me-1"></i>Reject
+                    </button>
                 </div>
             </div>
         </div>
@@ -242,16 +240,19 @@
         }
     }
 
-    private void ShowRejectModal(int proofId)
+    private async Task ShowRejectModal(int proofId)
     {
         rejectProofId = proofId;
         rejectReason = string.Empty;
         operationMessage = null;
         showRejectModal = true;
+        await Task.Delay(50);
+        await JS.InvokeVoidAsync("portalRejectModal");
     }
 
-    private void CloseRejectModal()
+    private async Task CloseRejectModal()
     {
+        await JS.InvokeVoidAsync("closeRejectModalPortal");
         showRejectModal = false;
         rejectProofId = 0;
         rejectReason = string.Empty;
@@ -273,7 +274,7 @@
             if (result.IsSuccess)
             {
                 await JS.InvokeVoidAsync("showToast", "Proof rejected successfully.", "success");
-                CloseRejectModal();
+                await CloseRejectModal();
                 await LoadProofs();
             }
             else
