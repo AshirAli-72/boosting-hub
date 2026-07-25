@@ -155,7 +155,7 @@
                                         <td>@t.Platform</td>
                                         <td>@t.Service</td>
                                         <td>@t.Quantity</td>
-                                        <td class="fw-semibold">@GetCurrencySymbol(t.Currency)@t.Reward.ToString("N2")</td>
+                                        <td class="fw-semibold">@GetCurrencySymbol("PKR")@t.Reward.ToString("N2")</td>
                                         <td>
                                             @{
                                                 var tClass = t.Status == StatusHelper.TaskGenerateActive ? "report-badge-success" : t.Status == StatusHelper.TaskCompleteCompleted ? "report-badge-info" : "report-badge-secondary";

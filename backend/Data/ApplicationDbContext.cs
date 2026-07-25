@@ -86,7 +86,7 @@ public class ApplicationDbContext : DbContext
             e.Property(c => c.SocialMediaUrl).HasMaxLength(500);
             e.Property(c => c.Status).HasMaxLength(50);
             e.Property(c => c.CreatedAt).HasColumnType("datetime2");
-            e.Property(c => c.PackageId).IsRequired(false);
+            e.Property(c => c.TotalAmount).HasColumnType("decimal(18,2)");
             e.HasIndex(c => c.Status);
         });
 

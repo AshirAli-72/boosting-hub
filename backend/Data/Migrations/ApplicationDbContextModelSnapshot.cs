@@ -268,6 +268,11 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("currency");
+
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)")
@@ -280,10 +285,6 @@ namespace BoostingHub.backend.Data.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("full_name");
-
-                    b.Property<int?>("PackageId")
-                        .HasColumnType("int")
-                        .HasColumnName("package_id");
 
                     b.Property<string>("Platform")
                         .IsRequired()
@@ -310,6 +311,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("int")
                         .HasColumnName("status");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("total_amount");
 
                     b.HasKey("Id");
 
@@ -344,10 +349,6 @@ namespace BoostingHub.backend.Data.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)")
                         .HasColumnName("price");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
 
                     b.Property<string>("Service")
                         .IsRequired()
@@ -554,10 +555,9 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(10)")
-                        .HasColumnName("currency");
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("expiry_date");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int")
@@ -583,9 +583,9 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("service");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Status")
                         .HasMaxLength(50)
-                        .HasColumnType("int")
+                        .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
 
                     b.Property<string>("Url")

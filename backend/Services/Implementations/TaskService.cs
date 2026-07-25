@@ -106,7 +106,6 @@ public class TaskService : ITaskService
                 TargetQuantity = t.Quantity,
                 CompletedQuantity = completedCount,
                 RewardAmount = t.Reward,
-                Currency = t.Currency,
                 UserStatus = userStatus,
                 Status = StatusHelper.TaskGenerateStatusToString(t.Status),
                 CreatedAt = t.CreatedAt,
@@ -200,7 +199,6 @@ public class TaskService : ITaskService
             TargetQuantity = task.Quantity,
             CompletedQuantity = completedCount,
             RewardAmount = task.Reward,
-            Currency = task.Currency,
             Description = task.Order?.Description ?? string.Empty,
             UserStatus = userStatus,
             Status = StatusHelper.TaskGenerateStatusToString(task.Status),
@@ -326,7 +324,6 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
-                        Currency = t.Currency,
                         Status = StatusHelper.TaskProofStatusToString(proof.VerificationStatus == StatusHelper.VerificationRejected ? StatusHelper.TaskProofRejected : StatusHelper.TaskProofSubmitted),
                         ProofUrl = proof.ProofUrl,
                         ProofType = proof.ProofType,
@@ -345,7 +342,6 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
-                        Currency = t.Currency,
                         Status = StatusHelper.TaskCompleteStatusToString(comp.Status),
                         ProofUrl = proof?.ProofUrl,
                         ProofType = proof?.ProofType,
@@ -363,7 +359,6 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
-                        Currency = t.Currency,
                         Status = StatusHelper.TaskCompleteStatusToString(StatusHelper.TaskCompletePending)
                     });
                 }
@@ -463,7 +458,6 @@ public class TaskService : ITaskService
                 Service = x.t.Service,
                 TaskUrl = x.t.Url,
                 Reward = x.t.Reward,
-                Currency = x.t.Currency,
                 SubmittedAt = x.p.Date,
                 VerificationStatus = StatusHelper.VerificationStatusToString(x.p.VerificationStatus),
                 RejectReason = x.p.RejectReason
@@ -505,12 +499,12 @@ public class TaskService : ITaskService
 
             await _db.SaveChangesAsync();
 
-            await _walletService.CreditRewardAsync(proof.UserId, proof.Task.Reward, proof.TaskId, proof.Id, proof.Task.Currency);
+            await _walletService.CreditRewardAsync(proof.UserId, proof.Task.Reward, proof.TaskId, proof.Id, "PKR");
 
             var wallet = await _walletService.GetWalletByUserIdAsync(proof.UserId);
             var displayCurrency = wallet?.Currency ?? "PKR";
             var displayAmount = wallet != null
-                ? WalletService.ConvertCurrencyStatic(proof.Task.Reward, proof.Task.Currency, displayCurrency)
+                ? WalletService.ConvertCurrencyStatic(proof.Task.Reward, "PKR", displayCurrency)
                 : proof.Task.Reward;
 
             _db.Notifications.Add(new Notification
@@ -774,7 +768,6 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
-                        Currency = t.Currency,
                         Status = status,
                         ProofUrl = proof.ProofUrl,
                         ProofType = proof.ProofType,
@@ -793,7 +786,6 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
-                        Currency = t.Currency,
                         Status = status,
                         ProofUrl = proof?.ProofUrl,
                         ProofType = proof?.ProofType,
@@ -811,7 +803,6 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
-                        Currency = t.Currency,
                         Status = status
                     });
                 }
@@ -868,7 +859,6 @@ public class TaskService : ITaskService
                 Service = x.t.Service,
                 TaskUrl = x.t.Url,
                 Reward = x.t.Reward,
-                Currency = x.t.Currency,
                 SubmittedAt = x.p.Date,
                 VerificationStatus = StatusHelper.VerificationStatusToString(x.p.VerificationStatus),
                 RejectReason = x.p.RejectReason
