@@ -283,6 +283,7 @@
             hiddenInputs.innerHTML = '';
             var hasError = false;
             var count = 0;
+            var accountsToCheck = [];
 
             urlInputs.forEach(function(input) {
                 var platform = input.getAttribute('data-platform');
@@ -298,22 +299,42 @@
                 var pattern = platformPatterns[platform];
                 var match = url.match(pattern.regex);
                 var username = match ? match[match.length - 1] : url;
+                var fullUrl = url.startsWith('http') ? url : 'https://' + url;
 
                 hiddenInputs.innerHTML += '<input type="hidden" name="NewAccounts[' + count + '].Platform" value="' + platform + '" />' +
                     '<input type="hidden" name="NewAccounts[' + count + '].Username" value="' + username + '" />' +
-                    '<input type="hidden" name="NewAccounts[' + count + '].ProfileUrl" value="' + (url.startsWith('http') ? url : 'https://' + url) + '" />';
+                    '<input type="hidden" name="NewAccounts[' + count + '].ProfileUrl" value="' + fullUrl + '" />';
+                accountsToCheck.push({ platform: platform, url: fullUrl });
                 count++;
             });
 
-            if (hasError) {
-                return;
-            }
+            if (hasError) return;
+            if (count === 0) return;
 
-            if (count === 0) {
-                return;
-            }
+            var duplicates = [];
+            var checked = 0;
+            var total = accountsToCheck.length;
 
-            document.getElementById('accountsForm').submit();
+            accountsToCheck.forEach(function(acc) {
+                fetch('/api/auth/check-social-url?url=' + encodeURIComponent(acc.url))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.exists) duplicates.push(acc.platform + ': ' + acc.url);
+                        checked++;
+                        if (checked === total) {
+                            if (duplicates.length > 0) {
+                                showToast('This URL is already registered by another user: ' + duplicates[0], 'warning');
+                            }
+                            document.getElementById('accountsForm').submit();
+                        }
+                    })
+                    .catch(function() {
+                        checked++;
+                        if (checked === total) {
+                            document.getElementById('accountsForm').submit();
+                        }
+                    });
+            });
         }
     </script>
 }

@@ -155,7 +155,7 @@
                                         <td>@t.Platform</td>
                                         <td>@t.Service</td>
                                         <td>@t.Quantity</td>
-                                        <td class="fw-semibold">@GetCurrencySymbol("PKR")@t.Reward.ToString("N2")</td>
+                                         <td class="fw-semibold"><span data-pkr="@t.Reward">₨@t.Reward.ToString("N2")</span></td>
                                         <td>
                                             @{
                                                 var tClass = t.Status == StatusHelper.TaskGenerateActive ? "report-badge-success" : t.Status == StatusHelper.TaskCompleteCompleted ? "report-badge-info" : "report-badge-secondary";
@@ -266,6 +266,7 @@
         var pd = document.getElementById('profileDropdown');
         if (pd && !pd.contains(e.target)) { var m = document.getElementById('profileMenu'); if (m) m.style.display = 'none'; }
     });
+    document.addEventListener('DOMContentLoaded', function() { convertAdminPrices(); });
 </script>
 }
 

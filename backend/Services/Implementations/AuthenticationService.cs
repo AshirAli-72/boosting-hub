@@ -637,4 +637,11 @@ public class AuthenticationService : IAuthenticationService
 
         return Result.Success($"{account.Platform} account removed");
     }
+
+    public async Task<Result<bool>> CheckSocialUrlExistsAsync(string url, CancellationToken ct = default)
+    {
+        var exists = await _db.SocialMediaAccounts
+            .AnyAsync(s => s.ProfileUrl == url.Trim(), ct);
+        return Result.Success(exists);
+    }
 }

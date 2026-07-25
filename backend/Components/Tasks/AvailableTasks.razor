@@ -214,6 +214,14 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadFilterData();
+        await LoadUserPlatforms();
+        await LoadTasks();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
         try
         {
             _userCurrency = await JS.InvokeAsync<string>("__getUserCurrency");
@@ -221,9 +229,7 @@
             _convertedSymbol = Symbols.TryGetValue(_userCurrency, out var s) ? s : _userCurrency + " ";
         }
         catch { _userCurrency = "PKR"; }
-        await LoadFilterData();
-        await LoadUserPlatforms();
-        await LoadTasks();
+        await InvokeAsync(StateHasChanged);
     }
 
     private decimal ConvertReward(decimal amountPkr)

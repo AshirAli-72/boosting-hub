@@ -4,7 +4,7 @@
     if (!existing) {
         existing = document.createElement('div');
         existing.className = 'bh-toast-container';
-        existing.style.cssText = 'position:fixed;top:20px;left:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;max-width:400px;';
+        existing.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;max-width:400px;';
         document.body.appendChild(existing);
     }
     var toast = document.createElement('div');
@@ -66,6 +66,10 @@ window._rejectConfirm = function () {
         errEl.style.display = 'block';
         return;
     }
+    if (!window._rejectDotNetRef) {
+        window.showRejectModalError('Connection lost. Please refresh the page.');
+        return;
+    }
     var btn = document.getElementById('bh-reject-btn');
     btn.disabled = true;
     btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Rejecting...';
@@ -104,4 +108,35 @@ window.__getUserCurrency = function() {
             return 'PKR';
         })
         .catch(function() { return 'PKR'; });
+};
+
+window.__pkrRates = {
+    'PKR': 1, 'USD': 285, 'EUR': 310, 'GBP': 360,
+    'INR': 3.43, 'BDT': 2.59, 'SAR': 76, 'AED': 77.7,
+    'CAD': 208, 'AUD': 186, 'TRY': 8.8, 'BRL': 56,
+    'JPY': 1.91, 'CNY': 39.3, 'KRW': 0.21, 'NGN': 0.18,
+    'PHP': 5, 'IDR': 0.018, 'MYR': 61, 'THB': 8,
+    'EGP': 5.9, 'ZAR': 15.5, 'MXN': 16.5,
+    'KWD': 930, 'QAR': 78, 'BHD': 755, 'OMR': 742
+};
+window.__currencySymbols = {
+    'PKR': '\u20A8', 'INR': '\u20B9', 'BDT': '\u09F3', 'GBP': '\u00A3',
+    'EUR': '\u20AC', 'USD': '$', 'CAD': 'C$', 'AUD': 'A$',
+    'SAR': '\uFDFC', 'AED': 'AED ', 'TRY': '\u20BA', 'BRL': 'R$',
+    'JPY': '\u00A5', 'CNY': '\u00A5', 'KRW': '\u20A9', 'NGN': '\u20A6',
+    'PHP': '\u20B1', 'IDR': 'Rp', 'MYR': 'RM', 'THB': '\u0E3F',
+    'EGP': 'E\u00A3', 'ZAR': 'R', 'MXN': 'Mex$'
+};
+
+window.convertAdminPrices = function() {
+    window.__getUserCurrency().then(function(currency) {
+        var rate = window.__pkrRates[currency] || 1;
+        var sym = window.__currencySymbols[currency] || '$';
+        document.querySelectorAll('[data-pkr]').forEach(function(el) {
+            var pkr = parseFloat(el.getAttribute('data-pkr'));
+            if (isNaN(pkr)) return;
+            var converted = rate > 0 ? Math.round((pkr / rate) * 100) / 100 : pkr;
+            el.textContent = sym + converted.toFixed(2);
+        });
+    });
 };

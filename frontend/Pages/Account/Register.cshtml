@@ -361,11 +361,38 @@
 
             if (hasError) return;
 
-            updatePreview();
-            syncHiddenInputs();
+            var duplicates = [];
+            var checked = 0;
+            var total = savedAccounts.length;
 
-            var modal = bootstrap.Modal.getInstance(document.getElementById('socialAccountsModal'));
-            if (modal) modal.hide();
+            if (total === 0) return;
+
+            savedAccounts.forEach(function(acc) {
+                fetch('/api/auth/check-social-url?url=' + encodeURIComponent(acc.profileUrl))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.exists) duplicates.push(acc.platform + ': ' + acc.profileUrl);
+                        checked++;
+                        if (checked === total) {
+                            if (duplicates.length > 0) {
+                                showToast('This URL is already registered by another user: ' + duplicates[0], 'warning');
+                            }
+                            updatePreview();
+                            syncHiddenInputs();
+                            var modal = bootstrap.Modal.getInstance(document.getElementById('socialAccountsModal'));
+                            if (modal) modal.hide();
+                        }
+                    })
+                    .catch(function() {
+                        checked++;
+                        if (checked === total) {
+                            updatePreview();
+                            syncHiddenInputs();
+                            var modal = bootstrap.Modal.getInstance(document.getElementById('socialAccountsModal'));
+                            if (modal) modal.hide();
+                        }
+                    });
+            });
         }
 
         function updatePreview() {

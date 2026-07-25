@@ -19,4 +19,5 @@ public interface IAuthenticationService
     Task<Result<List<SocialMediaAccountDto>>> GetSocialMediaAccountsAsync(int userId, CancellationToken ct = default);
     Task<Result> AddSocialMediaAccountAsync(int userId, SocialMediaAccountDto dto, CancellationToken ct = default);
     Task<Result> DeleteSocialMediaAccountAsync(int userId, int accountId, CancellationToken ct = default);
+    Task<Result<bool>> CheckSocialUrlExistsAsync(string url, CancellationToken ct = default);
 }

@@ -108,4 +108,14 @@ public class AuthController : ControllerBase
         var result = await _auth.GetCurrentUserAsync(userId);
         return result.IsSuccess ? Ok(result) : NotFound(result);
     }
+
+    [HttpGet("check-social-url")]
+    public async Task<IActionResult> CheckSocialUrl([FromQuery] string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return Ok(new { exists = false });
+
+        var result = await _auth.CheckSocialUrlExistsAsync(url);
+        return Ok(new { exists = result.Data });
+    }
 }

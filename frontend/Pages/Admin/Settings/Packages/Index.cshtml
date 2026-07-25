@@ -123,10 +123,20 @@
                 if (!resp.ok) throw new Error('Failed');
                 allPackages = await resp.json();
                 renderCards();
+                convertAdminPrices();
+                updatePkgFormLabel();
             } catch(e) {
                 document.getElementById('pkgCardsContainer').innerHTML =
                     '<div class="text-center py-4" style="color:var(--danger);grid-column:1/-1;">Failed to load packages.</div>';
             }
+        }
+
+        function updatePkgFormLabel() {
+            window.__getUserCurrency().then(function(currency) {
+                var sym = window.__currencySymbols[currency] || '$';
+                var label = document.querySelector('label[for="pm-price"]');
+                if (label) label.innerHTML = 'Price per Unit (' + sym.trim() + ') <span class="text-danger">*</span>';
+            });
         }
 
         function renderCards() {
@@ -156,7 +166,7 @@
                     return '<div class="pkg-tier-row">' +
                         '<div class="pkg-tier-left">' +
                             statusDot +
-                            '<span class="pkg-tier-price">' + p.price.toFixed(2) + ' PKR</span>' +
+                            '<span class="pkg-tier-price" data-pkr="' + p.price.toFixed(2) + '">' + p.price.toFixed(2) + ' PKR</span>' +
                             '<span class="pkg-tier-sep">/</span>' +
                             '<span class="pkg-tier-qty">per unit</span>' +
                         '</div>' +

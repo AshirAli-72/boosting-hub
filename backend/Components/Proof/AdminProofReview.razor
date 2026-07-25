@@ -138,9 +138,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _dotNetRef = DotNetObjectReference.Create(this);
         await LoadPlatforms();
         await LoadProofs();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _dotNetRef = DotNetObjectReference.Create(this);
     }
 
     private async Task LoadPlatforms()
@@ -210,6 +215,7 @@
 
     private async Task OpenReject(int proofId)
     {
+        if (_dotNetRef is null) return;
         await JS.InvokeVoidAsync("showRejectModal", _dotNetRef, proofId);
     }
 
