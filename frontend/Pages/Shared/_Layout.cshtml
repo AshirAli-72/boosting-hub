@@ -1093,7 +1093,7 @@
             for (var s in iqServiceData) {
                 var d = iqServiceData[s];
                 if (d.selectedPkg) {
-                    selectedServices.push({ service: s, packageId: d.selectedPkg, quantity: d.qty });
+                    selectedServices.push({ service: s, totalAmount: d.unitPrice * d.qty, quantity: d.qty });
                 }
             }
 
@@ -1108,7 +1108,7 @@
                         body: JSON.stringify({
                             fullName: name, email: email, platform: platform,
                             service: item.service, quantity: item.quantity, socialMediaUrl: url,
-                            packageId: item.packageId, description: description || '',
+                            totalAmount: item.totalAmount, description: description || '',
                             currency: payCurrency
                         })
                     });
@@ -1162,7 +1162,7 @@
                     body: JSON.stringify({
                         fullName: name, email: email, platform: 'Contact',
                         service: subject, quantity: 1, socialMediaUrl: '',
-                        packageId: null, description: 'Contact Form: ' + message
+                        totalAmount: 0, description: 'Contact Form: ' + message
                     })
                 });
                 if (resp.ok) {

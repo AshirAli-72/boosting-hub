@@ -32,10 +32,10 @@ public class OrdersController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Platform) || string.IsNullOrWhiteSpace(dto.Service))
             return BadRequest(new { message = "Platform and Service are required." });
 
-        if (dto.Quantity <= 0)
+        if (dto.Quantity <= 0 && dto.Platform != "Contact")
             return BadRequest(new { message = "Quantity must be greater than zero." });
 
-        if (dto.TotalAmount <= 0)
+        if (dto.TotalAmount <= 0 && dto.Platform != "Contact")
             return BadRequest(new { message = "Total amount must be greater than zero." });
 
         var orderCurrency = (dto.Currency ?? string.Empty).Trim().ToUpperInvariant();
