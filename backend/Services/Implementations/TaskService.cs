@@ -395,6 +395,18 @@ public class TaskService : ITaskService
             if (existingProof != null)
                 return Result.Failure("You have already submitted a proof for this task", "ALREADY_SUBMITTED");
 
+            var existingPlatformProof = await _db.TaskProofs
+                .Where(p => p.UserId == userId && p.VerificationStatus != StatusHelper.VerificationRejected)
+                .Join(_db.TaskGenerates, p => p.TaskId, t => t.Id, (p, t) => new { p, t })
+                .Where(x => x.t.Platform == task.Platform)
+                .ToListAsync();
+            if (existingPlatformProof.Any())
+            {
+                var existingUrl = existingPlatformProof.First().p.ProofUrl;
+                if (!string.Equals(existingUrl.Trim(), proofUrl.Trim(), StringComparison.OrdinalIgnoreCase))
+                    return Result.Failure($"You already submitted a proof for {task.Platform}. Please use the same proof URL or contact support.", "PLATFORM_URL_MISMATCH");
+            }
+
             var verification = await _proofVerification.ValidateProofAsync(taskId, proofUrl, userId);
 
             var proof = new TaskProof
