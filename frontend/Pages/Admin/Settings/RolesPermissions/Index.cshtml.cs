@@ -16,8 +16,8 @@ public class IndexModel : PageModel
 
     public List<RoleWithPermissionsDto> Roles { get; set; } = new();
     public List<PermissionDto> AllPermissions { get; set; } = new();
-    public string? ErrorMessage { get; set; }
-    public string? SuccessMessage { get; set; }
+    public string? ErrorMessage => TempData["Error"] as string;
+    public string? SuccessMessage => TempData["Success"] as string;
 
     [BindProperty] public CreateRoleDto CreateInput { get; set; } = new();
     [BindProperty] public UpdateRoleDto EditInput { get; set; } = new();
@@ -46,10 +46,10 @@ public class IndexModel : PageModel
         var result = await _roleService.CreateRoleAsync(CreateInput);
         if (result.IsSuccess)
         {
-            SuccessMessage = result.Message;
+            TempData["Success"] = result.Message;
             return RedirectToPage();
         }
-        ErrorMessage = result.Message;
+        TempData["Error"] = result.Message;
         await LoadDataAsync();
         return Page();
     }
@@ -59,10 +59,10 @@ public class IndexModel : PageModel
         var result = await _roleService.UpdateRoleAsync(roleId, EditInput);
         if (result.IsSuccess)
         {
-            SuccessMessage = result.Message;
+            TempData["Success"] = result.Message;
             return RedirectToPage();
         }
-        ErrorMessage = result.Message;
+        TempData["Error"] = result.Message;
         await LoadDataAsync();
         IsEditing = true;
         EditRoleId = roleId;
@@ -73,9 +73,9 @@ public class IndexModel : PageModel
     {
         var result = await _roleService.DeleteRoleAsync(roleId);
         if (result.IsSuccess)
-            SuccessMessage = result.Message;
+            TempData["Success"] = result.Message;
         else
-            ErrorMessage = result.Message;
+            TempData["Error"] = result.Message;
         return RedirectToPage();
     }
 

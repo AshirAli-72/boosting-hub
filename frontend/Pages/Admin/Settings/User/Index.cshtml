@@ -23,14 +23,6 @@
             </div>
         </div>
         <div class="admin-content">
-            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-            {
-                <div class="alert alert-success alert-dismissible fade show">@Model.SuccessMessage<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-            }
-            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-            {
-                <div class="alert alert-danger alert-dismissible fade show">@Model.ErrorMessage<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-            }
 
             <div class="card shadow-sm border-0 mt-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -192,7 +184,16 @@
         </div>
 
 @section Scripts {
+    <script src="~/js/site.js"></script>
     <script>
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@Model.SuccessMessage', 'success'); });</text>
+        }
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@Model.ErrorMessage', 'danger'); });</text>
+        }
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
             menu.style.display = menu.style.display === 'none' ? 'block' : 'none';

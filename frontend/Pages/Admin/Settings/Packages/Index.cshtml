@@ -23,10 +23,6 @@
             </div>
         </div>
         <div class="admin-content">
-            <div id="pkgAlert" style="display:none;" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-                <span id="pkgAlertText"></span>
-                <button type="button" class="btn-close" onclick="document.getElementById('pkgAlert').style.display='none'"></button>
-            </div>
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <a href="/admin/settings" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Settings
@@ -96,6 +92,7 @@
         </div>
 
 @section Scripts {
+    <script src="~/js/site.js"></script>
     <script>
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
@@ -237,29 +234,22 @@
                 });
                 if (resp.ok) {
                     closePkgModal();
-                    showAlert(id ? 'Package updated.' : 'Package created.');
+                    showToast(id ? 'Package updated.' : 'Package created.', 'success');
                     loadPackages();
                 } else {
                     const data = await resp.json();
-                    alert(data.message || 'Save failed.');
+                    showToast(data.message || 'Save failed.', 'danger');
                 }
-            } catch(err) { alert('Network error.'); }
+            } catch(err) { showToast('Network error.', 'danger'); }
         }
 
         async function deletePackage(id, label) {
             if (!confirm('Delete "' + label + '"? This cannot be undone.')) return;
             try {
                 const resp = await fetch('/api/packages/' + id, { method: 'DELETE' });
-                if (resp.ok) { showAlert('Package deleted.'); loadPackages(); }
-                else { const data = await resp.json(); alert(data.message || 'Delete failed.'); }
-            } catch(e) { alert('Network error.'); }
-        }
-
-        function showAlert(msg) {
-            const el = document.getElementById('pkgAlert');
-            document.getElementById('pkgAlertText').textContent = msg;
-            el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 4000);
+                if (resp.ok) { showToast('Package deleted.', 'success'); loadPackages(); }
+                else { const data = await resp.json(); showToast(data.message || 'Delete failed.', 'danger'); }
+            } catch(e) { showToast('Network error.', 'danger'); }
         }
 
         document.addEventListener('DOMContentLoaded', loadPackages);

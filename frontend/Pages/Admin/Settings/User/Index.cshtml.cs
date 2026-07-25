@@ -18,8 +18,8 @@ public class IndexModel : PageModel
 
     public List<UserWithRolesDto> Users { get; set; } = new();
     public List<RoleBasicDto> AllRoles { get; set; } = new();
-    public string? SuccessMessage { get; set; }
-    public string? ErrorMessage { get; set; }
+    public string? SuccessMessage => TempData["Success"] as string;
+    public string? ErrorMessage => TempData["Error"] as string;
     public int EditUserId { get; set; }
     public bool IsEditing { get; set; }
 
@@ -44,10 +44,10 @@ public class IndexModel : PageModel
         var result = await _userService.CreateUserAsync(CreateInput);
         if (result.IsSuccess)
         {
-            SuccessMessage = result.Message;
+            TempData["Success"] = result.Message;
             return RedirectToPage();
         }
-        ErrorMessage = result.Message;
+        TempData["Error"] = result.Message;
         await LoadDataAsync();
         return Page();
     }
@@ -57,10 +57,10 @@ public class IndexModel : PageModel
         var result = await _userService.UpdateUserRolesAsync(userId, EditRoleIds);
         if (result.IsSuccess)
         {
-            SuccessMessage = result.Message;
+            TempData["Success"] = result.Message;
             return RedirectToPage();
         }
-        ErrorMessage = result.Message;
+        TempData["Error"] = result.Message;
         await LoadDataAsync();
         return Page();
     }

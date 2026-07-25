@@ -2,6 +2,7 @@
 @inject ITaskService TaskService
 @inject ILogger<AdminProofReview> Logger
 @inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <div class="proof-review">
     @if (isLoading)
@@ -80,7 +81,7 @@
                                         <button class="btn btn-sm btn-success" @onclick="() => Approve(p.ProofId)">
                                             <i class="bi bi-check-lg"></i> Approve
                                         </button>
-                                        <button class="btn btn-sm btn-danger" @onclick="() => ShowRejectModal(p.ProofId)">
+                                        <button class="btn btn-sm btn-danger" @onclick="() => OpenReject(p.ProofId)">
                                             <i class="bi bi-x-lg"></i> Reject
                                         </button>
                                     </div>
@@ -118,48 +119,14 @@
     }
 </div>
 
-@if (showRejectModal)
-{
-    <div id="reject-modal-overlay" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px);">
-        <div style="background:var(--bg-card,#1e293b);border:1px solid var(--border-muted,rgba(255,255,255,0.1));border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:440px;max-width:92vw;overflow:hidden;">
-            <div style="padding:20px 24px;border-bottom:1px solid var(--border-subtle,rgba(255,255,255,0.06));display:flex;align-items:center;justify-content:space-between;">
-                <h5 style="margin:0;font-size:1rem;font-weight:600;color:var(--text-primary,#f1f5f9);"><i class="bi bi-x-circle text-danger me-2"></i>Reject Proof #@rejectProofId</h5>
-                <button type="button" @onclick="CloseRejectModal" style="background:none;border:none;color:var(--text-muted,#94a3b8);font-size:1.2rem;cursor:pointer;padding:0;line-height:1;">&times;</button>
-            </div>
-            <div style="padding:20px 24px;">
-                <div style="margin-bottom:16px;">
-                    <label style="display:block;margin-bottom:6px;font-weight:500;font-size:0.85rem;color:var(--text-secondary,#94a3b8);">Rejection Reason</label>
-                    <textarea class="form-control" rows="3" @bind="rejectReason" placeholder="Provide a reason for rejection..." style="background:var(--bg-elevated,rgba(255,255,255,0.05));border:1px solid var(--border-muted,rgba(255,255,255,0.1));color:var(--text-primary,#f1f5f9);border-radius:10px;padding:10px 14px;"></textarea>
-                </div>
-                @if (!string.IsNullOrEmpty(operationMessage))
-                {
-                    <div style="padding:10px 14px;border-radius:8px;font-size:0.85rem;margin-bottom:12px;@(operationSuccess ? "background:rgba(16,185,129,0.12);color:#34D399;border-left:4px solid #10B981;" : "background:rgba(239,68,68,0.12);color:#F87171;border-left:4px solid #EF4444;")">@operationMessage</div>
-                }
-                <div style="display:flex;justify-content:flex-end;gap:8px;">
-                    <button class="btn btn-secondary" @onclick="CloseRejectModal" style="background:var(--bg-elevated,rgba(255,255,255,0.08));color:var(--text-primary,#f1f5f9);border:1px solid var(--border-muted,rgba(255,255,255,0.1));border-radius:8px;padding:8px 16px;font-size:0.85rem;">Cancel</button>
-                    <button class="btn btn-danger" @onclick="Reject" disabled="@(string.IsNullOrWhiteSpace(rejectReason))" style="border-radius:8px;padding:8px 16px;font-size:0.85rem;">
-                        <i class="bi bi-x-lg me-1"></i>Reject
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
-
 @code {
     [Parameter, EditorRequired] public int AdminUserId { get; set; }
 
+    private DotNetObjectReference<AdminProofReview>? _dotNetRef;
     private List<ProofReviewDto> proofs = new();
     private bool isLoading = true;
     private bool hasError;
     private string? errorMessage;
-
-    private bool showRejectModal;
-    private int rejectProofId;
-    private string rejectReason = string.Empty;
-    private string? operationMessage;
-    private bool operationSuccess;
 
     private int currentPage = 1;
     private int totalPages = 1;
@@ -171,6 +138,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _dotNetRef = DotNetObjectReference.Create(this);
         await LoadPlatforms();
         await LoadProofs();
     }
@@ -240,56 +208,39 @@
         }
     }
 
-    private async Task ShowRejectModal(int proofId)
+    private async Task OpenReject(int proofId)
     {
-        rejectProofId = proofId;
-        rejectReason = string.Empty;
-        operationMessage = null;
-        showRejectModal = true;
-        await Task.Delay(50);
-        await JS.InvokeVoidAsync("portalRejectModal");
+        await JS.InvokeVoidAsync("showRejectModal", _dotNetRef, proofId);
     }
 
-    private async Task CloseRejectModal()
+    [JSInvokable]
+    public async Task OnRejectConfirm(int proofId, string reason)
     {
-        await JS.InvokeVoidAsync("closeRejectModalPortal");
-        showRejectModal = false;
-        rejectProofId = 0;
-        rejectReason = string.Empty;
-        operationMessage = null;
-    }
-
-    private async Task Reject()
-    {
-        if (string.IsNullOrWhiteSpace(rejectReason))
-        {
-            operationMessage = "Please provide a rejection reason.";
-            operationSuccess = false;
-            return;
-        }
-
         try
         {
-            var result = await TaskService.RejectProofAsync(rejectProofId, rejectReason.Trim());
+            var result = await TaskService.RejectProofAsync(proofId, reason);
             if (result.IsSuccess)
             {
                 await JS.InvokeVoidAsync("showToast", "Proof rejected successfully.", "success");
-                await CloseRejectModal();
+                await JS.InvokeVoidAsync("closeRejectModal");
                 await LoadProofs();
             }
             else
             {
-                await JS.InvokeVoidAsync("showToast", result.Message ?? "Failed to reject.", "danger");
-                operationMessage = result.Message;
-                operationSuccess = false;
+                await JS.InvokeVoidAsync("showRejectModalError", result.Message ?? "Failed to reject.");
             }
         }
         catch (Exception ex)
         {
-            operationMessage = ex.Message;
-            operationSuccess = false;
-            Logger.LogError(ex, "Failed to reject proof {ProofId}", rejectProofId);
+            await JS.InvokeVoidAsync("showRejectModalError", ex.Message);
+            Logger.LogError(ex, "Failed to reject proof {ProofId}", proofId);
         }
+    }
+
+    [JSInvokable]
+    public async Task OnRejectCancel()
+    {
+        await JS.InvokeVoidAsync("closeRejectModal");
     }
 
     private string GetCurrencySymbol(string? currency) => currency?.ToUpper() switch
@@ -301,4 +252,9 @@
         "BDT" => "৳",
         _ => "$"
     };
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+    }
 }

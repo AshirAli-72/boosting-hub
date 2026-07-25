@@ -25,16 +25,70 @@
     }, 4500);
 }
 
-window.portalRejectModal = function () {
-    var modal = document.getElementById('reject-modal-overlay');
-    if (modal && modal.parentElement !== document.body) {
-        document.body.appendChild(modal);
+window._rejectDotNetRef = null;
+window._rejectProofId = 0;
+
+window.showRejectModal = function (dotNetRef, proofId) {
+    window._rejectDotNetRef = dotNetRef;
+    window._rejectProofId = proofId;
+    window.closeRejectModal();
+    var overlay = document.createElement('div');
+    overlay.id = 'bh-reject-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px);';
+    overlay.innerHTML =
+        '<div style="background:' + getComputedStyle(document.documentElement).getPropertyValue('--bg-card').trim() + ',#1e293b);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:440px;max-width:92vw;overflow:hidden;">' +
+        '  <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;">' +
+        '    <h5 style="margin:0;font-size:1rem;font-weight:600;color:#f1f5f9;"><i class="bi bi-x-circle text-danger me-2"></i>Reject Proof #' + proofId + '</h5>' +
+        '    <button onclick="window._rejectCancel()" style="background:none;border:none;color:#94a3b8;font-size:1.2rem;cursor:pointer;padding:0;line-height:1;">&times;</button>' +
+        '  </div>' +
+        '  <div style="padding:20px 24px;">' +
+        '    <div style="margin-bottom:16px;">' +
+        '      <label style="display:block;margin-bottom:6px;font-weight:500;font-size:0.85rem;color:#94a3b8;">Rejection Reason</label>' +
+        '      <textarea id="bh-reject-reason" rows="3" placeholder="Provide a reason for rejection..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#f1f5f9;border-radius:10px;padding:10px 14px;font-size:0.9rem;resize:vertical;outline:none;"></textarea>' +
+        '    </div>' +
+        '    <div id="bh-reject-error" style="display:none;padding:10px 14px;border-radius:8px;font-size:0.85rem;margin-bottom:12px;background:rgba(239,68,68,0.12);color:#F87171;border-left:4px solid #EF4444;"></div>' +
+        '    <div style="display:flex;justify-content:flex-end;gap:8px;">' +
+        '      <button onclick="window._rejectCancel()" style="background:rgba(255,255,255,0.08);color:#f1f5f9;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 16px;font-size:0.85rem;cursor:pointer;">Cancel</button>' +
+        '      <button id="bh-reject-btn" onclick="window._rejectConfirm()" style="background:#EF4444;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:0.85rem;cursor:pointer;"><i class="bi bi-x-lg me-1"></i>Reject</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) window._rejectCancel(); });
+    setTimeout(function () { document.getElementById('bh-reject-reason').focus(); }, 100);
+};
+
+window._rejectConfirm = function () {
+    var reason = document.getElementById('bh-reject-reason').value.trim();
+    if (!reason) {
+        var errEl = document.getElementById('bh-reject-error');
+        errEl.textContent = 'Please provide a rejection reason.';
+        errEl.style.display = 'block';
+        return;
+    }
+    var btn = document.getElementById('bh-reject-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Rejecting...';
+    window._rejectDotNetRef.invokeMethodAsync('OnRejectConfirm', window._rejectProofId, reason);
+};
+
+window._rejectCancel = function () {
+    window.closeRejectModal();
+    if (window._rejectDotNetRef) {
+        window._rejectDotNetRef.invokeMethodAsync('OnRejectCancel');
     }
 };
 
-window.closeRejectModalPortal = function () {
-    var modal = document.getElementById('reject-modal-overlay');
-    if (modal) modal.remove();
+window.closeRejectModal = function () {
+    var el = document.getElementById('bh-reject-overlay');
+    if (el) el.remove();
+};
+
+window.showRejectModalError = function (msg) {
+    var errEl = document.getElementById('bh-reject-error');
+    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+    var btn = document.getElementById('bh-reject-btn');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-lg me-1"></i>Reject'; }
 };
 
 window.__userCurrencyCache = null;
