@@ -390,10 +390,18 @@ public class TaskService : ITaskService
             if (task.Status != StatusHelper.TaskGenerateActive)
                 return Result.Failure("Task has expired or is no longer available", "TASK_EXPIRED");
 
-            var hasPlatformAccount = await _db.SocialMediaAccounts
-                .AnyAsync(s => s.UserId == userId && s.Platform == task.Platform);
-            if (!hasPlatformAccount)
+            var platformAccount = await _db.SocialMediaAccounts
+                .FirstOrDefaultAsync(s => s.UserId == userId && s.Platform == task.Platform);
+            if (platformAccount == null)
                 return Result.Failure($"You don't have a {task.Platform} account linked. Please add your {task.Platform} account in Settings > Social Accounts before submitting proof.", "NO_PLATFORM_ACCOUNT");
+
+            var urlMatchesAccount = false;
+            if (!string.IsNullOrWhiteSpace(platformAccount.Username) && proofUrl.Contains(platformAccount.Username, StringComparison.OrdinalIgnoreCase))
+                urlMatchesAccount = true;
+            if (!urlMatchesAccount && !string.IsNullOrWhiteSpace(platformAccount.ProfileUrl) && proofUrl.Trim().TrimEnd('/').Equals(platformAccount.ProfileUrl.Trim().TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
+                urlMatchesAccount = true;
+            if (!urlMatchesAccount && !string.IsNullOrWhiteSpace(platformAccount.Username))
+                return Result.Failure($"This proof URL does not match your linked {task.Platform} account (@{platformAccount.Username}). Please submit a URL from your own account.", "URL_ACCOUNT_MISMATCH");
 
             var existingProof = await _db.TaskProofs
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.TaskId == taskId && p.VerificationStatus != StatusHelper.VerificationRejected);
