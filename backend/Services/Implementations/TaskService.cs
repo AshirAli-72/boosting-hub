@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BoostingHub.backend.Services.Implementations;
 
-public class TaskService : ITaskService
+public class TaskService : ITaskService, IDisposable
 {
     private record UserTaskCompletionInfo(int TaskId, string Status);
     private readonly ApplicationDbContext _db;
@@ -22,7 +22,6 @@ public class TaskService : ITaskService
     private const int DailyTaskLimit = 25;
 
     public TaskService(
-        ApplicationDbContext db,
         IDbContextFactory<ApplicationDbContext> dbFactory,
         ILogger<TaskService> logger,
         IWalletService walletService,
@@ -30,13 +29,18 @@ public class TaskService : ITaskService
         IActivityLogService activityLog,
         INotificationService notificationService)
     {
-        _db = db;
         _dbFactory = dbFactory;
+        _db = dbFactory.CreateDbContext();
         _logger = logger;
         _walletService = walletService;
         _proofVerification = proofVerification;
         _activityLog = activityLog;
         _notificationService = notificationService;
+    }
+
+    public void Dispose()
+    {
+        _db.Dispose();
     }
 
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
