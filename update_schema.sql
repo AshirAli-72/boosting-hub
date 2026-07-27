@@ -201,7 +201,7 @@ CREATE TABLE [wallets] (
     [currency]      nvarchar(10)    NOT NULL,
     [withdrawn]     decimal(18,2)   NOT NULL,
     [created_at]    datetime2       NOT NULL,
-    [status]        int             NOT NULL DEFAULT 1,
+    [status]        nvarchar(20)    NOT NULL DEFAULT '1',
     CONSTRAINT [PK_wallets] PRIMARY KEY ([id]),
     CONSTRAINT [FK_wallets_users_user_id] FOREIGN KEY ([user_id]) REFERENCES [users] ([id]) ON DELETE CASCADE
 );
