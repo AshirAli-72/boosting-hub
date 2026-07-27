@@ -5,45 +5,9 @@
     ViewData["Title"] = "Dashboard";
     ViewData["BodyClass"] = "user-dashboard-page";
 
-    string CurrencySymbol(string? currency) => (currency?.ToUpper() ?? "PKR") switch {
-        "PKR" => "₨",
-        "EUR" => "€",
-        "GBP" => "£",
-        "INR" => "₹",
-        "BDT" => "৳",
-        "SAR" => "﷼",
-        "AED" => "د.إ",
-        "TRY" => "₺",
-        "NGN" => "₦",
-        "JPY" => "¥",
-        "CNY" => "¥",
-        "KRW" => "₩",
-        "PHP" => "₱",
-        "IDR" => "Rp",
-        "MYR" => "RM",
-        "THB" => "฿",
-        "EGP" => "E£",
-        "ZAR" => "R",
-        "MXN" => "Mex$",
-        _ => "$"
-    };
-
-    var pkrToDisplay = Model.Dashboard.WalletCurrency?.ToUpper() ?? "PKR";
-    decimal[] pkrRateArr = new decimal[] {285, 310, 360, 1, 3.43m, 2.59m, 76, 77.7m, 8.85m, 445, 42.75m, 2.07m, 380, 16, 4500, 1.34m, 10.1m, 13.7m, 5.25m, 16.8m};
-    string[] pkrRateCurs = new string[] {"USD","EUR","GBP","PKR","INR","BDT","SAR","AED","TRY","NGN","JPY","CNY","KRW","PHP","IDR","MYR","THB","EGP","ZAR","MXN"};
-    decimal walletBalPkr = Model.Dashboard.WalletBalance;
-    decimal walletBalConverted = walletBalPkr;
-    var rateIdx = Array.IndexOf(pkrRateCurs, pkrToDisplay);
-    if (rateIdx >= 0 && pkrRateArr[rateIdx] > 0)
-        walletBalConverted = Math.Round(walletBalPkr / pkrRateArr[rateIdx], 2);
-
-    decimal rewardsPkr = Model.Dashboard.TotalRewards;
-    decimal rewardsConverted = rewardsPkr;
-    rateIdx = Array.IndexOf(pkrRateCurs, pkrToDisplay);
-    if (rateIdx >= 0 && pkrRateArr[rateIdx] > 0)
-        rewardsConverted = Math.Round(rewardsPkr / pkrRateArr[rateIdx], 2);
-
-    var sym = CurrencySymbol(Model.Dashboard.WalletCurrency);
+    var walletCurrency = Model.Dashboard.WalletCurrency?.ToUpper() ?? "PKR";
+    var walletBalance = Model.Dashboard.WalletBalance;
+    var totalRewards = Model.Dashboard.TotalRewards;
 }
 
         <div class="admin-header">
@@ -97,7 +61,7 @@
                         <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-wallet2"></i></div>
                         <div class="stat-info">
                             <span class="stat-label" style="color:rgba(255,255,255,0.75);">Wallet Balance</span>
-                            <span class="stat-value" style="color:#fff;"><span data-pkr="@walletBalPkr">@sym@walletBalConverted.ToString("N2")</span></span>
+                            <span class="stat-value" style="color:#fff;"><span class="iq-price" data-amount="@walletBalance" data-from-currency="@walletCurrency">loading...</span></span>
                             <span class="stat-label" style="color:rgba(255,255,255,0.75);font-size:0.7rem;">@Model.Dashboard.WalletStatus</span>
                         </div>
                     </div>
@@ -201,7 +165,51 @@
         var themeObserver = new MutationObserver(function() { updateChartTheme(); });
         themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
-        document.addEventListener('DOMContentLoaded', function() { convertAdminPrices(); });
+        (function() {
+            var walletBalance = @walletBalance;
+            var walletCurrency = '@walletCurrency';
+            var totalRewards = @totalRewards;
+            var fallbackSymbol = walletCurrency === 'PKR' ? '\u20A8' : (walletCurrency === 'USD' ? '$' : walletCurrency + ' ');
+
+            function formatDashboardPrice(amount, fromCurrency, toCurrency) {
+                if (!amount || amount === 0) return fallbackSymbol + '0.00';
+                if (typeof convertCurrency === 'function') {
+                    var converted = convertCurrency(amount, fromCurrency, toCurrency);
+                    var sym = (typeof __currencySymbols !== 'undefined' && __currencySymbols[toCurrency]) || toCurrency + ' ';
+                    return sym + parseFloat(converted).toFixed(2);
+                }
+                var sym2 = (typeof __currencySymbols !== 'undefined' && __currencySymbols[fromCurrency]) || '$';
+                return sym2 + parseFloat(amount).toFixed(2);
+            }
+
+            function updateDashboardPrices(currency) {
+                var sym = (typeof __currencySymbols !== 'undefined' && __currencySymbols[currency]) || currency + ' ';
+                var walletEl = document.querySelector('.iq-price[data-amount]');
+                if (walletEl) {
+                    var amt = parseFloat(walletEl.getAttribute('data-amount'));
+                    var from = walletEl.getAttribute('data-from-currency') || walletCurrency;
+                    walletEl.textContent = formatDashboardPrice(amt, from, currency);
+                }
+                var badge = document.getElementById('iq-currency-badge');
+                if (badge) {
+                    badge.textContent = sym + ' ' + currency;
+                }
+            }
+
+            if (typeof __getUserCurrency === 'function') {
+                __getUserCurrency().then(function(cur) {
+                    if (cur) {
+                        updateDashboardPrices(cur);
+                        return;
+                    }
+                    updateDashboardPrices(walletCurrency);
+                }).catch(function() {
+                    updateDashboardPrices(walletCurrency);
+                });
+            } else {
+                updateDashboardPrices(walletCurrency);
+            }
+        })();
     </script>
 }
 

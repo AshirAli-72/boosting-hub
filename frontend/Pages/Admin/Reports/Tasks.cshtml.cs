@@ -39,11 +39,16 @@ public class TasksReportModel : PageModel
         TasksTableData = await _db.TaskGenerates.AsNoTracking()
             .OrderByDescending(t => t.CreatedAt).Take(100).ToListAsync();
 
-        var dailyTasks = await _db.TaskCompletes
+        // Fix SQL CTE error: pull dates into memory first, then group in C#
+        var rawTaskDates = await _db.TaskCompletes
             .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted && tc.Date >= since)
-            .GroupBy(tc => tc.Date.Date)
-            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .Select(tc => tc.Date)
             .ToListAsync();
+
+        var dailyTasks = rawTaskDates
+            .GroupBy(d => d.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .ToList();
 
         for (int i = 0; i < 7; i++)
         {

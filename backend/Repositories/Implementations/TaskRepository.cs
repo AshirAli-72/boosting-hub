@@ -14,45 +14,40 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
     {
         var today = DateTime.UtcNow;
-        var endingSoonDate = today.AddDays(3);
 
-        // Base query: active task_generate rows
-        var baseQuery = _context.TaskGenerates
+        var allTasks = await _context.TaskGenerates
             .AsNoTracking()
             .Include(t => t.Order)
-            .Where(t => t.Status == StatusHelper.TaskGenerateActive);
+            .Where(t => t.Status == StatusHelper.TaskGenerateActive)
+            .ToListAsync();
 
-       
-        var projected = baseQuery.Select(t => new AvailableTaskDto
+        var taskIds = allTasks.Select(t => t.Id).ToList();
+        var completedCounts = await _context.TaskCompletes
+            .Where(tc => taskIds.Contains(tc.TaskId) && tc.Status == StatusHelper.TaskCompleteCompleted)
+            .GroupBy(tc => tc.TaskId)
+            .Select(g => new { TaskId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.TaskId, g => g.Count);
+
+        var projected = allTasks.Select(t => new AvailableTaskDto
         {
             Id = t.Id,
             OrderId = t.OrderId,
-
-            // Derived from Orders
-            Title = t.Order.Service ?? string.Empty,
-            Description = t.Order.Description ?? string.Empty,
-            SocialMediaUrl = t.Order.SocialMediaUrl ?? string.Empty,
-
-            // From TaskGenerate
+            Title = t.Order?.Service ?? string.Empty,
+            Description = t.Order?.Description ?? string.Empty,
+            SocialMediaUrl = t.Order?.SocialMediaUrl ?? string.Empty,
             Platform = t.Platform,
             PlatformIcon = string.Empty,
             Service = t.Service,
             Url = t.Url,
-
             RewardAmount = t.Reward,
             TargetQuantity = t.Quantity,
-
-            CompletedQuantity = _context.TaskCompletes.Count(tc =>
-                tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
-
+            CompletedQuantity = completedCounts.GetValueOrDefault(t.Id, 0),
             ProofRequired = false,
             ExpiresAt = t.ExpiryDate,
-
             Status = StatusHelper.TaskGenerateStatusToString(t.Status),
             CreatedAt = t.CreatedAt
-        });
+        }).AsEnumerable();
 
-        // Optional filters
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var search = filter.Search.Trim().ToLower();
@@ -73,29 +68,26 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
         if (filter.MaxReward.HasValue)
             projected = projected.Where(x => x.RewardAmount <= filter.MaxReward.Value);
 
-        // Remaining quantity + not expired
         projected = projected.Where(x =>
             x.ExpiresAt.HasValue &&
             x.ExpiresAt.Value >= today &&
             x.TargetQuantity > x.CompletedQuantity);
 
-        // Total count
-        var totalCount = await projected.CountAsync();
+        var filtered = projected.ToList();
+        var totalCount = filtered.Count;
 
-        // Sort
-        projected = (filter.SortBy ?? "newest").ToLower() switch
+        var sorted = (filter.SortBy ?? "newest").ToLower() switch
         {
-            "reward" => projected.OrderByDescending(x => x.RewardAmount),
-            "ending" => projected.OrderBy(x => x.ExpiresAt),
-            "popular" => projected.OrderByDescending(x => x.CompletedQuantity),
-            _ => projected.OrderByDescending(x => x.CreatedAt)
+            "reward" => filtered.OrderByDescending(x => x.RewardAmount),
+            "ending" => filtered.OrderBy(x => x.ExpiresAt),
+            "popular" => filtered.OrderByDescending(x => x.CompletedQuantity),
+            _ => filtered.OrderByDescending(x => x.CreatedAt)
         };
 
-        // Paging
-        var items = await projected
+        var items = sorted
             .Skip((filter.Page - 1) * filter.PageSize)
             .Take(filter.PageSize)
-            .ToListAsync();
+            .ToList();
 
         return new PagedResult<AvailableTaskDto>
         {
@@ -110,41 +102,36 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
     {
         var today = DateTime.UtcNow;
 
-        var dto = await _context.TaskGenerates
+        var task = await _context.TaskGenerates
             .AsNoTracking()
             .Include(t => t.Order)
-            .Where(t => t.Id == taskId)
-            .Select(t => new TaskDetailDto
-            {
-                Id = t.Id,
-                OrderId = t.OrderId,
+            .FirstOrDefaultAsync(t => t.Id == taskId);
 
-                Title = t.Order.Service ?? string.Empty,
-                Description = t.Order.Description ?? string.Empty,
-                SocialMediaUrl = t.Order.SocialMediaUrl ?? string.Empty,
+        if (task == null) return null;
 
-                Platform = t.Platform,
-                PlatformIcon = string.Empty,
-                Service = t.Service,
-                Url = t.Url,
+        var completedQuantity = await _context.TaskCompletes
+            .CountAsync(tc => tc.TaskId == taskId && tc.Status == StatusHelper.TaskCompleteCompleted);
 
-                RewardAmount = t.Reward,
-                TargetQuantity = t.Quantity,
+        var dto = new TaskDetailDto
+        {
+            Id = task.Id,
+            OrderId = task.OrderId,
+            Title = task.Order?.Service ?? string.Empty,
+            Description = task.Order?.Description ?? string.Empty,
+            SocialMediaUrl = task.Order?.SocialMediaUrl ?? string.Empty,
+            Platform = task.Platform,
+            PlatformIcon = string.Empty,
+            Service = task.Service,
+            Url = task.Url,
+            RewardAmount = task.Reward,
+            TargetQuantity = task.Quantity,
+            CompletedQuantity = completedQuantity,
+            ProofRequired = false,
+            ExpiresAt = task.ExpiryDate,
+            Status = StatusHelper.TaskGenerateStatusToString(task.Status),
+            CreatedAt = task.CreatedAt
+        };
 
-                CompletedQuantity = _context.TaskCompletes.Count(tc =>
-                    tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
-
-                ProofRequired = false,
-                ExpiresAt = t.ExpiryDate,
-
-                Status = StatusHelper.TaskGenerateStatusToString(t.Status),
-                CreatedAt = t.CreatedAt
-            })
-            .FirstOrDefaultAsync();
-
-        if (dto is null) return null;
-
-        // Optional: keep UI status in sync if expired
         if (dto.ExpiresAt.HasValue && dto.ExpiresAt.Value < today)
             dto.Status = "Expired";
 
@@ -156,40 +143,30 @@ public class TaskRepository : Repository<Orders>, ITaskRepository
         var today = DateTime.UtcNow;
         var endingSoonDate = today.AddDays(3);
 
-        var baseQuery = _context.TaskGenerates
+        var allTasks = await _context.TaskGenerates
             .AsNoTracking()
-            .Include(t => t.Order)
-            .Where(t => t.Status == StatusHelper.TaskGenerateActive);
+            .Where(t => t.Status == StatusHelper.TaskGenerateActive)
+            .ToListAsync();
 
-        // TotalAvailable: tasks not expired and still have remaining slots
-        // Using Remaining = quantity > CompletedCount (Completed status)
-        // Note: CompletedCount uses TaskComplete.Status == "Completed".
-        var projected = baseQuery.Select(t => new
-        {
-            t.Id,
-            t.Quantity,
-            Completed = _context.TaskCompletes.Count(tc =>
-                tc.TaskId == t.Id && tc.Status == StatusHelper.TaskCompleteCompleted),
-            ExpiresAt = t.ExpiryDate,
-            t.Reward,
-            t.CreatedAt,
-            t.Platform
-        });
+        var taskIds = allTasks.Select(t => t.Id).ToList();
+        var completedCounts = await _context.TaskCompletes
+            .Where(tc => taskIds.Contains(tc.TaskId) && tc.Status == StatusHelper.TaskCompleteCompleted)
+            .GroupBy(tc => tc.TaskId)
+            .Select(g => new { TaskId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.TaskId, g => g.Count);
 
-        var totalAvailable = await projected.CountAsync(x =>
-            x.ExpiresAt >= today && x.Quantity > x.Completed);
+        var totalAvailable = allTasks.Count(t =>
+            t.ExpiryDate >= today &&
+            t.Quantity > completedCounts.GetValueOrDefault(t.Id, 0));
 
-        var newToday = await projected.CountAsync(x => x.CreatedAt == today);
+        var newToday = allTasks.Count(t => t.CreatedAt.Date == today.Date);
 
-        var endingSoon = await projected.CountAsync(x =>
-            x.ExpiresAt <= endingSoonDate && x.ExpiresAt >= today);
+        var endingSoon = allTasks.Count(t =>
+            t.ExpiryDate <= endingSoonDate && t.ExpiryDate >= today);
 
-        var highest = await projected.MaxAsync(x => (decimal?)x.Reward) ?? 0m;
+        var highest = allTasks.Count > 0 ? allTasks.Max(t => t.Reward) : 0m;
 
-        var totalPlatforms = await baseQuery
-            .Select(t => t.Platform)
-            .Distinct()
-            .CountAsync();
+        var totalPlatforms = allTasks.Select(t => t.Platform).Distinct().Count();
 
         return new TaskStatisticsDto
         {

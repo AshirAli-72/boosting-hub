@@ -50,7 +50,7 @@ public class AuthenticationService : IAuthenticationService
         if (await _db.Users.AnyAsync(u => u.Email == dto.Email, ct))
             return Result.Failure<AuthResponseDto>("Email already registered", "DUPLICATE_EMAIL");
 
-        if (await _db.Users.AnyAsync(u => u.Phone == dto.Phone, ct))
+        if (!string.IsNullOrWhiteSpace(dto.Phone) && await _db.Users.AnyAsync(u => u.Phone == dto.Phone, ct))
             return Result.Failure<AuthResponseDto>("Phone number already registered", "DUPLICATE_PHONE");
 
         var passwordHash = _passwordHasher.HashPassword(new User(), dto.Password);
@@ -84,7 +84,7 @@ public class AuthenticationService : IAuthenticationService
         {
             Name = dto.Name,
             Email = dto.Email,
-            Phone = dto.Phone,
+            Phone = string.IsNullOrWhiteSpace(dto.Phone) ? null : dto.Phone.Trim(),
             Password = passwordHash,
             Status = StatusHelper.UserActive,
             EmailVerifiedAt = DateTime.UtcNow,
@@ -108,7 +108,7 @@ public class AuthenticationService : IAuthenticationService
         {
             UserId = user.Id,
             TotalBalance = 0,
-            Currency = "PKR",
+            Currency = string.Empty,
             Withdrawn = 0,
             Status = "active",
             CreatedAt = DateTime.UtcNow
@@ -382,14 +382,14 @@ public class AuthenticationService : IAuthenticationService
         if (await _db.Users.AnyAsync(u => u.Email == payload.Email, ct))
             return Result.Failure<AuthResponseDto>("This email is already registered", "DUPLICATE_EMAIL");
 
-        if (await _db.Users.AnyAsync(u => u.Phone == payload.Phone, ct))
+        if (!string.IsNullOrWhiteSpace(payload.Phone) && await _db.Users.AnyAsync(u => u.Phone == payload.Phone, ct))
             return Result.Failure<AuthResponseDto>("This phone number is already registered", "DUPLICATE_PHONE");
 
         var user = new User
         {
             Name = payload.Name,
             Email = payload.Email,
-            Phone = payload.Phone,
+            Phone = string.IsNullOrWhiteSpace(payload.Phone) ? null : payload.Phone.Trim(),
             Password = payload.PasswordHash,
             Status = 1,
             EmailVerifiedAt = DateTime.UtcNow,
@@ -413,7 +413,7 @@ public class AuthenticationService : IAuthenticationService
         {
             UserId = user.Id,
             TotalBalance = 0,
-            Currency = "PKR",
+            Currency = string.Empty,
             Withdrawn = 0,
             Status = "active",
             CreatedAt = DateTime.UtcNow

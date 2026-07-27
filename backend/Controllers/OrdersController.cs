@@ -150,7 +150,7 @@ public class OrdersController : ControllerBase
                     UserId = userId,
                     Type = "NewTaskAvailable",
                     Title = "New Tasks Available",
-                    Message = $"{tasksGenerated} new task(s) just added! {order.Platform} - {order.Service} (₨ {rewardPerTask:F2} per task). Grab them before they're gone!",
+                    Message = $"{tasksGenerated} new task(s) just added! {order.Platform} - {order.Service} ({rewardPerTask:F2} {order.Currency} per task). Grab them before they're gone!",
                     Data = $"{{\"orderId\":{order.Id},\"tasksGenerated\":{tasksGenerated}}}"
                 }).ToList();
 

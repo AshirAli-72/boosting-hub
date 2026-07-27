@@ -268,6 +268,7 @@ public class ApplicationDbContext : DbContext
             e.Property(p => p.Platform).HasMaxLength(200).IsRequired();
             e.Property(p => p.Service).HasMaxLength(200).IsRequired();
             e.Property(p => p.Price).HasColumnType("decimal(18,2)");
+            e.Property(p => p.Currency).HasMaxLength(10).IsRequired();
             e.Property(p => p.CreatedAt).HasColumnType("datetime2");
             e.Property(p => p.UpdatedAt).HasColumnType("datetime2");
             e.HasIndex(p => new { p.Platform, p.Service });

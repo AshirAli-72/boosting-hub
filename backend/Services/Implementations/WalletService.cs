@@ -63,7 +63,7 @@ public class WalletService : IWalletService
             {
                 UserId = userId,
                 TotalBalance = amount,
-                Currency = "PKR",
+                Currency = string.Empty,
                 Withdrawn = 0,
                 Status = "active",
                 CreatedAt = DateTime.UtcNow
@@ -78,7 +78,7 @@ public class WalletService : IWalletService
         await _db.SaveChangesAsync();
     }
 
-    public async Task CreditRewardAsync(int userId, decimal amount, int taskId, int proofId, string taskCurrency = "PKR")
+    public async Task CreditRewardAsync(int userId, decimal amount, int taskId, int proofId, string taskCurrency)
     {
         var wallet = await GetOrCreateWalletAsync(userId);
 
@@ -101,16 +101,16 @@ public class WalletService : IWalletService
 
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("Credited {Amount} PKR to wallet {WalletId} for task {TaskId} (proof {ProofId})",
-            amount, wallet.Id, taskId, proofId);
+        _logger.LogInformation("Credited {Amount} {Currency} to wallet {WalletId} for task {TaskId} (proof {ProofId})",
+            amount, taskCurrency, wallet.Id, taskId, proofId);
 
         var creditUser = await _db.Users.FindAsync(userId);
         await _activityLog.LogAsync(
             userId: userId, userName: creditUser?.Name, userEmail: creditUser?.Email,
             userRole: "System", evt: "WalletCredited",
-            description: $"₨{amount:F2} credited for task #{taskId}",
+            description: $"{taskCurrency} {amount:F2} credited for task #{taskId}",
             subjectType: "Wallet", subjectId: wallet.Id, subjectName: creditUser?.Email,
-            newValues: JsonSerializer.Serialize(new { Amount = amount, Currency = "PKR", BalanceAfter = wallet.TotalBalance, TaskId = taskId }),
+            newValues: JsonSerializer.Serialize(new { Amount = amount, Currency = taskCurrency, BalanceAfter = wallet.TotalBalance, TaskId = taskId }),
             ct: CancellationToken.None);
     }
 
@@ -148,7 +148,7 @@ public class WalletService : IWalletService
             {
                 UserId = userId,
                 TotalBalance = 0,
-                Currency = "PKR",
+                Currency = string.Empty,
                 Withdrawn = 0,
                 Status = "active",
                 CreatedAt = DateTime.UtcNow

@@ -10,7 +10,9 @@ namespace BoostingHub.backend.Services.Implementations;
 
 public class TaskService : ITaskService
 {
+    private record UserTaskCompletionInfo(int TaskId, string Status);
     private readonly ApplicationDbContext _db;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
     private readonly ILogger<TaskService> _logger;
     private readonly IWalletService _walletService;
     private readonly IProofVerificationService _proofVerification;
@@ -21,6 +23,7 @@ public class TaskService : ITaskService
 
     public TaskService(
         ApplicationDbContext db,
+        IDbContextFactory<ApplicationDbContext> dbFactory,
         ILogger<TaskService> logger,
         IWalletService walletService,
         IProofVerificationService proofVerification,
@@ -28,6 +31,7 @@ public class TaskService : ITaskService
         INotificationService notificationService)
     {
         _db = db;
+        _dbFactory = dbFactory;
         _logger = logger;
         _walletService = walletService;
         _proofVerification = proofVerification;
@@ -37,10 +41,47 @@ public class TaskService : ITaskService
 
     public async Task<PagedResult<AvailableTaskDto>> GetAvailableTasksAsync(TaskFilterDto filter, int? userId = null)
     {
-        var allActiveTasks = await _db.TaskGenerates
-            .AsNoTracking()
-            .Where(t => t.Status == StatusHelper.TaskGenerateActive)
-            .ToListAsync();
+        List<TaskGenerate> allActiveTasks;
+        List<int> allCompletedTaskIds;
+        List<UserTaskCompletionInfo> userCompletions;
+        List<int> userAcceptedTaskIds;
+
+        using (var db1 = _dbFactory.CreateDbContext())
+        {
+            allActiveTasks = await db1.TaskGenerates
+                .AsNoTracking()
+                .Where(t => t.Status == StatusHelper.TaskGenerateActive)
+                .ToListAsync();
+
+            allCompletedTaskIds = await db1.TaskCompletes
+                .AsNoTracking()
+                .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted)
+                .Select(tc => tc.TaskId)
+                .ToListAsync();
+        }
+
+        if (userId.HasValue)
+        {
+            using (var db2 = _dbFactory.CreateDbContext())
+            {
+                userCompletions = await db2.TaskCompletes
+                    .AsNoTracking()
+                    .Where(tc => tc.UserId == userId.Value)
+                    .Select(tc => new UserTaskCompletionInfo(tc.TaskId, tc.Status))
+                    .ToListAsync();
+
+                userAcceptedTaskIds = await db2.AcceptedTasks
+                    .AsNoTracking()
+                    .Where(a => a.UserId == userId.Value)
+                    .Select(a => a.TaskId)
+                    .ToListAsync();
+            }
+        }
+        else
+        {
+            userCompletions = new List<UserTaskCompletionInfo>();
+            userAcceptedTaskIds = new List<int>();
+        }
 
         if (!string.IsNullOrEmpty(filter.Platform))
             allActiveTasks = allActiveTasks.Where(t => t.Platform == filter.Platform).ToList();
@@ -58,14 +99,10 @@ public class TaskService : ITaskService
         if (filter.MaxReward.HasValue)
             allActiveTasks = allActiveTasks.Where(t => t.Reward <= filter.MaxReward.Value).ToList();
 
-        var activeTaskIds = allActiveTasks.Select(t => t.Id).ToList();
-        var allCompletedTaskIds = await _db.TaskCompletes
-            .Where(tc => tc.Status == StatusHelper.TaskCompleteCompleted)
-            .Select(tc => tc.TaskId)
-            .ToListAsync();
+        var activeTaskIds = allActiveTasks.Select(t => t.Id).ToHashSet();
         var completedCounts = allCompletedTaskIds
+            .Where(id => activeTaskIds.Contains(id))
             .GroupBy(id => id)
-            .Where(g => activeTaskIds.Contains(g.Key))
             .ToDictionary(g => g.Key, g => g.Count());
 
         allActiveTasks = allActiveTasks
@@ -84,8 +121,34 @@ public class TaskService : ITaskService
             .Take(filter.PageSize)
             .ToList();
 
-        var pagedTaskIds = pagedTasks.Select(t => t.Id).ToList();
-        var userStatusMap = await BuildUserStatusMapAsync(userId, pagedTaskIds);
+        var userStatusMap = new Dictionary<int, string>();
+        if (userId.HasValue)
+        {
+            var taskIdSet = pagedTasks.Select(t => t.Id).ToHashSet();
+            foreach (var c in userCompletions.Where(c => taskIdSet.Contains(c.TaskId)))
+            {
+                if (c.Status == StatusHelper.TaskCompleteCompleted)
+                    userStatusMap[c.TaskId] = "Completed";
+                else if (c.Status != StatusHelper.TaskCompleteCancelled && !userStatusMap.ContainsKey(c.TaskId))
+                    userStatusMap[c.TaskId] = "Accepted";
+            }
+            foreach (var taskId in userAcceptedTaskIds.Where(id => taskIdSet.Contains(id)))
+            {
+                if (!userStatusMap.ContainsKey(taskId))
+                    userStatusMap[taskId] = "Accepted";
+            }
+        }
+
+        var orderIds = pagedTasks.Select(t => t.OrderId).Distinct().ToList();
+        Dictionary<int, string> orderCurrencyMap;
+        using (var dbOrders = _dbFactory.CreateDbContext())
+        {
+            var orderCurrencies = await dbOrders.Orders
+                .Where(o => orderIds.Contains(o.Id))
+                .Select(o => new { o.Id, o.Currency })
+                .ToListAsync();
+            orderCurrencyMap = orderCurrencies.ToDictionary(o => o.Id, o => o.Currency ?? "PKR");
+        }
 
         var tasks = pagedTasks.Select(t =>
         {
@@ -94,6 +157,8 @@ public class TaskService : ITaskService
 
             if (userStatus == "Completed" && completedCount < t.Quantity)
                 userStatus = "Accepted";
+
+            orderCurrencyMap.TryGetValue(t.OrderId, out var orderCurrency);
 
             return new AvailableTaskDto
             {
@@ -106,6 +171,7 @@ public class TaskService : ITaskService
                 TargetQuantity = t.Quantity,
                 CompletedQuantity = completedCount,
                 RewardAmount = t.Reward,
+                Currency = orderCurrency ?? "PKR",
                 UserStatus = userStatus,
                 Status = StatusHelper.TaskGenerateStatusToString(t.Status),
                 CreatedAt = t.CreatedAt,
@@ -120,37 +186,6 @@ public class TaskService : ITaskService
             Page = filter.Page,
             PageSize = filter.PageSize
         };
-    }
-
-    private async Task<Dictionary<int, string>> BuildUserStatusMapAsync(int? userId, IEnumerable<int> taskIds)
-    {
-        var map = new Dictionary<int, string>();
-        var taskIdSet = taskIds.ToHashSet();
-        if (!userId.HasValue || taskIdSet.Count == 0) return map;
-
-        var completions = await _db.TaskCompletes
-            .Where(tc => tc.UserId == userId.Value)
-            .Select(tc => new { tc.TaskId, tc.Status })
-            .ToListAsync();
-        foreach (var c in completions.Where(c => taskIdSet.Contains(c.TaskId)))
-        {
-            if (c.Status == StatusHelper.TaskCompleteCompleted)
-                map[c.TaskId] = "Completed";
-            else if (c.Status != StatusHelper.TaskCompleteCancelled && !map.ContainsKey(c.TaskId))
-                map[c.TaskId] = "Accepted";
-        }
-
-        var acceptedTaskIds = await _db.AcceptedTasks
-            .Where(a => a.UserId == userId.Value)
-            .Select(a => a.TaskId)
-            .ToListAsync();
-        foreach (var taskId in acceptedTaskIds.Where(id => taskIdSet.Contains(id)))
-        {
-            if (!map.ContainsKey(taskId))
-                map[taskId] = "Accepted";
-        }
-
-        return map;
     }
 
     public async Task<Result<TaskDetailDto>> GetTaskDetailAsync(int taskId, int? userId = null)
@@ -199,6 +234,7 @@ public class TaskService : ITaskService
             TargetQuantity = task.Quantity,
             CompletedQuantity = completedCount,
             RewardAmount = task.Reward,
+            Currency = task.Order?.Currency ?? "PKR",
             Description = task.Order?.Description ?? string.Empty,
             UserStatus = userStatus,
             Status = StatusHelper.TaskGenerateStatusToString(task.Status),
@@ -524,12 +560,13 @@ public class TaskService : ITaskService
 
             await _db.SaveChangesAsync();
 
-            await _walletService.CreditRewardAsync(proof.UserId, proof.Task.Reward, proof.TaskId, proof.Id, "PKR");
+            await _walletService.CreditRewardAsync(proof.UserId, proof.Task.Reward, proof.TaskId, proof.Id, proof.Task.Order?.Currency ?? "PKR");
 
             var wallet = await _walletService.GetWalletByUserIdAsync(proof.UserId);
-            var displayCurrency = wallet?.Currency ?? "PKR";
+            var orderCurrency = proof.Task.Order?.Currency ?? "PKR";
+            var displayCurrency = wallet?.Currency ?? orderCurrency;
             var displayAmount = wallet != null
-                ? WalletService.ConvertCurrencyStatic(proof.Task.Reward, "PKR", displayCurrency)
+                ? WalletService.ConvertCurrencyStatic(proof.Task.Reward, orderCurrency, displayCurrency)
                 : proof.Task.Reward;
 
             _db.Notifications.Add(new Notification
@@ -751,6 +788,12 @@ public class TaskService : ITaskService
             var taskIds = tasks.Select(t => t.Id).ToList();
             var taskIdSet = taskIds.ToHashSet();
 
+            var orderIds = tasks.Select(t => t.OrderId).Distinct().ToList();
+            var orderCurrencyMap = await _db.Orders
+                .Where(o => orderIds.Contains(o.Id))
+                .Select(o => new { o.Id, o.Currency })
+                .ToDictionaryAsync(o => o.Id, o => o.Currency);
+
             var proofsList = await _db.TaskProofs
                 .Where(p => p.UserId == userId)
                 .OrderByDescending(p => p.Date)
@@ -786,6 +829,7 @@ public class TaskService : ITaskService
 
                 if (proof != null && comp == null)
                 {
+                    orderCurrencyMap.TryGetValue(t.OrderId, out var taskCurrency);
                     result.Add(new MyTaskDto
                     {
                         TaskId = t.Id,
@@ -793,6 +837,7 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
+                        Currency = taskCurrency ?? "PKR",
                         Status = status,
                         ProofUrl = proof.ProofUrl,
                         ProofType = proof.ProofType,
@@ -803,6 +848,7 @@ public class TaskService : ITaskService
                 }
                 else if (comp != null)
                 {
+                    orderCurrencyMap.TryGetValue(t.OrderId, out var taskCurrency);
                     result.Add(new MyTaskDto
                     {
                         TaskCompleteId = comp.Id,
@@ -811,6 +857,7 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
+                        Currency = taskCurrency ?? "PKR",
                         Status = status,
                         ProofUrl = proof?.ProofUrl,
                         ProofType = proof?.ProofType,
@@ -821,6 +868,7 @@ public class TaskService : ITaskService
                 }
                 else
                 {
+                    orderCurrencyMap.TryGetValue(t.OrderId, out var taskCurrency);
                     result.Add(new MyTaskDto
                     {
                         TaskId = t.Id,
@@ -828,6 +876,7 @@ public class TaskService : ITaskService
                         Service = t.Service,
                         Url = t.Url,
                         Reward = t.Reward,
+                        Currency = taskCurrency ?? "PKR",
                         Status = status
                     });
                 }
@@ -901,7 +950,8 @@ public class TaskService : ITaskService
 
     public async Task<List<string>> GetPlatformsAsync()
     {
-        return await _db.TaskGenerates
+        using var db = _dbFactory.CreateDbContext();
+        return await db.TaskGenerates
             .AsNoTracking()
             .Where(t => t.Status == StatusHelper.TaskGenerateActive)
             .Select(t => t.Platform)
@@ -911,7 +961,8 @@ public class TaskService : ITaskService
 
     public async Task<List<string>> GetServicesAsync()
     {
-        return await _db.TaskGenerates
+        using var db = _dbFactory.CreateDbContext();
+        return await db.TaskGenerates
             .AsNoTracking()
             .Where(t => t.Status == StatusHelper.TaskGenerateActive)
             .Select(t => t.Service)
@@ -921,7 +972,8 @@ public class TaskService : ITaskService
 
     public async Task<Result<List<string>>> GetUserSocialMediaPlatformsAsync(int userId)
     {
-        var platforms = await _db.SocialMediaAccounts
+        using var db = _dbFactory.CreateDbContext();
+        var platforms = await db.SocialMediaAccounts
             .Where(s => s.UserId == userId)
             .Select(s => s.Platform)
             .ToListAsync();
@@ -930,9 +982,10 @@ public class TaskService : ITaskService
 
     public async Task<int> GetWorkerActiveTaskCountAsync(int userId)
     {
-        var acceptedCount = await _db.AcceptedTasks
+        using var db = _dbFactory.CreateDbContext();
+        var acceptedCount = await db.AcceptedTasks
             .CountAsync(a => a.UserId == userId && a.Status == StatusHelper.AcceptedTaskAccepted);
-        var pendingCount = await _db.TaskCompletes
+        var pendingCount = await db.TaskCompletes
             .CountAsync(tc => tc.UserId == userId && tc.Status == StatusHelper.TaskCompletePending);
         return acceptedCount + pendingCount;
     }

@@ -345,31 +345,7 @@
                             <div style="height:1px;background:var(--border-subtle);margin:14px 0;"></div>
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                                 <span style="color:var(--text-secondary);font-size:0.85rem;"><i class="bi bi-cash-stack" style="margin-right:4px;"></i> Currency</span>
-                                <select id="pay-currency-select" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border-subtle);background:var(--bg-surface);color:var(--text-primary);font-size:0.85rem;font-weight:600;cursor:pointer;" onchange="updatePayCurrency()">
-                                    <option value="PKR">PKR (Rs)</option>
-                                    <option value="USD">USD ($)</option>
-                                    <option value="EUR">EUR (&euro;)</option>
-                                    <option value="GBP">GBP (&pound;)</option>
-                                    <option value="INR">INR (&#8377;)</option>
-                                    <option value="SAR">SAR</option>
-                                    <option value="AED">AED</option>
-                                    <option value="CAD">CAD (C$)</option>
-                                    <option value="AUD">AUD (A$)</option>
-                                    <option value="TRY">TRY</option>
-                                    <option value="BDT">BDT</option>
-                                    <option value="BRL">BRL (R$)</option>
-                                    <option value="JPY">JPY (&yen;)</option>
-                                    <option value="CNY">CNY</option>
-                                    <option value="KRW">KRW</option>
-                                    <option value="NGN">NGN</option>
-                                    <option value="PHP">PHP</option>
-                                    <option value="IDR">IDR</option>
-                                    <option value="MYR">MYR</option>
-                                    <option value="THB">THB</option>
-                                    <option value="EGP">EGP</option>
-                                    <option value="ZAR">ZAR</option>
-                                    <option value="MXN">MXN</option>
-                                </select>
+                                <span id="pay-currency-badge" style="padding:4px 12px;border-radius:8px;background:rgba(16,185,129,0.12);color:#10B981;font-size:0.85rem;font-weight:700;">USD ($)</span>
                             </div>
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <span style="color:var(--text-primary);font-weight:800;font-size:0.95rem;">Total</span>
@@ -670,11 +646,19 @@
             'KWD': 930, 'QAR': 78, 'BHD': 755, 'OMR': 742
         };
 
-        function convertFromPkr(amountPkr, toCurrency) {
-            if (toCurrency === 'PKR') return amountPkr;
-            var rate = iqPkrRates[toCurrency];
-            if (!rate) return amountPkr;
-            return amountPkr / rate;
+        function convertCurrency(amount, fromCurrency, toCurrency) {
+            if (fromCurrency === toCurrency) return amount;
+            var fromRate = iqPkrRates[fromCurrency];
+            var toRate = iqPkrRates[toCurrency];
+            if (!fromRate || !toRate) return amount;
+            var inPkr = amount * fromRate;
+            return inPkr / toRate;
+        }
+
+        function formatPrice(amount, fromCurrency) {
+            fromCurrency = fromCurrency || iqBaseCurrency;
+            var converted = convertCurrency(amount, fromCurrency, iqDetectedCurrency);
+            return iqDetectedSymbol + parseFloat(converted).toFixed(2);
         }
 
         var iqCurrencySymbols = {
@@ -686,11 +670,6 @@
             'EGP': 'E\u00A3', 'ZAR': 'R', 'MXN': 'Mex$'
         };
 
-        function formatPrice(amount) {
-            var converted = convertFromPkr(amount, iqDetectedCurrency);
-            return iqDetectedSymbol + parseFloat(converted).toFixed(2);
-        }
-
         function updateCurrencyBadge() {
             var badge = document.getElementById('iq-currency-badge');
             if (badge) {
@@ -700,13 +679,13 @@
         }
 
         function detectCurrency() {
-            fetch('https://ipapi.co/json/')
+            fetch('/api/geolocation/currency')
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    if (data.currency_code) {
-                        iqDetectedCurrency = data.currency_code;
-                        iqDetectedSymbol = iqCurrencySymbols[data.currency_code] || '$';
-                        if (window.__userCurrencyCache !== undefined) window.__userCurrencyCache = data.currency_code;
+                    if (data.currency) {
+                        iqDetectedCurrency = data.currency;
+                        iqDetectedSymbol = iqCurrencySymbols[data.currency] || '$';
+                        if (window.__userCurrencyCache !== undefined) window.__userCurrencyCache = data.currency;
                         updateCurrencyBadge();
                         refreshAllPrices();
                     }
@@ -829,7 +808,7 @@
             updateSvcLabel();
 
             if (cb.checked) {
-                iqServiceData[service] = { packages: [], selectedPkg: null, qty: 0, price: 0, unitPrice: 0 };
+                iqServiceData[service] = { packages: [], selectedPkg: null, qty: 0, price: 0, unitPrice: 0, pkgCurrency: 'USD' };
                 addServiceSection(service);
                 fetchServicePrice(service, platform);
             } else {
@@ -851,6 +830,7 @@
                 var pkg = packages[0];
                 iqServiceData[service].selectedPkg = pkg.id;
                 iqServiceData[service].unitPrice = pkg.price;
+                iqServiceData[service].pkgCurrency = pkg.currency || 'USD';
                 document.getElementById('iq-pkg-id-' + service).value = pkg.id;
                 updateServiceAmount(service);
             } catch(e) { console.warn('Failed to fetch price for', service, e); }
@@ -860,7 +840,8 @@
             var d = iqServiceData[service];
             var unitEl = document.getElementById('iq-unit-' + service);
             if (!unitEl || !d.unitPrice) return;
-            unitEl.innerHTML = formatPrice(d.unitPrice) + ' / unit';
+            var pkgCurrency = d.pkgCurrency || 'USD';
+            unitEl.innerHTML = formatPrice(d.unitPrice, pkgCurrency) + ' / unit';
             unitEl.style.display = 'inline-flex';
         }
 
@@ -904,11 +885,13 @@
             updateOrderSummary();
         }
 
-        async         function onServiceQtyChange(service) {
+        function onServiceQtyChange(service) {
             var qty = parseInt(document.getElementById('iq-qty-' + service).value) || 0;
             iqServiceData[service].qty = qty;
             if (qty > 0 && iqServiceData[service].unitPrice > 0) {
-                iqServiceData[service].price = iqServiceData[service].unitPrice * qty;
+                var pkgCurrency = iqServiceData[service].pkgCurrency || 'USD';
+                var priceInPkr = convertCurrency(iqServiceData[service].unitPrice, pkgCurrency, 'PKR');
+                iqServiceData[service].price = priceInPkr * qty;
             } else {
                 iqServiceData[service].price = 0;
             }
@@ -917,21 +900,23 @@
         }
 
         function updateOrderSummary() {
-            var total = 0;
+            var totalPkr = 0;
             var platform = document.getElementById('iq-platform').value;
             for (var s in iqServiceData) {
                 var d = iqServiceData[s];
                 if (d.selectedPkg && d.unitPrice > 0 && d.qty > 0) {
-                    total += d.unitPrice * d.qty;
+                    var pkgCurrency = d.pkgCurrency || 'USD';
+                    var priceInPkr = convertCurrency(d.unitPrice, pkgCurrency, 'PKR');
+                    totalPkr += priceInPkr * d.qty;
                 }
             }
             var el = document.getElementById('iq-order-summary');
-            if (total > 0) {
+            if (totalPkr > 0) {
                 el.style.animation = 'none';
                 void el.offsetHeight;
                 el.style.display = 'block';
                 el.style.animation = '';
-                document.getElementById('iq-total-price').textContent = formatPrice(total);
+                document.getElementById('iq-total-price').textContent = formatPrice(totalPkr, 'PKR');
             } else {
                 el.style.display = 'none';
             }
@@ -963,29 +948,35 @@
         }
 
         var selectedPayMethod = null;
-        var payCurrency = 'PKR';
+        var payCurrency = 'USD';
 
         function updatePayCurrency() {
-            var sel = document.getElementById('pay-currency-select');
-            if (sel) payCurrency = sel.value;
+            payCurrency = iqDetectedCurrency || 'USD';
+            var badge = document.getElementById('pay-currency-badge');
+            var sym = iqCurrencySymbols[payCurrency] || '$';
+            if (badge) badge.textContent = payCurrency + ' (' + sym.trim() + ')';
             refreshPaymentModalPrices();
         }
 
         function refreshPaymentModalPrices() {
-            var curSel = document.getElementById('pay-currency-select');
-            var cur = curSel ? curSel.value : payCurrency;
+            var cur = iqDetectedCurrency || payCurrency || 'USD';
+            payCurrency = cur;
             var sym = iqCurrencySymbols[cur] || '$';
-            var total = 0;
+            var badge = document.getElementById('pay-currency-badge');
+            if (badge) badge.textContent = cur + ' (' + sym.trim() + ')';
+            var totalPkr = 0;
             var itemsHtml = '';
             var itemCount = 0;
             for (var s in iqServiceData) {
                 var d = iqServiceData[s];
                 if (d.selectedPkg) {
-                    var pkrTotal = d.unitPrice * d.qty;
-                    var converted = iqPkrRates[cur] ? pkrTotal / iqPkrRates[cur] : pkrTotal;
-                    total += converted;
+                    var pkgCurrency = d.pkgCurrency || 'USD';
+                    var priceInPkr = convertCurrency(d.unitPrice, pkgCurrency, 'PKR');
+                    var pkrTotal = priceInPkr * d.qty;
+                    var converted = convertCurrency(pkrTotal, 'PKR', cur);
+                    totalPkr += pkrTotal;
                     itemCount++;
-                    var unitConverted = iqPkrRates[cur] ? d.unitPrice / iqPkrRates[cur] : d.unitPrice;
+                    var unitConverted = convertCurrency(d.unitPrice, pkgCurrency, cur);
                     itemsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;' + (itemCount > 1 ? 'border-top:1px solid var(--border-subtle);' : '') + '">' +
                         '<div style="flex:1;min-width:0;">' +
                             '<div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);margin-bottom:3px;">' + s + '</div>' +
@@ -995,10 +986,11 @@
                     '</div>';
                 }
             }
+            var totalConverted = convertCurrency(totalPkr, 'PKR', cur);
             var payItems = document.getElementById('pay-items');
             var payTotal = document.getElementById('pay-total');
             if (payItems) payItems.innerHTML = itemsHtml;
-            if (payTotal) payTotal.textContent = sym + parseFloat(total).toFixed(2);
+            if (payTotal) payTotal.textContent = sym + parseFloat(totalConverted).toFixed(2);
         }
 
         function selectPayMethod(el, method) {
@@ -1019,19 +1011,13 @@
                 alert('Please fill in all required fields.'); return;
             }
 
-            // Set currency selector to detected currency
-            var curSel = document.getElementById('pay-currency-select');
-            if (curSel && iqDetectedCurrency) {
-                var optExists = false;
-                for (var i = 0; i < curSel.options.length; i++) {
-                    if (curSel.options[i].value === iqDetectedCurrency) { optExists = true; break; }
-                }
-                if (optExists) curSel.value = iqDetectedCurrency;
-            }
-            payCurrency = curSel ? curSel.value : 'PKR';
+            payCurrency = iqDetectedCurrency || 'USD';
+            var badge = document.getElementById('pay-currency-badge');
+            var sym = iqCurrencySymbols[payCurrency] || '$';
+            if (badge) badge.textContent = payCurrency + ' (' + sym.trim() + ')';
 
             var hasSelection = false;
-            var total = 0;
+            var totalPkr = 0;
             var itemCount = 0;
             var cur = payCurrency;
             var sym = iqCurrencySymbols[cur] || '$';
@@ -1039,12 +1025,14 @@
             for (var s in iqServiceData) {
                 var d = iqServiceData[s];
                 if (d.selectedPkg) {
-                    var pkrTotal = d.unitPrice * d.qty;
-                    var converted = iqPkrRates[cur] ? pkrTotal / iqPkrRates[cur] : pkrTotal;
+                    var pkgCurrency = d.pkgCurrency || 'USD';
+                    var priceInPkr = convertCurrency(d.unitPrice, pkgCurrency, 'PKR');
+                    var pkrTotal = priceInPkr * d.qty;
+                    var converted = convertCurrency(pkrTotal, 'PKR', cur);
                     hasSelection = true;
-                    total += converted;
+                    totalPkr += pkrTotal;
                     itemCount++;
-                    var unitConverted = iqPkrRates[cur] ? d.unitPrice / iqPkrRates[cur] : d.unitPrice;
+                    var unitConverted = convertCurrency(d.unitPrice, pkgCurrency, cur);
                     itemsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;' + (itemCount > 1 ? 'border-top:1px solid var(--border-subtle);' : '') + '">' +
                         '<div style="flex:1;min-width:0;">' +
                             '<div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);margin-bottom:3px;">' + s + '</div>' +
@@ -1056,9 +1044,10 @@
             }
             if (!hasSelection) { alert('Please select a package for at least one service.'); return; }
 
+            var totalConverted = convertCurrency(totalPkr, 'PKR', cur);
             document.getElementById('pay-platform').textContent = platform;
             document.getElementById('pay-items').innerHTML = itemsHtml;
-            document.getElementById('pay-total').textContent = sym + parseFloat(total).toFixed(2);
+            document.getElementById('pay-total').textContent = sym + parseFloat(totalConverted).toFixed(2);
 
             document.getElementById('paymentOverlay').style.display = 'block';
             document.getElementById('paymentModal').style.display = 'block';
@@ -1093,7 +1082,9 @@
             for (var s in iqServiceData) {
                 var d = iqServiceData[s];
                 if (d.selectedPkg) {
-                    selectedServices.push({ service: s, totalAmount: d.unitPrice * d.qty, quantity: d.qty });
+                    var pkgCurrency = d.pkgCurrency || 'USD';
+                    var priceInPayCurrency = convertCurrency(d.unitPrice, pkgCurrency, payCurrency);
+                    selectedServices.push({ service: s, totalAmount: priceInPayCurrency * d.qty, quantity: d.qty });
                 }
             }
 

@@ -98,16 +98,16 @@ window.showRejectModalError = function (msg) {
 window.__userCurrencyCache = null;
 window.__getUserCurrency = function() {
     if (window.__userCurrencyCache) return Promise.resolve(window.__userCurrencyCache);
-    return fetch('https://ipapi.co/json/')
+    return fetch('/api/geolocation/currency')
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            if (data.currency_code) {
-                window.__userCurrencyCache = data.currency_code;
-                return data.currency_code;
+            if (data.currency) {
+                window.__userCurrencyCache = data.currency;
+                return data.currency;
             }
-            return 'PKR';
+            return null;
         })
-        .catch(function() { return 'PKR'; });
+        .catch(function() { return null; });
 };
 
 window.__pkrRates = {
@@ -128,15 +128,11 @@ window.__currencySymbols = {
     'EGP': 'E\u00A3', 'ZAR': 'R', 'MXN': 'Mex$'
 };
 
-window.convertAdminPrices = function() {
-    window.__getUserCurrency().then(function(currency) {
-        var rate = window.__pkrRates[currency] || 1;
-        var sym = window.__currencySymbols[currency] || '$';
-        document.querySelectorAll('[data-pkr]').forEach(function(el) {
-            var pkr = parseFloat(el.getAttribute('data-pkr'));
-            if (isNaN(pkr)) return;
-            var converted = rate > 0 ? Math.round((pkr / rate) * 100) / 100 : pkr;
-            el.textContent = sym + converted.toFixed(2);
-        });
-    });
+window.convertCurrency = function(amount, fromCurrency, toCurrency) {
+    if (fromCurrency === toCurrency) return amount;
+    var fromRate = window.__pkrRates[fromCurrency];
+    var toRate = window.__pkrRates[toCurrency];
+    if (!fromRate || !toRate) return amount;
+    var inPkr = amount * fromRate;
+    return Math.round((inPkr / toRate) * 100) / 100;
 };

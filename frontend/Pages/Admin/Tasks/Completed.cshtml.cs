@@ -42,6 +42,7 @@ public class CompletedModel : PageModel
         public int Quantity { get; set; }
         public int CompletedCount { get; set; }
         public decimal Reward { get; set; }
+        public string Currency { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
 
@@ -68,6 +69,7 @@ public class CompletedModel : PageModel
                     t.Quantity,
                     t.Reward,
                     t.CreatedAt,
+                    Currency = t.Order.Currency,
                     CompletedCount = completedCounts.ContainsKey(t.Id) ? completedCounts[t.Id] : 0
                 });
 
@@ -94,6 +96,7 @@ public class CompletedModel : PageModel
                     Quantity = t.Quantity,
                     CompletedCount = t.CompletedCount,
                     Reward = t.Reward,
+                    Currency = t.Currency,
                     CreatedAt = t.CreatedAt
                 })
                 .ToList();

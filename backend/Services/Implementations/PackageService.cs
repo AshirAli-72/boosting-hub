@@ -54,6 +54,7 @@ public class PackageService : IPackageService
         existing.Platform = pkg.Platform;
         existing.Service = pkg.Service;
         existing.Price = pkg.Price;
+        existing.Currency = pkg.Currency;
         existing.IsActive = pkg.IsActive;
         existing.UpdatedAt = DateTime.UtcNow;
 

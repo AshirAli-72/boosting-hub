@@ -43,7 +43,8 @@ public class VerifyEmailModel : PageModel
         catch (Exception ex)
         {
             IsVerificationError = true;
-            ErrorMessage = $"An unexpected error occurred: {ex.Message}. Please try again or contact support.";
+            var detailedMsg = ex.InnerException?.Message ?? ex.Message;
+            ErrorMessage = $"An unexpected error occurred: {detailedMsg}. Please try again or contact support.";
             return Page();
         }
     }

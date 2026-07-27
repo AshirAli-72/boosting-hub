@@ -187,30 +187,10 @@
     private int? selectedTaskId;
     private TaskDetailDto? selectedTask;
     private HashSet<string> userPlatforms = new();
-    private string _convertedSymbol = "\u20A8";
+    private string _convertedSymbol = "";
     private decimal _detailConvertedAmount;
 
-    private static readonly Dictionary<string, decimal> PkrRates = new()
-    {
-        ["PKR"] = 1, ["USD"] = 285, ["EUR"] = 310, ["GBP"] = 360,
-        ["INR"] = 3.43m, ["BDT"] = 2.59m, ["SAR"] = 76, ["AED"] = 77.7m,
-        ["CAD"] = 208, ["AUD"] = 186, ["TRY"] = 8.8m, ["BRL"] = 56,
-        ["JPY"] = 1.91m, ["CNY"] = 39.3m, ["KRW"] = 0.21m, ["NGN"] = 0.18m,
-        ["PHP"] = 5, ["IDR"] = 0.018m, ["MYR"] = 61, ["THB"] = 8,
-        ["EGP"] = 5.9m, ["ZAR"] = 15.5m, ["MXN"] = 16.5m,
-        ["KWD"] = 930, ["QAR"] = 78, ["BHD"] = 755, ["OMR"] = 742
-    };
-
-    private static readonly Dictionary<string, string> Symbols = new()
-    {
-        ["PKR"] = "\u20A8", ["INR"] = "\u20B9", ["BDT"] = "\u09F3", ["GBP"] = "\u00A3",
-        ["EUR"] = "\u20AC", ["USD"] = "$", ["CAD"] = "C$", ["AUD"] = "A$",
-        ["SAR"] = "\uFDFC", ["AED"] = "AED ", ["TRY"] = "\u20BA", ["BRL"] = "R$",
-        ["JPY"] = "\u00A5", ["CNY"] = "\u00A5", ["KRW"] = "\u20A9", ["NGN"] = "\u20A6",
-        ["PHP"] = "\u20B1", ["IDR"] = "Rp", ["MYR"] = "RM", ["THB"] = "\u0E3F",
-        ["EGP"] = "E\u00A3", ["ZAR"] = "R", ["MXN"] = "Mex$"
-    };
-    private string _userCurrency = "PKR";
+    private string? _userCurrency;
 
     protected override async Task OnInitializedAsync()
     {
@@ -225,17 +205,41 @@
         try
         {
             _userCurrency = await JS.InvokeAsync<string>("__getUserCurrency");
-            if (string.IsNullOrEmpty(_userCurrency)) _userCurrency = "PKR";
-            _convertedSymbol = Symbols.TryGetValue(_userCurrency, out var s) ? s : _userCurrency + " ";
         }
-        catch { _userCurrency = "PKR"; }
+        catch { _userCurrency = null; }
         await InvokeAsync(StateHasChanged);
     }
 
-    private decimal ConvertReward(decimal amountPkr)
+    private string GetDisplayCurrency(string? orderCurrency)
     {
-        var rate = PkrRates.TryGetValue(_userCurrency, out var r) ? r : 1m;
-        return rate > 0 ? Math.Round(amountPkr / rate, 2) : amountPkr;
+        if (!string.IsNullOrEmpty(_userCurrency))
+            return _userCurrency;
+        return orderCurrency ?? "PKR";
+    }
+
+    private string GetDisplaySymbol(string currency)
+    {
+        return currency switch
+        {
+            "PKR" => "\u20A8", "INR" => "\u20B9", "BDT" => "\u09F3", "GBP" => "\u00A3",
+            "EUR" => "\u20AC", "USD" => "$", "CAD" => "C$", "AUD" => "A$",
+            "SAR" => "\uFDFC", "AED" => "AED ", "TRY" => "\u20BA", "BRL" => "R$",
+            "JPY" => "\u00A5", "CNY" => "\u00A5", "KRW" => "\u20A9", "NGN" => "\u20A6",
+            "PHP" => "\u20B1", "IDR" => "Rp", "MYR" => "RM", "THB" => "\u0E3F",
+            "EGP" => "E\u00A3", "ZAR" => "R", "MXN" => "Mex$",
+            _ => currency + " "
+        };
+    }
+
+    private async Task<decimal> ConvertRewardAsync(decimal amount, string fromCurrency, string toCurrency)
+    {
+        if (string.Equals(fromCurrency, toCurrency, StringComparison.OrdinalIgnoreCase))
+            return amount;
+        try
+        {
+            return await JS.InvokeAsync<decimal>("convertCurrency", amount, fromCurrency, toCurrency);
+        }
+        catch { return amount; }
     }
 
     private async Task LoadFilterData()
@@ -289,7 +293,9 @@
             if (result.IsSuccess && result.Data != null)
             {
                 selectedTask = result.Data;
-                _detailConvertedAmount = ConvertReward(selectedTask.RewardAmount);
+                var displayCurrency = GetDisplayCurrency(selectedTask.Currency);
+                _convertedSymbol = GetDisplaySymbol(displayCurrency);
+                _detailConvertedAmount = await ConvertRewardAsync(selectedTask.RewardAmount, selectedTask.Currency, displayCurrency);
             }
         }
         catch { selectedTask = null; }

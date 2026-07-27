@@ -46,7 +46,7 @@ public class DashboardService : IDashboardService
                 (tc, t) => new { t.Reward })
             .ToListAsync();
 
-        var walletCurrency = "PKR";
+        var walletCurrency = string.Empty;
         var convertedTotalRewards = 0m;
         foreach (var r in totalRewards)
         {

@@ -24,7 +24,7 @@ public class IndexModel : PageModel
     public class WalletDto
     {
         public decimal TotalBalance { get; set; }
-        public string Currency { get; set; } = "PKR";
+        public string Currency { get; set; } = string.Empty;
         public decimal Withdrawn { get; set; }
         public DateTime CreatedAt { get; set; }
         public string Status { get; set; } = "Active";
@@ -112,7 +112,7 @@ public class IndexModel : PageModel
             return RedirectToPage();
         }
 
-        var walletCurrency = wallet?.Currency ?? "PKR";
+        var walletCurrency = wallet?.Currency ?? string.Empty;
         var sym = walletCurrency switch { "PKR" => "₨", "EUR" => "€", "GBP" => "£", "INR" => "₹", "BDT" => "৳", _ => "$" };
         await _walletService.WithdrawAsync(userId, WithdrawAmount);
         TempData["Success"] = $"Withdrawal of {sym}{WithdrawAmount:N2} ({walletCurrency}) requested to {defaultAccount.AccountTitle} ({defaultAccount.MobileNumber})";

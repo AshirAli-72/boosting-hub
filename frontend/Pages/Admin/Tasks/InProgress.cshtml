@@ -56,7 +56,7 @@
                                             <td>@task.Service</td>
                                             <td>@(task.Quantity - task.CompletedCount)</td>
                                             <td>@task.CompletedCount</td>
-                                             <td><span data-pkr="@task.Reward" class="fw-bold" style="color:var(--success);">₨@task.Reward.ToString("N2")</span></td>
+                                             <td><span data-pkr="@task.Reward" class="fw-bold" style="color:var(--success);">@Model.GetCurrencySymbol(task.Currency)@task.Reward.ToString("N2") @task.Currency</span></td>
                                             <td>@task.CreatedAt.ToString("yyyy-MM-dd")</td>
                                         </tr>
                                     }

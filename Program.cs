@@ -18,7 +18,14 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
         {
             sqlOptions.EnableRetryOnFailure(3);
             sqlOptions.CommandTimeout(60);
-        }));
+        })
+    .EnableSensitiveDataLogging(builder.Environment.IsDevelopment())
+    .EnableDetailedErrors(builder.Environment.IsDevelopment())
+    .LogTo(message =>
+    {
+        if (message.Contains("[Command]") || message.Contains("ERROR") || message.Contains("WITH") || message.Contains("CTE"))
+            Console.WriteLine($"[EF-Core] {message}");
+    }, LogLevel.Information));
 
 builder.Services.AddScoped<ApplicationDbContext>(p =>
     p.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext());

@@ -62,9 +62,15 @@ public class PackagesController : ControllerBase
         if (string.IsNullOrWhiteSpace(pkg.Platform) || string.IsNullOrWhiteSpace(pkg.Service))
             return BadRequest(new { message = "Platform and Service are required." });
 
+        if (string.IsNullOrWhiteSpace(pkg.Currency))
+            return BadRequest(new { message = "Currency is required. Please provide the currency code (e.g. USD, PKR, EUR)." });
+
+        if (pkg.Price < 0)
+            return BadRequest(new { message = "Price cannot be negative." });
+
         var allPackages = await _packageService.GetAllPackagesAsync();
-        if (allPackages.Any(p => p.Platform == pkg.Platform && p.Service == pkg.Service))
-            return Conflict(new { message = $"A package for \"{pkg.Platform}\" — \"{pkg.Service}\" already exists." });
+        if (allPackages.Any(p => p.Platform == pkg.Platform && p.Service == pkg.Service && p.Currency == pkg.Currency))
+            return Conflict(new { message = $"A package for \"{pkg.Platform}\" — \"{pkg.Service}\" in {pkg.Currency} already exists." });
 
         var created = await _packageService.CreatePackageAsync(pkg);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
@@ -73,6 +79,12 @@ public class PackagesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] Package pkg)
     {
+        if (string.IsNullOrWhiteSpace(pkg.Currency))
+            return BadRequest(new { message = "Currency is required." });
+
+        if (pkg.Price < 0)
+            return BadRequest(new { message = "Price cannot be negative." });
+
         var updated = await _packageService.UpdatePackageAsync(id, pkg);
         if (updated == null) return NotFound(new { message = "Package not found." });
         return Ok(updated);

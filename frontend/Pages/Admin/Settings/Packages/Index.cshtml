@@ -72,8 +72,12 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Price per Unit (PKR) <span class="text-danger">*</span></label>
-                        <input type="number" id="pm-price" class="pkg-form-input" step="0.01" min="0" required placeholder="e.g. 5 (price per like/follower)" />
+                        <label class="form-label fw-semibold">Price per Unit <span class="text-danger">*</span></label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <input type="number" id="pm-price" class="pkg-form-input" step="0.01" min="0" required placeholder="e.g. 5 (price per unit)" style="flex:1;" />
+                            <span id="pm-currency-badge" style="padding:8px 14px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-subtle);font-weight:700;font-size:0.9rem;white-space:nowrap;">USD</span>
+                        </div>
+                        <input type="hidden" id="pm-currency" />
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">
@@ -107,6 +111,7 @@
         });
 
         let allPackages = [];
+        let adminCurrency = 'USD';
 
         var platformIcons = {
             'Instagram': 'bi-instagram', 'Facebook': 'bi-facebook', 'YouTube': 'bi-youtube',
@@ -117,26 +122,33 @@
             'Twitter': '#1DA1F2', 'TikTok': '#000000'
         };
 
+        async function detectAdminCurrency() {
+            try {
+                var resp = await fetch('/api/geolocation/currency');
+                var data = await resp.json();
+                if (data.currency) {
+                    adminCurrency = data.currency;
+                }
+            } catch(e) {}
+            var badge = document.getElementById('pm-currency-badge');
+            var hidden = document.getElementById('pm-currency');
+            if (badge) badge.textContent = adminCurrency;
+            if (hidden) hidden.value = adminCurrency;
+            var sym = window.__currencySymbols[adminCurrency] || '$';
+            var label = document.querySelector('label[for="pm-price"]');
+            if (label) label.innerHTML = 'Price per Unit (' + sym.trim() + ' ' + adminCurrency + ') <span class="text-danger">*</span>';
+        }
+
         async function loadPackages() {
             try {
                 const resp = await fetch('/api/packages/all-for-admin');
                 if (!resp.ok) throw new Error('Failed');
                 allPackages = await resp.json();
                 renderCards();
-                convertAdminPrices();
-                updatePkgFormLabel();
             } catch(e) {
                 document.getElementById('pkgCardsContainer').innerHTML =
                     '<div class="text-center py-4" style="color:var(--danger);grid-column:1/-1;">Failed to load packages.</div>';
             }
-        }
-
-        function updatePkgFormLabel() {
-            window.__getUserCurrency().then(function(currency) {
-                var sym = window.__currencySymbols[currency] || '$';
-                var label = document.querySelector('label[for="pm-price"]');
-                if (label) label.innerHTML = 'Price per Unit (' + sym.trim() + ') <span class="text-danger">*</span>';
-            });
         }
 
         function renderCards() {
@@ -163,16 +175,18 @@
                     var statusDot = p.isActive
                         ? '<span class="pkg-tier-active" title="Active"></span>'
                         : '<span class="pkg-tier-inactive" title="Inactive"></span>';
+                    var pkgCurrency = p.currency || 'USD';
+                    var pkgSym = window.__currencySymbols[pkgCurrency] || '$';
                     return '<div class="pkg-tier-row">' +
                         '<div class="pkg-tier-left">' +
                             statusDot +
-                            '<span class="pkg-tier-price" data-pkr="' + p.price.toFixed(2) + '">' + p.price.toFixed(2) + ' PKR</span>' +
+                            '<span class="pkg-tier-price" data-pkr="' + p.price.toFixed(2) + '" data-pkg-currency="' + pkgCurrency + '">' + pkgSym + p.price.toFixed(2) + ' ' + pkgCurrency + '</span>' +
                             '<span class="pkg-tier-sep">/</span>' +
                             '<span class="pkg-tier-qty">per unit</span>' +
                         '</div>' +
                         '<div class="pkg-tier-actions">' +
                             '<button class="pkg-tier-btn pkg-tier-btn-edit" title="Edit" onclick="editPackage(' + p.id + ')"><i class="bi bi-pencil"></i></button>' +
-                            '<button class="pkg-tier-btn pkg-tier-btn-delete" title="Delete" onclick="deletePackage(' + p.id + ', \'' + esc(group.platform) + ' - ' + esc(group.service) + ' (' + p.price.toFixed(2) + ' PKR/unit)\')"><i class="bi bi-trash3"></i></button>' +
+                            '<button class="pkg-tier-btn pkg-tier-btn-delete" title="Delete" onclick="deletePackage(' + p.id + ', \'' + esc(group.platform) + ' - ' + esc(group.service) + ' (' + p.price.toFixed(2) + ' ' + pkgCurrency + '/unit)\')"><i class="bi bi-trash3"></i></button>' +
                         '</div>' +
                     '</div>';
                 }).join('');
@@ -207,12 +221,16 @@
                 document.getElementById('pm-service').value = p.service;
                 document.getElementById('pm-price').value = p.price;
                 document.getElementById('pm-active').checked = p.isActive;
+                document.getElementById('pm-currency').value = p.currency || adminCurrency;
+                document.getElementById('pm-currency-badge').textContent = p.currency || adminCurrency;
             } else {
                 document.getElementById('pkgModalTitle').textContent = 'Add Package';
                 document.getElementById('pm-save-btn').innerHTML = '<i class="bi bi-check-lg"></i> Create Package';
                 document.getElementById('pkgForm').reset();
                 document.getElementById('pm-id').value = '';
                 document.getElementById('pm-active').checked = true;
+                document.getElementById('pm-currency').value = adminCurrency;
+                document.getElementById('pm-currency-badge').textContent = adminCurrency;
                 if (platform) document.getElementById('pm-platform').value = platform;
                 if (service) document.getElementById('pm-service').value = service;
             }
@@ -232,6 +250,7 @@
                 platform: document.getElementById('pm-platform').value.trim(),
                 service: document.getElementById('pm-service').value.trim(),
                 price: parseFloat(document.getElementById('pm-price').value),
+                currency: document.getElementById('pm-currency').value || adminCurrency,
                 isActive: document.getElementById('pm-active').checked
             };
             const url = id ? '/api/packages/' + id : '/api/packages';
@@ -262,6 +281,9 @@
             } catch(e) { showToast('Network error.', 'danger'); }
         }
 
-        document.addEventListener('DOMContentLoaded', loadPackages);
+        document.addEventListener('DOMContentLoaded', function() {
+            detectAdminCurrency();
+            loadPackages();
+        });
     </script>
 }

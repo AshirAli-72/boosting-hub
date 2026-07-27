@@ -4,6 +4,29 @@
 @{
     ViewData["Title"] = "Orders";
     ViewData["BodyClass"] = "admin-page";
+
+    string CurrencySymbol(string? currency) => (currency?.ToUpper() ?? "PKR") switch {
+        "PKR" => "₨",
+        "EUR" => "\u20AC",
+        "GBP" => "\u00A3",
+        "INR" => "\u20B9",
+        "BDT" => "\u09F3",
+        "SAR" => "\uFDFC",
+        "AED" => "AED ",
+        "TRY" => "\u20BA",
+        "NGN" => "\u20A6",
+        "JPY" => "\u00A5",
+        "CNY" => "\u00A5",
+        "KRW" => "\u20A9",
+        "PHP" => "\u20B1",
+        "IDR" => "Rp",
+        "MYR" => "RM",
+        "THB" => "\u0E3F",
+        "EGP" => "E\u00A3",
+        "ZAR" => "R",
+        "MXN" => "Mex$",
+        _ => "$"
+    };
 }
 
         <div class="admin-header">
@@ -70,7 +93,7 @@
                                                 }
                                             </td>
                                             <td><span class="fw-semibold">@item.Quantity</span></td>
-                                            <td><span class="fw-bold text-success">@item.Budget.ToString("N2")</span></td>
+                                            <td><span class="fw-bold text-success">@CurrencySymbol(item.Currency)@item.Budget.ToString("N2")</span></td>
                                             <td>
                                                 @if (!string.IsNullOrEmpty(item.SocialMediaUrl))
                                                 {
@@ -127,7 +150,7 @@
                                                                 <li><strong>Services:</strong> @item.Service</li>
                                                                 <li><strong>Quantity:</strong> @item.Quantity</li>
                                                                 <li><strong>Description:</strong> @item.Description</li>
-                                                                <li><strong>Amount:</strong> @item.Budget.ToString("N2")</li>
+                                                                 <li><strong>Amount:</strong> @CurrencySymbol(item.Currency)@item.Budget.ToString("N2")</li>
                                                                 <li><strong>Status:</strong> @StatusHelper.OrderStatusToString(item.Status)</li>
                                                             </ul>
                                                         </div>

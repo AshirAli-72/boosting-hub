@@ -9,7 +9,7 @@ public class Wallet
     [Key] [Column("id")] public int Id { get; set; }
     [Column("user_id")] public int UserId { get; set; }
     [Column("total_balance")] public decimal TotalBalance { get; set; }
-    [Column("currency")] public string Currency { get; set; } = "PKR";
+    [Column("currency")] public string Currency { get; set; } = string.Empty;
     [Column("withdrawn")] public decimal Withdrawn { get; set; }
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [Column("status", TypeName = "nvarchar(20)")] public string Status { get; set; } = "active";

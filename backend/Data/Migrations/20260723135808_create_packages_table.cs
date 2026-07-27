@@ -20,6 +20,7 @@ namespace BoostingHub.backend.Data.Migrations
                     platform = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     service = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     is_active = table.Column<bool>(type: "bit", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     updated_at = table.Column<DateTime>(type: "datetime2", nullable: true)

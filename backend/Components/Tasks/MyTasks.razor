@@ -46,7 +46,7 @@
                     <div class="task-card @(task.Status == "Completed" ? "task-card-completed" : task.Status == "Submitted" ? "task-card-accepted" : "")" @key="@task.TaskId">
                         <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
                             <span class="task-platform-badge"><i class="bi bi-globe2 me-1"></i>@task.Platform</span>
-                            <span class="fw-bold fs-5" style="color:var(--success);">@_convertedSymbol@(ConvertReward(task.Reward).ToString("F2"))</span>
+                            <span class="fw-bold fs-5" style="color:var(--success);">@GetRewardDisplay(task)</span>
                         </div>
                         <div class="task-title">@task.Service</div>
                         @if (!string.IsNullOrEmpty(task.Url))
@@ -141,7 +141,7 @@
                                 <span class="d-flex align-items-center gap-2">
                                     <span style="color:var(--success);"><i class="bi bi-check-circle-fill me-1"></i>Completed</span>
                                     <span class="badge" style="background:rgba(16,185,129,0.12);color:#10B981;font-size:0.72rem;border-radius:20px;padding:4px 10px;">
-                                        <i class="bi bi-wallet2 me-1"></i>@_convertedSymbol@(ConvertReward(task.Reward).ToString("F2")) earned
+                                        <i class="bi bi-wallet2 me-1"></i>@GetRewardDisplay(task) earned
                                     </span>
                                 </span>
                             }
@@ -192,8 +192,7 @@
     private bool hasPrevious;
     private bool hasNext;
     private MyTaskFilterDto filter = new();
-    private string _convertedSymbol = "\u20A8";
-    private string _userCurrency = "PKR";
+    private string? _userCurrency;
 
     private static readonly Dictionary<string, decimal> PkrRates = new()
     {
@@ -216,10 +215,36 @@
         ["EGP"] = "E\u00A3", ["ZAR"] = "R", ["MXN"] = "Mex$"
     };
 
-    private decimal ConvertReward(decimal amountPkr)
+    private string GetDisplayCurrency(string? orderCurrency)
     {
-        var rate = PkrRates.TryGetValue(_userCurrency, out var r) ? r : 1m;
-        return rate > 0 ? Math.Round(amountPkr / rate, 2) : amountPkr;
+        if (!string.IsNullOrEmpty(_userCurrency))
+            return _userCurrency;
+        return orderCurrency ?? "PKR";
+    }
+
+    private string GetDisplaySymbol(string currency)
+    {
+        return Symbols.TryGetValue(currency, out var s) ? s : currency + " ";
+    }
+
+    private decimal ConvertReward(decimal amount, string fromCurrency, string toCurrency)
+    {
+        if (string.Equals(fromCurrency, toCurrency, StringComparison.OrdinalIgnoreCase))
+            return amount;
+
+        if (!PkrRates.TryGetValue(fromCurrency, out var fromRate) || !PkrRates.TryGetValue(toCurrency, out var toRate))
+            return amount;
+
+        var inPkr = amount * fromRate;
+        return Math.Round(inPkr / toRate, 2);
+    }
+
+    private string GetRewardDisplay(MyTaskDto task)
+    {
+        var displayCurrency = GetDisplayCurrency(task.Currency);
+        var converted = ConvertReward(task.Reward, task.Currency, displayCurrency);
+        var symbol = GetDisplaySymbol(displayCurrency);
+        return $"{symbol}{converted:F2}";
     }
 
     protected override async Task OnInitializedAsync()
@@ -233,10 +258,8 @@
         try
         {
             _userCurrency = await JS.InvokeAsync<string>("__getUserCurrency");
-            if (string.IsNullOrEmpty(_userCurrency)) _userCurrency = "PKR";
-            _convertedSymbol = Symbols.TryGetValue(_userCurrency, out var s) ? s : _userCurrency + " ";
         }
-        catch { _userCurrency = "PKR"; }
+        catch { _userCurrency = null; }
         await InvokeAsync(StateHasChanged);
     }
 
