@@ -205,10 +205,19 @@
         (async function init() {
             if (!localStorage.getItem('walletDisplayCurrency')) {
                 try {
-                    var resp = await fetch('http://ip-api.com/json/?fields=currency,countryCode');
-                    var data = await resp.json();
-                    if (data.currency && data.currency !== baseCurrency) {
-                        displayCurrency = data.currency;
+                    var currency = null;
+                    try {
+                        var r1 = await fetch('https://ipapi.co/json/');
+                        if (r1.ok) { var d1 = await r1.json(); if (d1.currency) currency = d1.currency; }
+                    } catch(e) {}
+                    if (!currency) {
+                        try {
+                            var r2 = await fetch('https://ipwho.is/');
+                            if (r2.ok) { var d2 = await r2.json(); if (d2.currency && d2.currency.code) currency = d2.currency.code; }
+                        } catch(e) {}
+                    }
+                    if (currency && currency !== baseCurrency) {
+                        displayCurrency = currency;
                         localStorage.setItem('walletDisplayCurrency', displayCurrency);
                         await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(displayCurrency), {
                             method: 'POST',

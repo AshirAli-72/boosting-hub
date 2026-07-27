@@ -13,14 +13,24 @@ public class GeoLocationController : ControllerBase
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
         http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
 
-        var apis = new[]
+        var apis = new (string url, Func<JsonElement, string?> extract)[]
         {
-            "http://ip-api.com/json/?fields=status,currency,countryCode",
-            "http://www.geoplugin.net/json.gp?ip=",
-            "http://ip-api.com/json/"
+            ("https://ipapi.co/json/", json =>
+            {
+                if (json.TryGetProperty("currency", out var el) && el.ValueKind == JsonValueKind.String)
+                    return el.GetString();
+                return null;
+            }),
+            ("https://ipwho.is/", json =>
+            {
+                if (json.TryGetProperty("currency", out var el) && el.ValueKind == JsonValueKind.Object
+                    && el.TryGetProperty("code", out var code) && code.ValueKind == JsonValueKind.String)
+                    return code.GetString();
+                return null;
+            })
         };
 
-        foreach (var url in apis)
+        foreach (var (url, extract) in apis)
         {
             try
             {
@@ -31,20 +41,7 @@ public class GeoLocationController : ControllerBase
                 if (string.IsNullOrWhiteSpace(content)) continue;
 
                 var json = JsonSerializer.Deserialize<JsonElement>(content);
-
-                string? currency = null;
-
-                if (url.Contains("ip-api.com"))
-                {
-                    if (json.TryGetProperty("status", out var st) && st.GetString() == "success"
-                        && json.TryGetProperty("currency", out var el) && el.ValueKind == JsonValueKind.String)
-                        currency = el.GetString();
-                }
-                else if (url.Contains("geoplugin"))
-                {
-                    if (json.TryGetProperty("currencyCode", out var el) && el.ValueKind == JsonValueKind.String)
-                        currency = el.GetString();
-                }
+                var currency = extract(json);
 
                 if (!string.IsNullOrEmpty(currency) && currency.Length == 3)
                     return Ok(new { currency });
