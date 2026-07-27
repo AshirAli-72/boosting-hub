@@ -303,8 +303,9 @@
                                     <input type="url" id="iq-url" placeholder="https://instagram.com/your-profile" required />
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
-                                    <label>Attachment <small>(optional - screenshot or reference)</small></label>
-                                    <input type="file" id="iq-attachment" accept="image/*,.pdf,.doc,.docx" style="font-size:0.9rem;" />
+                                    <label>Attachment <span>*</span> <small>(Screenshot of current stats before starting, e.g. followers/following count, likes, views — so we can verify completion)</small></label>
+                                    <input type="file" id="iq-attachment" accept="image/*" style="font-size:0.9rem;" required />
+                                    <small class="text-muted d-block mt-1"><i class="bi bi-info-circle"></i> Upload a screenshot showing your current stats (e.g. followers count, page likes, video views). This helps us confirm the task is completed correctly.</small>
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Description <small>(optional)</small></label>
@@ -1063,6 +1064,12 @@
             var attachmentInput = document.getElementById('iq-attachment');
             var attachmentFile = attachmentInput && attachmentInput.files.length > 0 ? attachmentInput.files[0] : null;
 
+            if (!attachmentFile) {
+                alert('Please upload a screenshot of your current stats (e.g. followers, likes, views) before placing the order.');
+                if (attachmentInput) attachmentInput.focus();
+                return;
+            }
+
             var serviceNames = [];
             var totalQty = 0;
             var totalAmount = 0;
@@ -1089,9 +1096,7 @@
             formData.append('totalAmount', totalAmount);
             formData.append('description', description || '');
             formData.append('currency', payCurrency);
-            if (attachmentFile) {
-                formData.append('attachment', attachmentFile);
-            }
+            formData.append('attachment', attachmentFile);
 
             try {
                 var resp = await fetch('/api/orders', {
