@@ -124,8 +124,8 @@
 
         async function detectAdminCurrency() {
             try {
-                if (typeof window.__detectCurrencyFromBrowser === 'function') {
-                    var cur = await window.__detectCurrencyFromBrowser();
+                if (typeof window.__getUserCurrency === 'function') {
+                    var cur = await window.__getUserCurrency();
                     if (cur) adminCurrency = cur;
                 }
             } catch(e) {}

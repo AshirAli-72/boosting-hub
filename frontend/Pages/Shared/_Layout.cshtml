@@ -663,12 +663,11 @@
         }
 
         function detectCurrency() {
-            if (typeof window.__detectCurrencyFromBrowser === 'function') {
-                window.__detectCurrencyFromBrowser().then(function(cur) {
+            if (typeof window.__getUserCurrency === 'function') {
+                window.__getUserCurrency().then(function(cur) {
                     if (cur) {
                         iqDetectedCurrency = cur;
                         iqDetectedSymbol = iqCurrencySymbols[cur] || '$';
-                        window.__userCurrencyCache = cur;
                         updateCurrencyBadge();
                         refreshAllPrices();
                     }

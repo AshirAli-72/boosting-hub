@@ -96,81 +96,19 @@ window.showRejectModalError = function (msg) {
 };
 
 window.__userCurrencyCache = null;
-window.__detectCurrencyFromBrowser = function() {
-    return new Promise(function(resolve) {
-        var r1 = new XMLHttpRequest();
-        r1.open('GET', 'https://ipapi.co/json/', true);
-        r1.timeout = 4000;
-        r1.onload = function() {
-            if (r1.status === 200) {
-                try {
-                    var d = JSON.parse(r1.responseText);
-                    if (d.currency) { resolve(d.currency); return; }
-                } catch(e) {}
-            }
-            var r2 = new XMLHttpRequest();
-            r2.open('GET', 'https://ipwho.is/', true);
-            r2.timeout = 4000;
-            r2.onload = function() {
-                if (r2.status === 200) {
-                    try {
-                        var d2 = JSON.parse(r2.responseText);
-                        if (d2.currency && d2.currency.code) { resolve(d2.currency.code); return; }
-                    } catch(e) {}
-                }
-                resolve(null);
-            };
-            r2.onerror = function() { resolve(null); };
-            r2.ontimeout = function() { resolve(null); };
-            r2.send();
-        };
-        r1.onerror = function() {
-            var r2 = new XMLHttpRequest();
-            r2.open('GET', 'https://ipwho.is/', true);
-            r2.timeout = 4000;
-            r2.onload = function() {
-                if (r2.status === 200) {
-                    try {
-                        var d2 = JSON.parse(r2.responseText);
-                        if (d2.currency && d2.currency.code) { resolve(d2.currency.code); return; }
-                    } catch(e) {}
-                }
-                resolve(null);
-            };
-            r2.onerror = function() { resolve(null); };
-            r2.ontimeout = function() { resolve(null); };
-            r2.send();
-        };
-        r1.ontimeout = function() {
-            var r2 = new XMLHttpRequest();
-            r2.open('GET', 'https://ipwho.is/', true);
-            r2.timeout = 4000;
-            r2.onload = function() {
-                if (r2.status === 200) {
-                    try {
-                        var d2 = JSON.parse(r2.responseText);
-                        if (d2.currency && d2.currency.code) { resolve(d2.currency.code); return; }
-                    } catch(e) {}
-                }
-                resolve(null);
-            };
-            r2.onerror = function() { resolve(null); };
-            r2.ontimeout = function() { resolve(null); };
-            r2.send();
-        };
-        r1.send();
-    });
-};
-
 window.__getUserCurrency = function() {
     if (window.__userCurrencyCache) return Promise.resolve(window.__userCurrencyCache);
-    return window.__detectCurrencyFromBrowser().then(function(cur) {
-        if (cur) {
-            window.__userCurrencyCache = cur;
-            localStorage.setItem('walletDisplayCurrency', cur);
-        }
-        return cur;
-    });
+    return fetch('/api/geolocation/currency')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.currency) {
+                window.__userCurrencyCache = data.currency;
+                localStorage.setItem('walletDisplayCurrency', data.currency);
+                return data.currency;
+            }
+            return null;
+        })
+        .catch(function() { return null; });
 };
 
 window.__pkrRates = {

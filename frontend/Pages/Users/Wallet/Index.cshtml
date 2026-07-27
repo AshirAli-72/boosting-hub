@@ -206,8 +206,8 @@
             if (!localStorage.getItem('walletDisplayCurrency')) {
                 try {
                     var currency = null;
-                    if (typeof window.__detectCurrencyFromBrowser === 'function') {
-                        currency = await window.__detectCurrencyFromBrowser();
+                    if (typeof window.__getUserCurrency === 'function') {
+                        currency = await window.__getUserCurrency();
                     }
                     if (currency && currency !== baseCurrency) {
                         displayCurrency = currency;
