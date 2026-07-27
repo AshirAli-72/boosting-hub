@@ -1126,6 +1126,42 @@ body.light-mode .hero-card-mockup {
     box-shadow: none;
 }
 
+/* ── 4K / Ultrawide responsive ── */
+@media (min-width: 2560px) {
+    .header-inner, .hero-grid, .section, .stats-grid, .inquiry-section, .cta-inner {
+        max-width: 1800px;
+    }
+    .hero-title { font-size: 4.5rem; line-height: 1.1; }
+    .hero-subtitle { font-size: 1.25rem; max-width: 650px; }
+    .section-title { font-size: 3rem; }
+    .section-subtitle { font-size: 1.15rem; max-width: 700px; }
+    .features-grid { grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .feature-card { padding: 40px 32px; }
+    .feature-icon { width: 72px; height: 72px; font-size: 1.8rem; border-radius: 20px; }
+    .stat-number { font-size: 4.5rem; }
+    .stat-card { padding: 64px 40px; }
+    .steps-grid { grid-template-columns: repeat(3, 1fr); gap: 36px; }
+    .step-card { padding: 40px 32px; }
+    .step-icon { width: 72px; height: 72px; font-size: 1.8rem; }
+    .step-number { font-size: 4rem; }
+    .inquiry-form-card { padding: 64px; max-width: 1100px; }
+    .inquiry-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .inquiry-field label { font-size: 1rem; }
+    .inquiry-field input, .inquiry-field select, .inquiry-field textarea { font-size: 1rem; padding: 14px 18px; }
+    .footer-grid { grid-template-columns: 2fr repeat(3, 1fr); gap: 48px; max-width: 1800px; }
+    .hero-card-mockup { max-width: 520px; }
+    .hero-card-row { padding: 18px 24px; gap: 16px; }
+}
+@media (min-width: 3200px) {
+    .header-inner, .hero-grid, .section, .stats-grid, .inquiry-section, .cta-inner {
+        max-width: 2200px;
+    }
+    .hero-title { font-size: 5.5rem; }
+    .section-title { font-size: 3.5rem; }
+    .stat-number { font-size: 5.5rem; }
+    .inquiry-form-card { padding: 80px; }
+}
+
 @media (max-width: 768px) {
     .iq-svc-qty-input-box { padding: 0 12px; }
     .iq-svc-qty-input-box input { font-size: 0.95rem; padding: 12px 0; }

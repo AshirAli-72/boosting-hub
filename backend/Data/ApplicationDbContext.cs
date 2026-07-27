@@ -84,6 +84,8 @@ public class ApplicationDbContext : DbContext
             e.Property(c => c.Service).HasMaxLength(500);
             e.Property(c => c.Description).HasMaxLength(1000);
             e.Property(c => c.SocialMediaUrl).HasMaxLength(500);
+            e.Property(c => c.Attachment).HasMaxLength(500);
+            e.Property(c => c.RejectReason).HasMaxLength(1000);
             e.Property(c => c.Status).HasMaxLength(50);
             e.Property(c => c.CreatedAt).HasColumnType("datetime2");
             e.Property(c => c.TotalAmount).HasColumnType("decimal(18,2)");
@@ -198,7 +200,7 @@ public class ApplicationDbContext : DbContext
             e.Property(w => w.Withdrawn).HasColumnType("decimal(18,2)");
             e.Property(w => w.CreatedAt).HasColumnType("datetime2");
             e.Property(w => w.Currency).HasMaxLength(10);
-            e.Property(w => w.Status).HasMaxLength(20);
+            e.Property(w => w.Status).HasColumnType("nvarchar(20)");
             e.HasIndex(w => w.UserId).IsUnique();
         });
 

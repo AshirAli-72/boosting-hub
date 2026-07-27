@@ -255,7 +255,7 @@
 
                 <div class="inquiry-form-card">
                     <div id="inquirySuccess" style="display:none;" class="inquiry-success">
-                        <i class="bi bi-check-circle-fill"></i>&nbsp; Payment confirmed! Your order is now active.
+                        <i class="bi bi-check-circle-fill"></i>&nbsp; Order submitted! Awaiting admin approval.
                     </div>
                     <div id="inquiryError" style="display:none;" class="alert alert-danger" style="border-radius:12px;">
                         <i class="bi bi-exclamation-triangle-fill"></i>&nbsp; <span id="inquiryErrorText"></span>
@@ -301,6 +301,10 @@
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Target URL <span>*</span></label>
                                     <input type="url" id="iq-url" placeholder="https://instagram.com/your-profile" required />
+                                </div>
+                                <div class="inquiry-field inquiry-field-full">
+                                    <label>Attachment <small>(optional - screenshot or reference)</small></label>
+                                    <input type="file" id="iq-attachment" accept="image/*,.pdf,.doc,.docx" style="font-size:0.9rem;" />
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Description <small>(optional)</small></label>
@@ -356,43 +360,23 @@
                         <div style="margin-bottom:20px;">
                             <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Choose Payment Method</div>
                             <div class="pay-methods-grid">
+                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'easypaisa')">
+                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#00A651,#008C44);">
+                                        <i class="bi bi-wallet2"></i>
+                                    </div>
+                                    <div class="pay-method-info">
+                                        <span class="pay-method-name">EasyPaisa</span>
+                                        <span class="pay-method-desc">EasyPaisa mobile wallet</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
+                                </button>
                                 <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'stripe')">
                                     <div class="pay-method-icon" style="background:linear-gradient(135deg,#635BFF,#7A73FF);">
                                         <i class="bi bi-credit-card-2-front"></i>
                                     </div>
                                     <div class="pay-method-info">
                                         <span class="pay-method-name">Card Payment</span>
-                                        <span class="pay-method-desc">Visa, Mastercard, AMEX</span>
-                                    </div>
-                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
-                                </button>
-                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'paypal')">
-                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#0070BA,#003087);">
-                                        <i class="bi bi-paypal"></i>
-                                    </div>
-                                    <div class="pay-method-info">
-                                        <span class="pay-method-name">PayPal</span>
-                                        <span class="pay-method-desc">Pay with PayPal balance</span>
-                                    </div>
-                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
-                                </button>
-                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'crypto')">
-                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#F7931A,#E8850E);">
-                                        <i class="bi bi-bitcoin"></i>
-                                    </div>
-                                    <div class="pay-method-info">
-                                        <span class="pay-method-name">Cryptocurrency</span>
-                                        <span class="pay-method-desc">BTC, ETH, USDT</span>
-                                    </div>
-                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
-                                </button>
-                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'bank')">
-                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#10B981,#059669);">
-                                        <i class="bi bi-bank"></i>
-                                    </div>
-                                    <div class="pay-method-info">
-                                        <span class="pay-method-name">Bank Transfer</span>
-                                        <span class="pay-method-desc">Direct bank deposit</span>
+                                        <span class="pay-method-desc">Visa, Mastercard via Stripe</span>
                                     </div>
                                     <i class="bi bi-chevron-right pay-method-arrow"></i>
                                 </button>
@@ -635,7 +619,7 @@
         var iqServiceData = {};
         var iqDetectedCurrency = 'USD';
         var iqDetectedSymbol = '$';
-        var iqBaseCurrency = 'PKR';
+        var iqBaseCurrency = 'USD';
         var iqPkrRates = {
             'USD': 285, 'EUR': 310, 'GBP': 360, 'PKR': 1,
             'INR': 3.43, 'BDT': 2.59, 'SAR': 76, 'AED': 77.7,
@@ -1051,11 +1035,13 @@
 
             document.getElementById('paymentOverlay').style.display = 'block';
             document.getElementById('paymentModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
         }
 
         function closePaymentModal() {
             document.getElementById('paymentOverlay').style.display = 'none';
             document.getElementById('paymentModal').style.display = 'none';
+            document.body.style.overflow = '';
             selectedPayMethod = null;
             document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
             var btn = document.getElementById('payConfirmBtn');
@@ -1076,43 +1062,52 @@
             var platform = document.getElementById('iq-platform').value;
             var url = document.getElementById('iq-url').value.trim();
             var description = document.getElementById('iq-description').value.trim();
-            var payMethodLabel = selectedPayMethod.charAt(0).toUpperCase() + selectedPayMethod.slice(1);
+            var attachmentInput = document.getElementById('iq-attachment');
+            var attachmentFile = attachmentInput && attachmentInput.files.length > 0 ? attachmentInput.files[0] : null;
 
-            var selectedServices = [];
+            var serviceNames = [];
+            var totalQty = 0;
+            var totalAmount = 0;
             for (var s in iqServiceData) {
                 var d = iqServiceData[s];
                 if (d.selectedPkg) {
+                    serviceNames.push(s);
+                    totalQty += d.qty;
                     var pkgCurrency = d.pkgCurrency || 'USD';
                     var priceInPayCurrency = convertCurrency(d.unitPrice, pkgCurrency, payCurrency);
-                    selectedServices.push({ service: s, totalAmount: priceInPayCurrency * d.qty, quantity: d.qty });
+                    totalAmount += priceInPayCurrency * d.qty;
                 }
             }
 
-            var allOk = true;
-            var lastMsg = '';
-            for (var i = 0; i < selectedServices.length; i++) {
-                var item = selectedServices[i];
-                try {
-                    var resp = await fetch('/api/orders', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            fullName: name, email: email, platform: platform,
-                            service: item.service, quantity: item.quantity, socialMediaUrl: url,
-                            totalAmount: item.totalAmount, description: description || '',
-                            currency: payCurrency
-                        })
-                    });
-                    var data = await resp.json();
-                    if (!resp.ok) { allOk = false; lastMsg = data.message || 'Failed'; break; }
-                } catch(err) { allOk = false; lastMsg = 'Network error'; break; }
+            if (serviceNames.length === 0) { alert('Please select a service.'); return; }
+
+            var formData = new FormData();
+            formData.append('fullName', name);
+            formData.append('email', email);
+            formData.append('platform', platform);
+            formData.append('service', serviceNames.join(', '));
+            formData.append('quantity', totalQty);
+            formData.append('socialMediaUrl', url);
+            formData.append('totalAmount', totalAmount);
+            formData.append('description', description || '');
+            formData.append('currency', payCurrency);
+            if (attachmentFile) {
+                formData.append('attachment', attachmentFile);
             }
 
-            if (allOk) {
+            try {
+                var resp = await fetch('/api/orders', {
+                    method: 'POST',
+                    body: formData
+                });
+                var data = await resp.json();
+                if (!resp.ok) { throw new Error(data.message || 'Failed'); }
+
                 closePaymentModal();
                 document.getElementById('inquirySuccess').style.display = 'flex';
                 document.getElementById('inquiryError').style.display = 'none';
                 document.getElementById('inquiryForm').reset();
+                if (attachmentInput) attachmentInput.value = '';
                 document.querySelectorAll('#iq-svc-menu input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
                 updateSvcLabel();
                 document.getElementById('iq-service-qty-area').innerHTML = '';
@@ -1122,15 +1117,13 @@
                 updateServiceQtyVisibility();
                 selectedPayMethod = null;
                 document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
                 setTimeout(function() { document.getElementById('inquirySuccess').style.display = 'none'; }, 5000);
-            } else {
+            } catch(err) {
                 var errEl = document.getElementById('inquiryError');
-                if (errEl) { errEl.style.display = 'block'; document.getElementById('inquiryErrorText').textContent = lastMsg; }
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
+                if (errEl) { errEl.style.display = 'block'; document.getElementById('inquiryErrorText').textContent = err.message; }
             }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
         }
 
 
@@ -1147,14 +1140,19 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending...';
             try {
+                const formData = new FormData();
+                formData.append('fullName', name);
+                formData.append('email', email);
+                formData.append('platform', 'Contact');
+                formData.append('service', subject);
+                formData.append('quantity', '1');
+                formData.append('socialMediaUrl', '');
+                formData.append('totalAmount', '0');
+                formData.append('description', 'Contact Form: ' + message);
+                formData.append('currency', 'USD');
                 const resp = await fetch('/api/orders', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fullName: name, email: email, platform: 'Contact',
-                        service: subject, quantity: 1, socialMediaUrl: '',
-                        totalAmount: 0, description: 'Contact Form: ' + message
-                    })
+                    body: formData
                 });
                 if (resp.ok) {
                     document.getElementById('contactSuccess').style.display = 'flex';

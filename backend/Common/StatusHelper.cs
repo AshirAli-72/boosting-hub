@@ -23,7 +23,7 @@ public static class StatusHelper
 
     public static string OrderStatusToString(int status) => status switch
     {
-        OrderApproved => "Paid",
+        OrderApproved => "Approved",
         OrderPending => "Pending",
         OrderRejected => "Rejected",
         OrderCancelled => "Cancelled",
@@ -97,14 +97,14 @@ public static class StatusHelper
     };
 
     // ── Wallet Status ─────────────────────────────────────────────────────────
-    // wallets.status is int in DB
-    public const int WalletActive = 1;
-    public const int WalletInactive = 2;
+    // wallets.status is nvarchar(20) in DB
+    public const string WalletActive = "1";
+    public const string WalletInactive = "2";
 
-    public static string WalletStatusToString(int status) => status switch
+    public static string WalletStatusToString(string status) => status switch
     {
-        1 => "Active",
-        2 => "Inactive",
+        "1" => "Active",
+        "2" => "Inactive",
         _ => "Active"
     };
 

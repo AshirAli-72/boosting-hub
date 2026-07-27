@@ -49,7 +49,7 @@
         });
 
         /* ── Proof form modal ── */
-        function showProofForm(taskId) {
+        function showProofForm(taskId, taskUrl) {
             var overlay = document.createElement('div');
             overlay.id = 'proof-overlay';
             overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
@@ -74,7 +74,7 @@
                 '</div>'
             ].join('\n');
             document.body.appendChild(overlay);
-            document.getElementById('pf-submit').onclick = function() { submitProof(taskId); };
+            document.getElementById('pf-submit').onclick = function() { submitProof(taskId, taskUrl); };
         }
 
         function closeProofForm() {
@@ -87,9 +87,13 @@
             if (el) { el.textContent = msg; el.style.display = 'block'; }
         }
 
-        async function submitProof(taskId) {
+        async function submitProof(taskId, taskUrl) {
             var url = document.getElementById('pf-url').value.trim();
             if (!url) { showPfError('Please enter a proof URL.'); return; }
+            if (taskUrl && url === taskUrl) {
+                showPfError('Proof URL cannot be the same as the target URL. Please provide a different proof URL.');
+                return;
+            }
             document.getElementById('pf-error').style.display = 'none';
             var btn = document.getElementById('pf-submit');
             btn.disabled = true; btn.innerHTML = 'Submitting...';
@@ -126,8 +130,9 @@
             var btn = e.target.closest('.submit-proof-btn');
             if (btn) {
                 var taskId = btn.getAttribute('data-task-id');
+                var taskUrl = btn.getAttribute('data-task-url') || '';
                 console.log('Submit Proof clicked, taskId:', taskId);
-                showProofForm(taskId);
+                showProofForm(taskId, taskUrl);
             }
         });
     </script>

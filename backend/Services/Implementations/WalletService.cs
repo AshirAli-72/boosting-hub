@@ -25,7 +25,7 @@ public class WalletService : IWalletService
         return await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
     }
 
-    public async Task<Wallet> CreateOrUpdateWalletAsync(int userId, decimal totalBalance, string currency, decimal withdrawn, int status = 1)
+    public async Task<Wallet> CreateOrUpdateWalletAsync(int userId, decimal totalBalance, string currency, decimal withdrawn, string status = "1")
     {
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
 
@@ -63,9 +63,9 @@ public class WalletService : IWalletService
             {
                 UserId = userId,
                 TotalBalance = amount,
-                Currency = string.Empty,
+                Currency = "USD",
                 Withdrawn = 0,
-                Status = 1,
+                Status = "1",
                 CreatedAt = DateTime.UtcNow
             };
             _db.Wallets.Add(wallet);
@@ -82,15 +82,18 @@ public class WalletService : IWalletService
     {
         var wallet = await GetOrCreateWalletAsync(userId);
 
+        var walletCurrency = string.IsNullOrEmpty(wallet.Currency) ? "USD" : wallet.Currency;
+        var convertedAmount = ConvertCurrency(amount, taskCurrency, walletCurrency);
+
         var balanceBefore = wallet.TotalBalance;
-        wallet.TotalBalance += amount;
+        wallet.TotalBalance += convertedAmount;
 
         _db.Transactions.Add(new Transaction
         {
             WalletId = wallet.Id,
             UserId = userId,
             Type = "credit",
-            Amount = amount,
+            Amount = convertedAmount,
             BalanceAfter = wallet.TotalBalance,
             Description = $"Reward earned for completing task #{taskId}",
             ReferenceType = "TaskReward",
@@ -102,15 +105,15 @@ public class WalletService : IWalletService
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("Credited {Amount} {Currency} to wallet {WalletId} for task {TaskId} (proof {ProofId})",
-            amount, taskCurrency, wallet.Id, taskId, proofId);
+            convertedAmount, walletCurrency, wallet.Id, taskId, proofId);
 
         var creditUser = await _db.Users.FindAsync(userId);
         await _activityLog.LogAsync(
             userId: userId, userName: creditUser?.Name, userEmail: creditUser?.Email,
             userRole: "System", evt: "WalletCredited",
-            description: $"{taskCurrency} {amount:F2} credited for task #{taskId}",
+            description: $"{taskCurrency} {amount:F2} ({walletCurrency} {convertedAmount:F2}) credited for task #{taskId}",
             subjectType: "Wallet", subjectId: wallet.Id, subjectName: creditUser?.Email,
-            newValues: JsonSerializer.Serialize(new { Amount = amount, Currency = taskCurrency, BalanceAfter = wallet.TotalBalance, TaskId = taskId }),
+            newValues: JsonSerializer.Serialize(new { Amount = convertedAmount, OriginalAmount = amount, OriginalCurrency = taskCurrency, WalletCurrency = walletCurrency, BalanceAfter = wallet.TotalBalance, TaskId = taskId }),
             ct: CancellationToken.None);
     }
 
@@ -130,13 +133,27 @@ public class WalletService : IWalletService
             ["PKR"] = 285m,
             ["INR"] = 83.12m,
             ["BDT"] = 109.85m,
+            ["SAR"] = 3.75m,
+            ["AED"] = 3.67m,
+            ["TRY"] = 32.5m,
+            ["NGN"] = 1540m,
+            ["JPY"] = 149.5m,
+            ["CNY"] = 7.24m,
+            ["KRW"] = 1320m,
+            ["PHP"] = 56m,
+            ["IDR"] = 15700m,
+            ["MYR"] = 4.7m,
+            ["THB"] = 35.5m,
+            ["EGP"] = 48.3m,
+            ["ZAR"] = 18.5m,
+            ["MXN"] = 17.1m,
         };
 
         if (!rates.TryGetValue(fromCurrency, out var fromRate) || !rates.TryGetValue(toCurrency, out var toRate))
             return amount;
 
         var inUsd = amount / fromRate;
-        return Math.Round(inUsd * toRate, 2);
+        return Math.Round(inUsd * toRate, 6);
     }
 
     private async Task<Wallet> GetOrCreateWalletAsync(int userId)
@@ -148,13 +165,15 @@ public class WalletService : IWalletService
             {
                 UserId = userId,
                 TotalBalance = 0,
-                Currency = string.Empty,
+                Currency = "USD",
                 Withdrawn = 0,
-                Status = 1,
+                Status = "1",
                 CreatedAt = DateTime.UtcNow
             };
             _db.Wallets.Add(wallet);
         }
+        if (string.IsNullOrEmpty(wallet.Currency))
+            wallet.Currency = "USD";
         return wallet;
     }
 
@@ -181,6 +200,13 @@ public class WalletService : IWalletService
     {
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
         if (wallet == null) return false;
+
+        var oldCurrency = wallet.Currency;
+        if (!string.IsNullOrEmpty(oldCurrency) && !string.Equals(oldCurrency, currency, StringComparison.OrdinalIgnoreCase))
+        {
+            wallet.TotalBalance = ConvertCurrency(wallet.TotalBalance, oldCurrency, currency);
+            wallet.Withdrawn = ConvertCurrency(wallet.Withdrawn, oldCurrency, currency);
+        }
 
         wallet.Currency = currency;
         await _db.SaveChangesAsync();

@@ -21,6 +21,8 @@ public class Orders
     [Column("currency", TypeName = "nvarchar(10)")] public string Currency { get; set; } = string.Empty;
     [Column("status")] public int Status { get; set; } = 2;
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    [Column("attachment")] public string? Attachment { get; set; }
+    [Column("reject_reason")] public string? RejectReason { get; set; }
 
     [NotMapped] public decimal Budget { get; set; }
 

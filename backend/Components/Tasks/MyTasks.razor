@@ -122,7 +122,7 @@
                         <div class="task-footer">
                             @if (task.Status == "Pending")
                             {
-                                <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId">
+                                <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId" data-task-url="@task.Url">
                                     <i class="bi bi-upload me-1"></i>Submit Proof
                                 </button>
                             }
@@ -132,7 +132,7 @@
                             }
                             else if (task.Status == "Rejected" || task.VerificationStatus == "Rejected")
                             {
-                                <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId">
+                                <button type="button" class="btn btn-sm btn-primary submit-proof-btn" data-task-id="@task.TaskId" data-task-url="@task.Url">
                                     <i class="bi bi-upload me-1"></i>Resubmit
                                 </button>
                             }
@@ -219,7 +219,7 @@
     {
         if (!string.IsNullOrEmpty(_userCurrency))
             return _userCurrency;
-        return orderCurrency ?? "PKR";
+        return orderCurrency ?? "USD";
     }
 
     private string GetDisplaySymbol(string currency)

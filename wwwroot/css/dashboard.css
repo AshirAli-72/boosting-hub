@@ -668,6 +668,29 @@ body, .admin-sidebar, .admin-header, .admin-content, .admin-card, .stat-card,
     width: auto !important;
 }
 
+/* ── 4K / Ultrawide responsive ── */
+@media (min-width: 2560px) {
+    .admin-main { max-width: 2200px; margin: 0 auto; }
+    .admin-content { padding: 32px 48px; }
+    .stat-card { padding: 28px 28px; gap: 20px; min-height: 110px; }
+    .stat-icon { width: 60px; height: 60px; font-size: 1.5rem; border-radius: 16px; }
+    .stat-value { font-size: 2rem; }
+    .stat-label { font-size: 0.88rem; }
+    .admin-header { padding: 22px 48px; }
+    .admin-header h3 { font-size: 1.35rem; }
+    .admin-card-body { padding: 16px 24px; }
+    .admin-table td, .admin-table th { padding: 14px 16px; font-size: 0.92rem; }
+    .card-body { padding: 28px; }
+    .card-body h5 { font-size: 1.15rem; }
+}
+@media (min-width: 3200px) {
+    .admin-main { max-width: 2600px; }
+    .admin-content { padding: 40px 64px; }
+    .stat-card { padding: 32px 32px; min-height: 120px; }
+    .stat-icon { width: 68px; height: 68px; font-size: 1.65rem; }
+    .stat-value { font-size: 2.2rem; }
+}
+
 @media (max-width: 1200px) {
     .admin-content .row.g-3:has(.stat-card) { grid-template-columns: repeat(2, 1fr) !important; }
     .admin-content .row.g-4:has(.stat-card) { grid-template-columns: repeat(2, 1fr) !important; }

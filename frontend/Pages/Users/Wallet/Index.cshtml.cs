@@ -1,8 +1,10 @@
 using BoostingHub.backend.Common;
+using BoostingHub.backend.Data;
 using BoostingHub.backend.DTOs;
 using BoostingHub.backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 
 namespace BoostingHub.frontend.Pages.Users.Wallet;
 
@@ -10,11 +12,13 @@ public class IndexModel : PageModel
 {
     private readonly IWalletService _walletService;
     private readonly IAccountService _accountService;
+    private readonly ApplicationDbContext _db;
 
-    public IndexModel(IWalletService walletService, IAccountService accountService)
+    public IndexModel(IWalletService walletService, IAccountService accountService, ApplicationDbContext db)
     {
         _walletService = walletService;
         _accountService = accountService;
+        _db = db;
     }
 
     public int UserId { get; set; }
@@ -47,6 +51,16 @@ public class IndexModel : PageModel
                 WalletData.Withdrawn = wallet.Withdrawn;
                 WalletData.CreatedAt = wallet.CreatedAt;
                 WalletData.Status = StatusHelper.WalletStatusToString(wallet.Status);
+            }
+
+            if (string.IsNullOrEmpty(WalletData.Currency))
+            {
+                WalletData.Currency = "USD";
+                if (wallet != null)
+                {
+                    wallet.Currency = "USD";
+                    await _db.SaveChangesAsync();
+                }
             }
 
             var accountsResult = await _accountService.GetAccountsByUserIdAsync(UserId);
@@ -100,7 +114,7 @@ public class IndexModel : PageModel
             return RedirectToPage();
         }
 
-        var accountsResult = await _accountService.GetAccountsByUserIdAsync(userId);
+        var accountsResult = await _accountService.GetAccountsByUserIdAsync(UserId);
         var defaultAccount = accountsResult.IsSuccess && accountsResult.Data != null
             ? accountsResult.Data.FirstOrDefault(a => a.IsDefault && a.Status == StatusHelper.AccountStatusToString(StatusHelper.AccountActive))
                 ?? accountsResult.Data.FirstOrDefault(a => a.Status == StatusHelper.AccountStatusToString(StatusHelper.AccountActive))
@@ -112,7 +126,7 @@ public class IndexModel : PageModel
             return RedirectToPage();
         }
 
-        var walletCurrency = wallet?.Currency ?? string.Empty;
+        var walletCurrency = wallet?.Currency ?? "USD";
         var sym = walletCurrency switch { "PKR" => "₨", "EUR" => "€", "GBP" => "£", "INR" => "₹", "BDT" => "৳", _ => "$" };
         await _walletService.WithdrawAsync(userId, WithdrawAmount);
         TempData["Success"] = $"Withdrawal of {sym}{WithdrawAmount:N2} ({walletCurrency}) requested to {defaultAccount.AccountTitle} ({defaultAccount.MobileNumber})";

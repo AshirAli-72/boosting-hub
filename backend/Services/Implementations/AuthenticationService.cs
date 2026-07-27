@@ -108,16 +108,23 @@ public class AuthenticationService : IAuthenticationService
         {
             UserId = user.Id,
             TotalBalance = 0,
-            Currency = string.Empty,
+            Currency = "USD",
             Withdrawn = 0,
-            Status = 1,
+            Status = "1",
             CreatedAt = DateTime.UtcNow
         });
 
         if (dto.SocialMediaAccounts?.Any() == true)
         {
+            var seenPlatforms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var sm in dto.SocialMediaAccounts.Where(s => !string.IsNullOrWhiteSpace(s.Username)))
             {
+                if (!seenPlatforms.Add(sm.Platform))
+                    continue;
+                var profileUrl = sm.ProfileUrl?.Trim();
+                if (!string.IsNullOrEmpty(profileUrl) && !seenUrls.Add(profileUrl))
+                    continue;
                 _db.SocialMediaAccounts.Add(new SocialMediaAccount
                 {
                     UserId = user.Id,
@@ -442,9 +449,9 @@ public class AuthenticationService : IAuthenticationService
             {
                 UserId = user.Id,
                 TotalBalance = 0,
-                Currency = string.Empty,
+                Currency = "USD",
                 Withdrawn = 0,
-                Status = 1,
+                Status = "1",
                 CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(ct);

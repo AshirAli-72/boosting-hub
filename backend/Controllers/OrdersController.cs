@@ -27,46 +27,81 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> SubmitOrder([FromBody] SubmitOrderDto dto)
+    [DisableRequestSizeLimit]
+    public async Task<IActionResult> SubmitOrder()
     {
-        if (string.IsNullOrWhiteSpace(dto.Platform) || string.IsNullOrWhiteSpace(dto.Service))
+        var fullName = Request.Form["fullName"].FirstOrDefault();
+        var email = Request.Form["email"].FirstOrDefault();
+        var platform = Request.Form["platform"].FirstOrDefault();
+        var service = Request.Form["service"].FirstOrDefault();
+        var quantityStr = Request.Form["quantity"].FirstOrDefault();
+        var socialMediaUrl = Request.Form["socialMediaUrl"].FirstOrDefault();
+        var totalAmountStr = Request.Form["totalAmount"].FirstOrDefault();
+        var description = Request.Form["description"].FirstOrDefault();
+        var currency = Request.Form["currency"].FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(platform) || string.IsNullOrWhiteSpace(service))
             return BadRequest(new { message = "Platform and Service are required." });
 
-        if (dto.Quantity <= 0 && dto.Platform != "Contact")
+        int.TryParse(quantityStr, out var quantity);
+        decimal.TryParse(totalAmountStr, out var totalAmount);
+
+        if (quantity <= 0 && platform != "Contact")
             return BadRequest(new { message = "Quantity must be greater than zero." });
 
-        if (dto.TotalAmount <= 0 && dto.Platform != "Contact")
+        if (totalAmount <= 0 && platform != "Contact")
             return BadRequest(new { message = "Total amount must be greater than zero." });
 
-        var orderCurrency = (dto.Currency ?? string.Empty).Trim().ToUpperInvariant();
+        var orderCurrency = (currency ?? "USD").Trim().ToUpperInvariant();
+
+        string? attachmentPath = null;
+        if (Request.Form.Files.Count > 0)
+        {
+            var file = Request.Form.Files[0];
+            if (file.Length > 0)
+            {
+                var attachmentsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "attachments");
+                if (!Directory.Exists(attachmentsDir))
+                    Directory.CreateDirectory(attachmentsDir);
+
+                var ext = Path.GetExtension(file.FileName);
+                var fileName = $"order_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(attachmentsDir, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                attachmentPath = $"attachments/{fileName}";
+            }
+        }
 
         var order = new Orders
         {
-            FullName = dto.FullName,
-            Email = dto.Email,
-            Platform = dto.Platform,
-            Service = dto.Service,
-            Quantity = dto.Quantity.ToString(),
-            SocialMediaUrl = dto.SocialMediaUrl,
-            TotalAmount = dto.TotalAmount,
+            FullName = fullName,
+            Email = email,
+            Platform = platform,
+            Service = service,
+            Quantity = quantity.ToString(),
+            SocialMediaUrl = socialMediaUrl,
+            TotalAmount = totalAmount,
             Currency = orderCurrency,
-            Description = dto.Description,
-            Status = StatusHelper.OrderApproved,
+            Description = description,
+            Attachment = attachmentPath,
+            Status = StatusHelper.OrderPending,
             CreatedAt = DateTime.UtcNow
         };
 
         _db.Orders.Add(order);
         await _db.SaveChangesAsync();
 
-        var tasksGenerated = GenerateTasksForOrder(order, dto.Quantity);
-
-        _logger.LogInformation("New order #{OrderId} submitted and auto-approved. {Count} tasks generated.", order.Id, tasksGenerated);
+        _logger.LogInformation("New order #{OrderId} submitted (pending).", order.Id);
 
         await _activityLog.LogAsync(
-            userId: null, userName: dto.FullName, userEmail: dto.Email,
-            userRole: "Public", evt: "OrderPaid", description: $"Order #{order.Id} paid and auto-approved by {dto.FullName} ({dto.Email}). {tasksGenerated} tasks generated.",
-            subjectType: "Order", subjectId: order.Id, subjectName: $"{dto.Platform} - {dto.Service}",
-            newValues: JsonSerializer.Serialize(new { Platform = dto.Platform, Service = dto.Service, TotalAmount = dto.TotalAmount, TasksGenerated = tasksGenerated }),
+            userId: null, userName: fullName, userEmail: email,
+            userRole: "Public", evt: "OrderSubmitted", description: $"New order #{order.Id} submitted by {fullName} ({email}) for {platform} - {service}. Awaiting admin review.",
+            subjectType: "Order", subjectId: order.Id, subjectName: $"{platform} - {service}",
+            newValues: JsonSerializer.Serialize(new { Platform = platform, Service = service, TotalAmount = totalAmount, Currency = orderCurrency }),
             httpContext: HttpContext);
 
         try
@@ -93,8 +128,8 @@ public class OrdersController : ControllerBase
             {
                 UserId = adminId,
                 Type = "NewOrder",
-                Title = "New Order Paid",
-                Message = $"Order #{order.Id} from {dto.FullName} ({dto.Platform} - {dto.Service}) for {orderCurrency} {dto.TotalAmount:F2} has been paid. {tasksGenerated} tasks auto-generated.",
+                Title = "New Order Submitted",
+                Message = $"Order #{order.Id} from {fullName} ({platform} - {service}) for {orderCurrency} {totalAmount:F2} is pending review.",
                 Data = $"{{\"orderId\":{order.Id}}}"
             }).ToList();
 
@@ -105,18 +140,18 @@ public class OrdersController : ControllerBase
             _logger.LogWarning(ex, "Failed to notify admins about new order {OrderId}", order.Id);
         }
 
-        return Ok(new { message = "Payment confirmed! Your order is now active.", orderId = order.Id, tasksGenerated });
+        return Ok(new { message = "Order submitted! Awaiting admin approval.", orderId = order.Id });
     }
 
     [HttpPost("{id}/approve")]
-    public async Task<IActionResult> ApproveOrder(int id, [FromBody] ApproveOrderDto dto)
+    public async Task<IActionResult> ApproveOrder(int id)
     {
         var order = await _db.Orders.FindAsync(id);
         if (order == null)
             return NotFound(new { message = "Order not found." });
 
         if (order.Status != StatusHelper.OrderPending)
-            return BadRequest(new { message = $"Order is already {order.Status}." });
+            return BadRequest(new { message = $"Order is already {StatusHelper.OrderStatusToString(order.Status)}." });
 
         order.Status = StatusHelper.OrderApproved;
 
@@ -129,7 +164,7 @@ public class OrdersController : ControllerBase
 
         await _activityLog.LogAsync(
             userId: null, userName: null, userEmail: null,
-            userRole: "Admin", evt: "OrderApproved", description: $"Order #{id} approved, {tasksGenerated} tasks generated",
+            userRole: "Admin", evt: "OrderApproved", description: $"Order #{id} approved by admin. {tasksGenerated} tasks generated for {order.Platform} - {order.Service}.",
             subjectType: "Order", subjectId: id, subjectName: $"{order.Platform} - {order.Service}",
             oldValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderPending) }),
             newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderApproved), TasksGenerated = tasksGenerated }),
@@ -166,26 +201,27 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost("{id}/reject")]
-    public async Task<IActionResult> RejectOrder(int id)
+    public async Task<IActionResult> RejectOrder(int id, [FromBody] RejectOrderDto dto)
     {
         var order = await _db.Orders.FindAsync(id);
         if (order == null)
             return NotFound(new { message = "Order not found." });
 
         if (order.Status != StatusHelper.OrderPending)
-            return BadRequest(new { message = $"Order is already {order.Status}." });
+            return BadRequest(new { message = $"Order is already {StatusHelper.OrderStatusToString(order.Status)}." });
 
         order.Status = StatusHelper.OrderRejected;
+        order.RejectReason = dto.Reason;
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("Order #{OrderId} rejected.", id);
+        _logger.LogInformation("Order #{OrderId} rejected. Reason: {Reason}", id, dto.Reason);
 
         await _activityLog.LogAsync(
             userId: null, userName: null, userEmail: null,
-            userRole: "Admin", evt: "OrderRejected", description: $"Order #{id} rejected",
+            userRole: "Admin", evt: "OrderRejected", description: $"Order #{id} rejected. Reason: {dto.Reason}",
             subjectType: "Order", subjectId: id, subjectName: $"{order.Platform} - {order.Service}",
             oldValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderPending) }),
-            newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderRejected) }),
+            newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderRejected), RejectReason = dto.Reason }),
             httpContext: HttpContext);
 
         return Ok(new { message = "Order has been rejected." });
@@ -212,7 +248,9 @@ public class OrdersController : ControllerBase
                 o.TotalAmount,
                 o.Currency,
                 o.Status,
-                o.CreatedAt
+                o.CreatedAt,
+                o.Attachment,
+                o.RejectReason
             })
             .ToListAsync();
 
@@ -255,7 +293,7 @@ public class OrdersController : ControllerBase
     }
 }
 
-public class ApproveOrderDto
+public class RejectOrderDto
 {
-    public decimal? RewardPerTask { get; set; }
+    public string Reason { get; set; } = string.Empty;
 }

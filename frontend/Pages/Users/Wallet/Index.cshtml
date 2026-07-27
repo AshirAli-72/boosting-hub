@@ -71,7 +71,7 @@
                                     <td id="displayWithdrawn">@Model.WalletData.Currency @Model.WalletData.Withdrawn.ToString("N2")</td>
                                     <td>@Model.WalletData.CreatedAt.ToString("yyyy-MM-dd")</td>
                                     <td>
-                                        @if (Model.WalletData.Status == "active")
+                                        @if (Model.WalletData.Status == "Active")
                                         {
                                             <span class="badge bg-success">Active</span>
                                         }
@@ -147,9 +147,11 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/site.js"></script>
     <script>
-        var pkrBalance = @Model.WalletData.TotalBalance;
-        var pkrWithdrawn = @Model.WalletData.Withdrawn;
-        var displayCurrency = '@Model.WalletData.Currency';
+        var baseBalance = @Model.WalletData.TotalBalance;
+        var baseWithdrawn = @Model.WalletData.Withdrawn;
+        var baseCurrency = '@Model.WalletData.Currency';
+        if (!baseCurrency) baseCurrency = 'USD';
+        var displayCurrency = localStorage.getItem('walletDisplayCurrency') || baseCurrency;
 
         var currencySymbols = {
             USD:'$', EUR:'€', GBP:'£', PKR:'₨', INR:'₹', BDT:'৳',
@@ -158,71 +160,66 @@
             ZAR:'R', MXN:'Mex$'
         };
 
-        var pkrRates = {
-            USD:285, EUR:310, GBP:360, PKR:1, INR:3.43, BDT:2.59,
-            SAR:76, AED:77.7, TRY:8.85, NGN:445, JPY:42.75, CNY:2.07,
-            KRW:380, PHP:16, IDR:4500, MYR:1.34, THB:10.1, EGP:13.7,
-            ZAR:5.25, MXN:16.8
-        };
+        function getSym(c) { return currencySymbols[c] || '$'; }
 
-        function convertFromPkr(amountPkr, toCurrency) {
-            if (toCurrency === 'PKR') return amountPkr;
-            var rate = pkrRates[toCurrency];
-            if (!rate) return amountPkr;
-            return amountPkr / rate;
+        function convertAmount(amount, from, to) {
+            if (from === to) return amount;
+            var fromRate = window.__pkrRates[from];
+            var toRate = window.__pkrRates[to];
+            if (!fromRate || !toRate) return amount;
+            var inPkr = amount * fromRate;
+            return Math.round((inPkr / toRate) * 100) / 100;
         }
 
         function formatCur(amount, currency) {
-            var sym = currencySymbols[currency] || '$';
-            var converted = convertFromPkr(amount, currency);
-            return sym + ' ' + converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return getSym(currency) + ' ' + parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
-        function updateDisplay(currency) {
-            document.getElementById('displayBalance').textContent = formatCur(pkrBalance, currency);
-            document.getElementById('displayWithdrawn').textContent = formatCur(pkrWithdrawn, currency);
-            document.getElementById('modalCurrencySymbol').textContent = currencySymbols[currency] || '$';
-            document.getElementById('modalBalance').textContent = formatCur(pkrBalance, currency);
-            displayCurrency = currency;
+        function updateDisplay() {
+            var bal = convertAmount(baseBalance, baseCurrency, displayCurrency);
+            var wd = convertAmount(baseWithdrawn, baseCurrency, displayCurrency);
+            document.getElementById('displayBalance').textContent = formatCur(bal, displayCurrency);
+            document.getElementById('displayWithdrawn').textContent = formatCur(wd, displayCurrency);
+            document.getElementById('modalCurrencySymbol').textContent = getSym(displayCurrency);
+            document.getElementById('modalBalance').textContent = formatCur(bal, displayCurrency);
+        }
+
+        function syncDropdown() {
+            var sel = document.getElementById('currencySelect');
+            if (sel && displayCurrency) sel.value = displayCurrency;
         }
 
         async function changeCurrency(currency) {
+            displayCurrency = currency;
+            localStorage.setItem('walletDisplayCurrency', currency);
+            document.getElementById('currencySelect').value = currency;
+            updateDisplay();
             try {
-                const resp = await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(currency), {
+                await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(currency), {
                     method: 'POST',
                     headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
                 });
-                const data = await resp.json();
-                if (resp.ok && data.success) {
-                    displayCurrency = data.currency;
-                    document.getElementById('currencySelect').value = data.currency;
-                    updateDisplay(data.currency);
-                } else {
-                    showToast(data.message || 'Failed to update currency', 'danger');
-                    document.getElementById('currencySelect').value = displayCurrency;
-                    updateDisplay(displayCurrency);
-                }
-            } catch (e) {
-                updateDisplay(currency);
-            }
+            } catch(e) {}
         }
 
-        function detectWalletCurrency() {
-            if (typeof __getUserCurrency === 'function') {
-                __getUserCurrency().then(function(cur) {
-                    if (cur && pkrRates[cur]) {
-                        displayCurrency = cur;
-                        document.getElementById('currencySelect').value = cur;
-                        updateDisplay(cur);
-                        changeCurrency(cur);
+        (async function init() {
+            if (!localStorage.getItem('walletDisplayCurrency')) {
+                try {
+                    var resp = await fetch('/api/geolocation/currency');
+                    var data = await resp.json();
+                    if (data.currency && data.currency !== baseCurrency) {
+                        displayCurrency = data.currency;
+                        localStorage.setItem('walletDisplayCurrency', displayCurrency);
+                        await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(displayCurrency), {
+                            method: 'POST',
+                            headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
+                        });
                     }
-                }).catch(function() {});
+                } catch(e) {}
             }
-        }
-
-        if (displayCurrency === 'PKR') {
-            detectWalletCurrency();
-        }
+            syncDropdown();
+            updateDisplay();
+        })();
 
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');

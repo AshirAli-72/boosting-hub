@@ -286,7 +286,7 @@ public class TaskService : ITaskService, IDisposable
 
         await _activityLog.LogAsync(
             userId: userId, userName: worker?.Name, userEmail: worker?.Email,
-            userRole: "User", evt: "TaskAccepted", description: $"User accepted task #{taskId}",
+            userRole: "User", evt: "TaskAccepted", description: $"{worker?.Name ?? "User"} (ID: {userId}) accepted task #{taskId} ({task.Service})",
             subjectType: "Task", subjectId: taskId, subjectName: task.Service);
 
         return Result.Success(new AcceptTaskResult
@@ -447,6 +447,9 @@ public class TaskService : ITaskService, IDisposable
             if (!urlMatchesAccount && !string.IsNullOrWhiteSpace(platformAccount.Username))
                 return Result.Failure($"This proof URL does not match your linked {task.Platform} account (@{platformAccount.Username}). Please submit a URL from your own account.", "URL_ACCOUNT_MISMATCH");
 
+            if (!string.IsNullOrWhiteSpace(task.Url) && proofUrl.Trim().TrimEnd('/').Equals(task.Url.Trim().TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
+                return Result.Failure("Proof URL cannot be the same as the target URL. Please provide a different proof URL.", "URL_SAME_AS_TARGET");
+
             var existingProof = await _db.TaskProofs
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.TaskId == taskId && p.VerificationStatus != StatusHelper.VerificationRejected);
             if (existingProof != null)
@@ -495,7 +498,7 @@ public class TaskService : ITaskService, IDisposable
             var proofUser = await _db.Users.FindAsync(userId);
             await _activityLog.LogAsync(
                 userId: userId, userName: proofUser?.Name, userEmail: proofUser?.Email,
-                userRole: "User", evt: "ProofSubmitted", description: $"Proof submitted for task #{taskId}",
+                userRole: "User", evt: "ProofSubmitted", description: $"{proofUser?.Name ?? "User"} submitted proof for task #{taskId} ({task.Service})",
                 subjectType: "TaskProof", subjectId: proof.Id, subjectName: task.Service);
 
             return Result.Success("Proof submitted successfully and is pending admin review.");
@@ -514,6 +517,7 @@ public class TaskService : ITaskService, IDisposable
             .Where(p => p.VerificationStatus == StatusHelper.VerificationPendingReview)
             .Join(_db.Users, p => p.UserId, u => u.Id, (p, u) => new { p, u })
             .Join(_db.TaskGenerates, x => x.p.TaskId, t => t.Id, (x, t) => new { x.p, x.u, t })
+            .Join(_db.Orders, x => x.t.OrderId, o => o.Id, (x, o) => new { x.p, x.u, x.t, o })
             .OrderByDescending(x => x.p.Date)
             .Take(100)
             .Select(x => new ProofReviewDto
@@ -527,6 +531,7 @@ public class TaskService : ITaskService, IDisposable
                 Service = x.t.Service,
                 TaskUrl = x.t.Url,
                 Reward = x.t.Reward,
+                Currency = x.o.Currency ?? "USD",
                 SubmittedAt = x.p.Date,
                 VerificationStatus = StatusHelper.VerificationStatusToString(x.p.VerificationStatus),
                 RejectReason = x.p.RejectReason
@@ -594,7 +599,7 @@ public class TaskService : ITaskService, IDisposable
             var approvedUser = await _db.Users.FindAsync(proof.UserId);
             await _activityLog.LogAsync(
                 userId: proof.UserId, userName: approvedUser?.Name, userEmail: approvedUser?.Email,
-                userRole: "Admin", evt: "ProofApproved", description: $"Proof #{proofId} approved for task #{proof.TaskId}",
+                userRole: "Admin", evt: "ProofApproved", description: $"Proof #{proofId} approved for task #{proof.TaskId} ({proof.Task.Service}) by admin. Worker: {approvedUser?.Name ?? "Unknown"} credited {proof.Task.Reward:F2} reward.",
                 subjectType: "TaskProof", subjectId: proofId, subjectName: null,
                 newValues: JsonSerializer.Serialize(new { VerificationStatus = StatusHelper.VerificationApproved, Reward = proof.Task.Reward }));
 
@@ -682,7 +687,7 @@ public class TaskService : ITaskService, IDisposable
             var rejectedUser = await _db.Users.FindAsync(proof.UserId);
             await _activityLog.LogAsync(
                 userId: proof.UserId, userName: rejectedUser?.Name, userEmail: rejectedUser?.Email,
-                userRole: "Admin", evt: "ProofRejected", description: $"Proof #{proofId} rejected for task #{proof.TaskId}: {reason}",
+                userRole: "Admin", evt: "ProofRejected", description: $"Proof #{proofId} rejected for task #{proof.TaskId} ({proof.Task.Service}). Worker: {rejectedUser?.Name ?? "Unknown"}. Reason: {reason}",
                 subjectType: "TaskProof", subjectId: proofId, subjectName: null,
                 newValues: JsonSerializer.Serialize(new { VerificationStatus = StatusHelper.VerificationRejected, RejectReason = reason }));
 
@@ -911,7 +916,8 @@ public class TaskService : ITaskService, IDisposable
             .AsNoTracking()
             .Where(p => p.VerificationStatus == StatusHelper.VerificationPendingReview)
             .Join(_db.Users, p => p.UserId, u => u.Id, (p, u) => new { p, u })
-            .Join(_db.TaskGenerates, x => x.p.TaskId, t => t.Id, (x, t) => new { x.p, x.u, t });
+            .Join(_db.TaskGenerates, x => x.p.TaskId, t => t.Id, (x, t) => new { x.p, x.u, t })
+            .Join(_db.Orders, x => x.t.OrderId, o => o.Id, (x, o) => new { x.p, x.u, x.t, o });
 
         if (!string.IsNullOrEmpty(filter.Search))
         {
@@ -941,6 +947,7 @@ public class TaskService : ITaskService, IDisposable
                 Service = x.t.Service,
                 TaskUrl = x.t.Url,
                 Reward = x.t.Reward,
+                Currency = x.o.Currency ?? "USD",
                 SubmittedAt = x.p.Date,
                 VerificationStatus = StatusHelper.VerificationStatusToString(x.p.VerificationStatus),
                 RejectReason = x.p.RejectReason

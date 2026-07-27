@@ -214,7 +214,7 @@
     {
         if (!string.IsNullOrEmpty(_userCurrency))
             return _userCurrency;
-        return orderCurrency ?? "PKR";
+        return orderCurrency ?? "USD";
     }
 
     private string GetDisplaySymbol(string currency)

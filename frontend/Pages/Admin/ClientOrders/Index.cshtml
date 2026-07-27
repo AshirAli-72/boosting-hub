@@ -5,7 +5,7 @@
     ViewData["Title"] = "Orders";
     ViewData["BodyClass"] = "admin-page";
 
-    string CurrencySymbol(string? currency) => (currency?.ToUpper() ?? "PKR") switch {
+    string CurrencySymbol(string? currency) => (currency?.ToUpper() ?? "USD") switch {
         "PKR" => "₨",
         "EUR" => "\u20AC",
         "GBP" => "\u00A3",
@@ -110,7 +110,11 @@
                                                 }
                                                 else if (item.Status == StatusHelper.OrderApproved)
                                                 {
-                                                    <span class="inquiry-status-badge inquiry-status-approved">Paid</span>
+                                                    <span class="inquiry-status-badge inquiry-status-approved">Approved</span>
+                                                }
+                                                else if (item.Status == StatusHelper.OrderRejected)
+                                                {
+                                                    <span class="inquiry-status-badge inquiry-status-rejected">Rejected</span>
                                                 }
                                                 else
                                                 {
@@ -122,6 +126,19 @@
                                             </td>
                                             <td class="text-end pe-4">
                                                 <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+                                                    @if (item.Status == StatusHelper.OrderPending)
+                                                    {
+                                                        <button class="btn btn-sm" onclick="approveOrder(@item.Id)"
+                                                                style="border-radius:8px; font-weight:600; padding:4px 12px; background:rgba(16,185,129,0.15); color:#10B981; border:1px solid rgba(16,185,129,0.3);"
+                                                                title="Approve Order">
+                                                            <i class="bi bi-check-circle"></i> Approve
+                                                        </button>
+                                                        <button class="btn btn-sm" onclick="openRejectModal(@item.Id)"
+                                                                style="border-radius:8px; font-weight:600; padding:4px 12px; background:rgba(239,68,68,0.15); color:#EF4444; border:1px solid rgba(239,68,68,0.3);"
+                                                                title="Reject Order">
+                                                            <i class="bi bi-x-circle"></i> Reject
+                                                        </button>
+                                                    }
                                                     <button class="btn btn-sm btn-outline-primary" type="button"
                                                             data-bs-toggle="collapse" data-bs-target="#collapse-@item.Id"
                                                             style="border-radius:8px; font-weight:500; padding:4px 10px;">
@@ -155,6 +172,33 @@
                                                             </ul>
                                                         </div>
                                                     </div>
+                                                    @if (!string.IsNullOrEmpty(item.Attachment))
+                                                    {
+                                                        <div class="col-md-6">
+                                                            <div style="background:var(--bg-elevated); padding:16px; border-radius:12px; border:1px solid var(--border-muted);">
+                                                                <h6 class="stat-label-upper mb-2"><i class="bi bi-paperclip text-info me-2"></i> Attachment</h6>
+                                                                @if (item.Attachment.EndsWith(".png") || item.Attachment.EndsWith(".jpg") || item.Attachment.EndsWith(".jpeg") || item.Attachment.EndsWith(".gif") || item.Attachment.EndsWith(".webp"))
+                                                                {
+                                                                    <img src="/@item.Attachment" alt="Order attachment" style="max-width:100%; max-height:300px; border-radius:8px; border:1px solid var(--border-subtle);" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <a href="/@item.Attachment" target="_blank" class="btn btn-sm btn-outline-primary" style="border-radius:8px;">
+                                                                        <i class="bi bi-download"></i> Download File
+                                                                    </a>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    @if (item.Status == StatusHelper.OrderRejected && !string.IsNullOrEmpty(item.RejectReason))
+                                                    {
+                                                        <div class="col-md-6">
+                                                            <div style="background:rgba(239,68,68,0.05); padding:16px; border-radius:12px; border:1px solid rgba(239,68,68,0.2);">
+                                                                <h6 class="stat-label-upper mb-2" style="color:#EF4444;"><i class="bi bi-exclamation-triangle me-2"></i> Rejection Reason</h6>
+                                                                <p class="mb-0" style="color:var(--text-secondary); font-size:0.9rem; line-height:1.5;">@item.RejectReason</p>
+                                                            </div>
+                                                        </div>
+                                                    }
                                                 </div>
                                             </td>
                                         </tr>
@@ -176,6 +220,24 @@
             </div>
         </div>
 
+        <!-- Reject Modal -->
+        <div class="pkg-modal-overlay" id="rejectOverlay" onclick="closeRejectModal()"></div>
+        <div class="pkg-modal" id="rejectModal" style="max-width:480px;">
+            <div class="pkg-modal-header">
+                <h5><i class="bi bi-x-circle" style="color:#EF4444;"></i> Reject Order</h5>
+                <button class="pkg-modal-close" onclick="closeRejectModal()">&times;</button>
+            </div>
+            <div class="pkg-modal-body" style="padding:24px;">
+                <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;">Please provide a reason for rejecting this order. This will be visible to the customer.</p>
+                <input type="hidden" id="reject-order-id" />
+                <textarea id="reject-reason" rows="4" placeholder="Enter rejection reason..." style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-subtle); background:var(--bg-elevated); color:var(--text-primary); font-size:0.9rem; resize:vertical;"></textarea>
+                <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
+                    <button class="btn btn-sm" onclick="closeRejectModal()" style="padding:8px 20px; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-subtle); color:var(--text-secondary); font-weight:500;">Cancel</button>
+                    <button class="btn btn-sm" id="rejectConfirmBtn" onclick="confirmReject()" style="padding:8px 20px; border-radius:8px; background:#EF4444; color:#fff; font-weight:600;">Reject Order</button>
+                </div>
+            </div>
+        </div>
+
 @section Scripts {
     <script src="~/js/site.js"></script>
     <script>
@@ -190,5 +252,61 @@
                 if (m) m.style.display = 'none';
             }
         });
+
+        async function approveOrder(id) {
+            if (!confirm('Are you sure you want to approve this order? Tasks will be generated.')) return;
+            try {
+                var resp = await fetch('/api/orders/' + id + '/approve', { method: 'POST' });
+                var data = await resp.json();
+                if (resp.ok) {
+                    showToast(data.message || 'Order approved!', 'success');
+                    setTimeout(function() { location.reload(); }, 1000);
+                } else {
+                    showToast(data.message || 'Failed to approve order.', 'error');
+                }
+            } catch(err) {
+                showToast('Network error.', 'error');
+            }
+        }
+
+        function openRejectModal(id) {
+            document.getElementById('reject-order-id').value = id;
+            document.getElementById('reject-reason').value = '';
+            document.getElementById('rejectOverlay').style.display = 'block';
+            document.getElementById('rejectModal').style.display = 'block';
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectOverlay').style.display = 'none';
+            document.getElementById('rejectModal').style.display = 'none';
+        }
+
+        async function confirmReject() {
+            var id = document.getElementById('reject-order-id').value;
+            var reason = document.getElementById('reject-reason').value.trim();
+            if (!reason) { alert('Please enter a reason for rejection.'); return; }
+            var btn = document.getElementById('rejectConfirmBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Rejecting...';
+            try {
+                var resp = await fetch('/api/orders/' + id + '/reject', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason: reason })
+                });
+                var data = await resp.json();
+                if (resp.ok) {
+                    closeRejectModal();
+                    showToast(data.message || 'Order rejected.', 'success');
+                    setTimeout(function() { location.reload(); }, 1000);
+                } else {
+                    showToast(data.message || 'Failed to reject.', 'error');
+                }
+            } catch(err) {
+                showToast('Network error.', 'error');
+            }
+            btn.disabled = false;
+            btn.innerHTML = 'Reject Order';
+        }
     </script>
 }

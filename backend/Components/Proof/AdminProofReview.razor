@@ -70,7 +70,7 @@
                                     </a>
                                 </td>
                                 <td>@p.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                                <td class="fw-bold" style="color:var(--success);">@GetCurrencySymbol("PKR")@p.Reward.ToString("F2")</td>
+                                <td class="fw-bold" style="color:var(--success);">@GetCurrencySymbol(p.Currency ?? "USD")@p.Reward.ToString("F2")</td>
                                 <td>
                                     <a href="@p.TaskUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.TaskUrl">
                                         <i class="bi bi-box-arrow-up-right me-1"></i>View

@@ -5,7 +5,7 @@
     ViewData["Title"] = "Dashboard";
     ViewData["BodyClass"] = "user-dashboard-page";
 
-    var walletCurrency = Model.Dashboard.WalletCurrency?.ToUpper() ?? "PKR";
+    var walletCurrency = Model.Dashboard.WalletCurrency?.ToUpper() ?? "USD";
     var walletBalance = Model.Dashboard.WalletBalance;
     var totalRewards = Model.Dashboard.TotalRewards;
 }

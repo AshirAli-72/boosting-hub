@@ -284,6 +284,7 @@
             var hasError = false;
             var count = 0;
             var accountsToCheck = [];
+            var platformsSeen = {};
 
             urlInputs.forEach(function(input) {
                 var platform = input.getAttribute('data-platform');
@@ -294,6 +295,14 @@
                     hasError = true;
                     return;
                 }
+
+                if (platformsSeen[platform]) {
+                    input.classList.add('is-invalid');
+                    showToast('Duplicate platform: ' + platform + ' is already added.', 'danger');
+                    hasError = true;
+                    return;
+                }
+                platformsSeen[platform] = true;
 
                 input.classList.remove('is-invalid');
                 var pattern = platformPatterns[platform];
@@ -323,7 +332,8 @@
                         checked++;
                         if (checked === total) {
                             if (duplicates.length > 0) {
-                                showToast('This URL is already registered by another user: ' + duplicates[0], 'warning');
+                                showToast('Duplicate URL not allowed: ' + duplicates[0], 'danger');
+                                return;
                             }
                             document.getElementById('accountsForm').submit();
                         }
@@ -331,6 +341,10 @@
                     .catch(function() {
                         checked++;
                         if (checked === total) {
+                            if (duplicates.length > 0) {
+                                showToast('Duplicate URL not allowed: ' + duplicates[0], 'danger');
+                                return;
+                            }
                             document.getElementById('accountsForm').submit();
                         }
                     });

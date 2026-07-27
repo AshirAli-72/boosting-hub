@@ -25,8 +25,10 @@ namespace BoostingHub.backend.Data.Migrations
                    quantity = table.Column<string>(type: "nvarchar(max)", nullable: true),
                    total_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                    currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                   status = table.Column<int>(type: "int", nullable: false),   
-                   created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
+                   status = table.Column<int>(type: "int", nullable: false),
+                   created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
+                   attachment = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                   reject_reason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
                },
                constraints: table =>
                {
