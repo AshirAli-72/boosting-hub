@@ -205,7 +205,7 @@
         (async function init() {
             if (!localStorage.getItem('walletDisplayCurrency')) {
                 try {
-                    var resp = await fetch('/api/geolocation/currency');
+                    var resp = await fetch('http://ip-api.com/json/?fields=currency,countryCode');
                     var data = await resp.json();
                     if (data.currency && data.currency !== baseCurrency) {
                         displayCurrency = data.currency;
