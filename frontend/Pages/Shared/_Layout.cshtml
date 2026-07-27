@@ -663,20 +663,19 @@
         }
 
         function detectCurrency() {
-            fetch('/api/geolocation/currency')
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.currency) {
-                        iqDetectedCurrency = data.currency;
-                        iqDetectedSymbol = iqCurrencySymbols[data.currency] || '$';
-                        if (window.__userCurrencyCache !== undefined) window.__userCurrencyCache = data.currency;
+            if (typeof window.__detectCurrencyFromBrowser === 'function') {
+                window.__detectCurrencyFromBrowser().then(function(cur) {
+                    if (cur) {
+                        iqDetectedCurrency = cur;
+                        iqDetectedSymbol = iqCurrencySymbols[cur] || '$';
+                        window.__userCurrencyCache = cur;
                         updateCurrencyBadge();
                         refreshAllPrices();
                     }
-                })
-                .catch(function() {
-                    detectCurrencyFallback();
-                });
+                }).catch(function() { detectCurrencyFallback(); });
+            } else {
+                detectCurrencyFallback();
+            }
         }
 
         function detectCurrencyFallback() {

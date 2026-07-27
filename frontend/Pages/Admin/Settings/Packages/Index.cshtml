@@ -124,10 +124,9 @@
 
         async function detectAdminCurrency() {
             try {
-                var resp = await fetch('/api/geolocation/currency');
-                var data = await resp.json();
-                if (data.currency) {
-                    adminCurrency = data.currency;
+                if (typeof window.__detectCurrencyFromBrowser === 'function') {
+                    var cur = await window.__detectCurrencyFromBrowser();
+                    if (cur) adminCurrency = cur;
                 }
             } catch(e) {}
             var badge = document.getElementById('pm-currency-badge');
