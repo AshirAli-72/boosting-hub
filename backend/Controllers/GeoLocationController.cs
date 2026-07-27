@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,57 +9,74 @@ namespace BoostingHub.backend.Controllers;
 [Route("api/[controller]")]
 public class GeoLocationController : ControllerBase
 {
-    private static readonly HttpClient _http = new()
-    {
-        Timeout = TimeSpan.FromSeconds(5)
-    };
+    private static readonly HttpClient _http;
 
-    private static readonly string[] _apiUrls = new[]
+    static GeoLocationController()
     {
-        "https://ipapi.co/json/",
-        "https://ipwho.is/",
-        "https://ip-api.com/json/?fields=status,currency,countryCode"
-    };
+        var handler = new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.All,
+            SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
+        };
+        _http = new HttpClient(handler)
+        {
+            Timeout = TimeSpan.FromSeconds(5)
+        };
+        _http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+    }
 
     [HttpGet("currency")]
     public async Task<IActionResult> GetCurrency()
     {
-        foreach (var url in _apiUrls)
+        var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        var apis = new (string url, Func<JsonElement, string?> extract)[]
+        {
+            ("https://ipapi.co/json/", json =>
+            {
+                if (json.TryGetProperty("currency", out var el) && el.ValueKind == JsonValueKind.String)
+                    return el.GetString();
+                return null;
+            }),
+            ("https://ipwho.is/", json =>
+            {
+                if (json.TryGetProperty("currency", out var el) && el.ValueKind == JsonValueKind.Object
+                    && el.TryGetProperty("code", out var code) && code.ValueKind == JsonValueKind.String)
+                    return code.GetString();
+                return null;
+            }),
+            ("http://ip-api.com/json/?fields=status,currency,countryCode", json =>
+            {
+                if (json.TryGetProperty("status", out var st) && st.GetString() == "success"
+                    && json.TryGetProperty("currency", out var el) && el.ValueKind == JsonValueKind.String)
+                    return el.GetString();
+                return null;
+            })
+        };
+
+        foreach (var (url, extract) in apis)
         {
             try
             {
-                var resp = await _http.GetAsync(url);
+                var apiUrl = url;
+                if (!string.IsNullOrEmpty(clientIp) && clientIp != "::1" && clientIp != "127.0.0.1")
+                    apiUrl = url.Replace("/json/", $"/json/{clientIp}/").Replace("json/?", $"json/{clientIp}?");
+                else if (url.Contains("ip-api.com"))
+                    apiUrl = url;
+
+                var resp = await _http.GetAsync(apiUrl);
                 if (!resp.IsSuccessStatusCode) continue;
 
-                var json = await resp.Content.ReadFromJsonAsync<Dictionary<string, object>>();
-                if (json == null) continue;
+                var content = await resp.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(content)) continue;
 
-                string? currency = null;
+                var json = JsonSerializer.Deserialize<JsonElement>(content);
+                var currency = extract(json);
 
-                if (url.Contains("ipapi.co"))
-                {
-                    if (json.TryGetValue("currency", out var cur) && cur is JsonElement el && el.ValueKind == JsonValueKind.String)
-                        currency = el.GetString();
-                }
-                else if (url.Contains("ipwho.is"))
-                {
-                    if (json.TryGetValue("currency", out var curObj) && curObj is JsonElement el && el.ValueKind == JsonValueKind.Object)
-                    {
-                        if (el.TryGetProperty("code", out var codeEl) && codeEl.ValueKind == JsonValueKind.String)
-                            currency = codeEl.GetString();
-                    }
-                }
-                else if (url.Contains("ip-api.com"))
-                {
-                    if (json.TryGetValue("status", out var st) && st is JsonElement stEl && stEl.GetString() == "success"
-                        && json.TryGetValue("currency", out var cur) && cur is JsonElement curEl && curEl.ValueKind == JsonValueKind.String)
-                        currency = curEl.GetString();
-                }
-
-                if (!string.IsNullOrEmpty(currency))
+                if (!string.IsNullOrEmpty(currency) && currency.Length == 3)
                     return Ok(new { currency });
             }
-            catch { }
+            catch { continue; }
         }
 
         return Ok(new { currency = "USD" });
