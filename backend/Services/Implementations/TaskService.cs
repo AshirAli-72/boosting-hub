@@ -320,11 +320,12 @@ public class TaskService : ITaskService
             var relatedTaskIdSet = relatedTaskIds.ToHashSet();
             var allTasks = await _db.TaskGenerates
                 .AsNoTracking()
+                .Where(t => relatedTaskIds.Contains(t.Id))
                 .OrderByDescending(t => t.Id)
-                .Take(500)
+                .Take(100)
                 .ToListAsync();
 
-            var tasks = allTasks.Where(t => relatedTaskIdSet.Contains(t.Id)).Take(100).ToList();
+            var tasks = allTasks;
 
             var taskIds = tasks.Select(t => t.Id).ToList();
             var taskIdSet = taskIds.ToHashSet();
@@ -767,7 +768,7 @@ public class TaskService : ITaskService
 
             var query = _db.TaskGenerates
                 .AsNoTracking()
-                .Where(t => relatedTaskIdSet.Contains(t.Id));
+                .Where(t => relatedTaskIds.Contains(t.Id));
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
