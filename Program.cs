@@ -16,6 +16,7 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions =>
         {
+            sqlOptions.UseCompatibilityLevel(120);
             sqlOptions.EnableRetryOnFailure(3);
             sqlOptions.CommandTimeout(60);
         })

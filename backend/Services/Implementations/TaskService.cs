@@ -144,14 +144,17 @@ public class TaskService : ITaskService, IDisposable
         }
 
         var orderIds = pagedTasks.Select(t => t.OrderId).Distinct().ToList();
-        Dictionary<int, string> orderCurrencyMap;
-        using (var dbOrders = _dbFactory.CreateDbContext())
+        Dictionary<int, string> orderCurrencyMap = new();
+        if (orderIds.Any())
         {
-            var orderCurrencies = await dbOrders.Orders
-                .Where(o => orderIds.Contains(o.Id))
-                .Select(o => new { o.Id, o.Currency })
-                .ToListAsync();
-            orderCurrencyMap = orderCurrencies.ToDictionary(o => o.Id, o => o.Currency ?? "PKR");
+            using (var dbOrders = _dbFactory.CreateDbContext())
+            {
+                var orderCurrencies = await dbOrders.Orders
+                    .Where(o => orderIds.Contains(o.Id))
+                    .Select(o => new { o.Id, o.Currency })
+                    .ToListAsync();
+                orderCurrencyMap = orderCurrencies.ToDictionary(o => o.Id, o => o.Currency ?? "PKR");
+            }
         }
 
         var tasks = pagedTasks.Select(t =>

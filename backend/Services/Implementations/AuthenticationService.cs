@@ -379,8 +379,35 @@ public class AuthenticationService : IAuthenticationService
         if (DateTime.UtcNow - payload.CreatedAt > TimeSpan.FromHours(24))
             return Result.Failure<AuthResponseDto>("Verification link has expired. Please register again.", "TOKEN_EXPIRED");
 
-        if (await _db.Users.AnyAsync(u => u.Email == payload.Email, ct))
-            return Result.Failure<AuthResponseDto>("This email is already registered", "DUPLICATE_EMAIL");
+        var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == payload.Email, ct);
+        if (existingUser != null)
+        {
+            if (!existingUser.EmailVerifiedAt.HasValue)
+            {
+                existingUser.EmailVerifiedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+            }
+
+            var authResp = await _tokenService.GenerateTokensAsync(existingUser);
+            var rolesList = await _db.UserHasRoles
+                .Include(ur => ur.Role)
+                .Where(ur => ur.UserId == existingUser.Id)
+                .Select(ur => ur.Role != null ? ur.Role.RoleTitle : "User")
+                .ToListAsync(ct);
+
+            authResp.User = new UserDto
+            {
+                Id = existingUser.Id,
+                Name = existingUser.Name,
+                Email = existingUser.Email,
+                Phone = existingUser.Phone,
+                Status = existingUser.Status == 1 ? "Active" : "Inactive",
+                EmailVerifiedAt = existingUser.EmailVerifiedAt,
+                Roles = (rolesList.Any() ? rolesList : new List<string> { "User" }).ToArray()
+            };
+
+            return Result.Success(authResp, "Your email has been verified. You can now log in.");
+        }
 
         if (!string.IsNullOrWhiteSpace(payload.Phone) && await _db.Users.AnyAsync(u => u.Phone == payload.Phone, ct))
             return Result.Failure<AuthResponseDto>("This phone number is already registered", "DUPLICATE_PHONE");
