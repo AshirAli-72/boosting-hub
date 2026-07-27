@@ -110,7 +110,7 @@ public class AuthenticationService : IAuthenticationService
             TotalBalance = 0,
             Currency = string.Empty,
             Withdrawn = 0,
-            Status = "1",
+            Status = 1,
             CreatedAt = DateTime.UtcNow
         });
 
@@ -444,7 +444,7 @@ public class AuthenticationService : IAuthenticationService
                 TotalBalance = 0,
                 Currency = string.Empty,
                 Withdrawn = 0,
-                Status = "1",
+                Status = 1,
                 CreatedAt = DateTime.UtcNow
             });
             await _db.SaveChangesAsync(ct);

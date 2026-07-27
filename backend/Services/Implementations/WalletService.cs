@@ -25,7 +25,7 @@ public class WalletService : IWalletService
         return await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
     }
 
-    public async Task<Wallet> CreateOrUpdateWalletAsync(int userId, decimal totalBalance, string currency, decimal withdrawn, string status = "1")
+    public async Task<Wallet> CreateOrUpdateWalletAsync(int userId, decimal totalBalance, string currency, decimal withdrawn, int status = 1)
     {
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
 
@@ -65,7 +65,7 @@ public class WalletService : IWalletService
                 TotalBalance = amount,
                 Currency = string.Empty,
                 Withdrawn = 0,
-                Status = "1",
+                Status = 1,
                 CreatedAt = DateTime.UtcNow
             };
             _db.Wallets.Add(wallet);
@@ -150,7 +150,7 @@ public class WalletService : IWalletService
                 TotalBalance = 0,
                 Currency = string.Empty,
                 Withdrawn = 0,
-                Status = "1",
+                Status = 1,
                 CreatedAt = DateTime.UtcNow
             };
             _db.Wallets.Add(wallet);

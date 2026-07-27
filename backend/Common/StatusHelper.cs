@@ -97,11 +97,14 @@ public static class StatusHelper
     };
 
     // ── Wallet Status ─────────────────────────────────────────────────────────
-    // wallets.status is nvarchar(20) in DB
-    public static string WalletStatusToString(string status) => status?.ToLower() switch
+    // wallets.status is int in DB
+    public const int WalletActive = 1;
+    public const int WalletInactive = 2;
+
+    public static string WalletStatusToString(int status) => status switch
     {
-        "active" => "Active",
-        "inactive" => "Inactive",
+        1 => "Active",
+        2 => "Inactive",
         _ => "Active"
     };
 
