@@ -12,7 +12,7 @@ public class Wallet
     [Column("currency")] public string Currency { get; set; } = string.Empty;
     [Column("withdrawn")] public decimal Withdrawn { get; set; }
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    [Column("status", TypeName = "nvarchar(20)")] public string Status { get; set; } = "active";
+    [Column("status", TypeName = "nvarchar(20)")] public string Status { get; set; } = "1";
 
     public User User { get; set; } = null!;
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();

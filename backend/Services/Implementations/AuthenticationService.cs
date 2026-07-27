@@ -110,7 +110,7 @@ public class AuthenticationService : IAuthenticationService
             TotalBalance = 0,
             Currency = string.Empty,
             Withdrawn = 0,
-            Status = "active",
+            Status = "1",
             CreatedAt = DateTime.UtcNow
         });
 
@@ -436,17 +436,23 @@ public class AuthenticationService : IAuthenticationService
 
         _db.UserHasRoles.Add(new UserHasRole { UserId = user.Id, RoleId = userRole.Id });
 
-        _db.Wallets.Add(new Wallet
+        try
         {
-            UserId = user.Id,
-            TotalBalance = 0,
-            Currency = string.Empty,
-            Withdrawn = 0,
-            Status = "active",
-            CreatedAt = DateTime.UtcNow
-        });
-
-        await _db.SaveChangesAsync(ct);
+            _db.Wallets.Add(new Wallet
+            {
+                UserId = user.Id,
+                TotalBalance = 0,
+                Currency = string.Empty,
+                Withdrawn = 0,
+                Status = "1",
+                CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to create wallet for user {UserId}: {Message}", user.Id, ex.Message);
+        }
 
         var adminUserIds = await _db.UserHasRoles
             .Include(ur => ur.Role)
