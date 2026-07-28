@@ -481,12 +481,27 @@
 
                         <div style="margin-bottom:20px;">
                             <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Choose Payment Method</div>
-                            <select id="payMethodSelect" class="pay-method-select" onchange="onPayMethodChange()">
-                                <option value="">— Select a payment method —</option>
-                            </select>
-                            <div id="payMethodAccountDetails" style="display:none;margin-top:12px;background:rgba(99,102,241,0.06);border:1px solid var(--border-subtle);border-radius:10px;padding:14px;">
-                                <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;"><i class="bi bi-bank"></i> Account Details</div>
-                                <div id="payMethodDetailsContent"></div>
+                            <div class="pay-methods-grid">
+                                <button type="button" class="pay-method-card" id="payMethodEasyPaisa" onclick="selectPayMethod('easypaisa')">
+                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#00A651,#008C44);">
+                                        <i class="bi bi-wallet2"></i>
+                                    </div>
+                                    <div class="pay-method-info">
+                                        <span class="pay-method-name">EasyPaisa</span>
+                                        <span class="pay-method-desc">EasyPaisa mobile wallet</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
+                                </button>
+                                <button type="button" class="pay-method-card" id="payMethodStripe" onclick="selectPayMethod('stripe')">
+                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#635BFF,#7A73FF);">
+                                        <i class="bi bi-credit-card-2-front"></i>
+                                    </div>
+                                    <div class="pay-method-info">
+                                        <span class="pay-method-name">Card Payment</span>
+                                        <span class="pay-method-desc">Visa, Mastercard via Stripe</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -1178,77 +1193,25 @@
             if (payTotal) payTotal.textContent = sym + parseFloat(totalConverted).toFixed(2);
         }
 
-        function onPayMethodChange() {
-            var sel = document.getElementById('payMethodSelect');
-            var method = sel.value;
-            selectedPayMethod = method || null;
-            var detailsDiv = document.getElementById('payMethodAccountDetails');
-            var contentDiv = document.getElementById('payMethodDetailsContent');
+        function selectPayMethod(method) {
+            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
+            var btn = method === 'easypaisa' ? document.getElementById('payMethodEasyPaisa') : document.getElementById('payMethodStripe');
+            if (btn) btn.classList.add('selected');
+            selectedPayMethod = method;
 
-            document.getElementById('payStripeInfo').style.display = 'none';
-
-            if (!method) {
-                detailsDiv.style.display = 'none';
-                return;
-            }
-
-            if (method === 'stripe') {
-                detailsDiv.style.display = 'none';
-                document.getElementById('payStripeInfo').style.display = 'block';
-                return;
-            }
-
-            var accs = window.__paymentAccounts || [];
-            var acct = accs.find(function(a) { return a.accountTitle === method; });
-            if (acct) {
-                detailsDiv.style.display = 'block';
-                var html = '<div style="display:flex;flex-direction:column;gap:6px;">';
-                if (acct.mobileNumber) {
-                    html += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.78rem;color:#94a3b8;">Mobile</span><span style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">' + esc(acct.mobileNumber) + '</span></div>';
-                }
-                if (acct.accountNumber) {
-                    html += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.78rem;color:#94a3b8;">Account #</span><span style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">' + esc(acct.accountNumber) + '</span></div>';
-                }
-                if (acct.bankName) {
-                    html += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.78rem;color:#94a3b8;">Bank</span><span style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">' + esc(acct.bankName) + '</span></div>';
-                }
-                html += '</div>';
-                contentDiv.innerHTML = html;
-            } else {
-                detailsDiv.style.display = 'block';
-                contentDiv.innerHTML = '<div style="font-size:0.82rem;color:#94a3b8;">Contact admin for account details.</div>';
-            }
+            document.getElementById('payEasyPaisaInfo').style.display = method === 'easypaisa' ? 'block' : 'none';
+            document.getElementById('payStripeInfo').style.display = method === 'stripe' ? 'block' : 'none';
         }
 
         function openPaymentModal() {
             selectedPayMethod = null;
+            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
+            document.getElementById('payEasyPaisaInfo').style.display = 'none';
             document.getElementById('payStripeInfo').style.display = 'none';
-            document.getElementById('payMethodAccountDetails').style.display = 'none';
             window.__paymentAccounts = [];
             fetch('/api/manualpaymentproofs/payment-accounts')
                 .then(function(r) { return r.json(); })
-                .then(function(accounts) {
-                    window.__paymentAccounts = accounts;
-                    var sel = document.getElementById('payMethodSelect');
-                    sel.innerHTML = '<option value="">— Select a payment method —</option>';
-                    if (accounts && accounts.length) {
-                        accounts.forEach(function(a) {
-                            var opt = document.createElement('option');
-                            opt.value = a.accountTitle;
-                            opt.textContent = a.accountTitle;
-                            sel.appendChild(opt);
-                        });
-                    }
-                    var stripeOpt = document.createElement('option');
-                    stripeOpt.value = 'stripe';
-                    stripeOpt.textContent = 'Card Payment (Stripe)';
-                    sel.appendChild(stripeOpt);
-                    var epDefault = accounts.find(function(a) { return a.accountTitle === 'EasyPaisa'; });
-                    if (epDefault) {
-                        sel.value = 'EasyPaisa';
-                        onPayMethodChange();
-                    }
-                })
+                .then(function(accounts) { window.__paymentAccounts = accounts; })
                 .catch(function() {});
             var name = document.getElementById('iq-name').value.trim();
             var email = document.getElementById('iq-email').value.trim();
@@ -1317,7 +1280,7 @@
             selectedPayMethod = null;
             document.getElementById('payEasyPaisaInfo').style.display = 'none';
             document.getElementById('payStripeInfo').style.display = 'none';
-            document.getElementById('payMethodAccountDetails').style.display = 'none';
+            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
             var btn = document.getElementById('payConfirmBtn');
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay'; }
         }
@@ -1381,23 +1344,7 @@
                 var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 var timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-                function buildVoucherAccountHtml() {
-                    var accs = window.__paymentAccounts || [];
-                    if (!accs.length) return '';
-                    var html = '<div class="v-acc"><div class="v-acc-title"><i class="bi bi-bank"></i> Payment Account Details</div>';
-                    for (var i = 0; i < accs.length; i++) {
-                        var a = accs[i];
-                        var detail = '';
-                        if (a.bankName) {
-                            detail = esc(a.accountNumber || '') + ' · ' + esc(a.bankName);
-                        } else {
-                            detail = esc(a.mobileNumber || '');
-                        }
-                        html += '<div class="v-acc-row"><span class="v-acc-label">' + esc(a.accountTitle) + '</span><span class="v-acc-value">' + detail + '</span></div>';
-                    }
-                    html += '</div>';
-                    return html;
-                }
+                function buildVoucherAccountHtml() { return ''; }
 
                 var renderId = 'voucher-render-' + Date.now();
                 var voucherDiv = document.createElement('div');
@@ -1703,21 +1650,8 @@
 
                     document.getElementById('payEasyPaisaInfo').style.display = 'block';
                     document.getElementById('payEasyPaisaInfo').innerHTML =
-                        '<div style="font-size:0.82rem;font-weight:700;color:#00A651;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;"><i class="bi bi-wallet2"></i> ' + esc(selectedPayMethod) + ' Payment</div>' +
-                        '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">Your order <strong>#' + data.orderId + '</strong> has been saved. Send payment and upload your proof below.</p>' +
-                        '<div id="payEasyPaisaDetails"></div>';
-
-                    var accs = window.__paymentAccounts || [];
-                    var ep = accs.find(function(a) { return a.accountTitle === selectedPayMethod; });
-                    var detDiv = document.getElementById('payEasyPaisaDetails');
-                    if (ep) {
-                        var epHtml = '<div style="display:flex;flex-direction:column;gap:4px;">';
-                        if (ep.mobileNumber) epHtml += '<div style="font-size:1rem;font-weight:800;color:#1e293b;">' + esc(ep.mobileNumber) + '</div>';
-                        if (ep.accountNumber) epHtml += '<div style="font-size:0.82rem;color:#6b7280;">Account: ' + esc(ep.accountNumber) + '</div>';
-                        if (ep.bankName) epHtml += '<div style="font-size:0.82rem;color:#6b7280;">Bank: ' + esc(ep.bankName) + '</div>';
-                        epHtml += '</div>';
-                        detDiv.innerHTML = epHtml;
-                    }
+                        '<div style="font-size:0.82rem;font-weight:700;color:#00A651;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;"><i class="bi bi-wallet2"></i> ' + esc(selectedPayMethod === 'stripe' ? 'Card' : selectedPayMethod) + ' Payment</div>' +
+                        '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">Your order <strong>#' + data.orderId + '</strong> has been saved. Send payment and upload your proof below.</p>';
 
                     var proofHtml = '<div style="height:1px;background:var(--border-subtle);margin:16px 0;"></div>' +
                         '<div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Upload Payment Proof</div>' +

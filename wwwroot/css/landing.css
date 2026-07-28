@@ -1341,17 +1341,6 @@ body.light-mode .hero-card-mockup {
     opacity: 0.6; cursor: not-allowed; transform: none;
     box-shadow: none;
 }
-.pay-method-select {
-    width:100%; padding:12px 14px; border-radius:12px;
-    border:2px solid var(--border-subtle); background:var(--bg-elevated);
-    color:var(--text-primary); font-size:0.9rem; font-weight:600;
-    cursor:pointer; transition:border-color 0.2s;
-    appearance:auto; -webkit-appearance:auto;
-}
-.pay-method-select:focus {
-    border-color:#6366f1; outline:none;
-    box-shadow:0 0 0 3px rgba(99,102,241,0.12);
-}
 
 /* ═══════════════════════════════════════════════════════════════
    PROFESSIONAL PAYMENT VOUCHER – NON-EDITABLE PDF LAYOUT

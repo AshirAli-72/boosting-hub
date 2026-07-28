@@ -93,7 +93,26 @@ ELSE
     PRINT 'Index IX_orders_voucher_no already exists.';
 GO
 
--- ── 6. Reseed manual_payment_proofs identity to start at 0 ──
+-- ── 6. Add account_number and bank_name to accounts (if missing) ──
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.accounts') AND name = 'account_number')
+BEGIN
+    ALTER TABLE accounts ADD account_number NVARCHAR(100) NULL;
+    PRINT 'Column account_number added to accounts.';
+END
+ELSE
+    PRINT 'Column account_number already exists.';
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID(N'dbo.accounts') AND name = 'bank_name')
+BEGIN
+    ALTER TABLE accounts ADD bank_name NVARCHAR(100) NULL;
+    PRINT 'Column bank_name added to accounts.';
+END
+ELSE
+    PRINT 'Column bank_name already exists.';
+GO
+
+-- ── 7. Reseed manual_payment_proofs identity to start at 0 ──
 IF OBJECT_ID(N'dbo.manual_payment_proofs', N'U') IS NOT NULL
 BEGIN
     DBCC CHECKIDENT ('manual_payment_proofs', RESEED, -1);
