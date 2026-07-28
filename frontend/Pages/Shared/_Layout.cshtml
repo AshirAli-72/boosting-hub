@@ -1643,28 +1643,28 @@
                     var data = await resp.json();
                     if (!resp.ok) throw new Error(data.message || 'Failed');
 
-                    window.__epOrderId = data.orderId;
+                    closePaymentModal();
+                    window.__epOrderId = null;
 
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
+                    document.getElementById('inquirySuccess').innerHTML =
+                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Order #' + data.orderId + ' submitted! Use the <strong>Already Have a Voucher?</strong> section below to upload your payment proof.';
+                    document.getElementById('inquirySuccess').style.display = 'flex';
+                    setTimeout(function() {
+                        document.getElementById('inquirySuccess').style.display = 'none';
+                        document.getElementById('inquirySuccess').innerHTML =
+                            '<i class="bi bi-check-circle-fill"></i>&nbsp; Your inquiry has been submitted! We\'ll get back to you within 24 hours.';
+                    }, 8000);
 
-                    document.getElementById('payEasyPaisaInfo').style.display = 'block';
-                    document.getElementById('payEasyPaisaInfo').innerHTML =
-                        '<div style="font-size:0.82rem;font-weight:700;color:#00A651;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;"><i class="bi bi-wallet2"></i> ' + esc(selectedPayMethod === 'stripe' ? 'Card' : selectedPayMethod) + ' Payment</div>' +
-                        '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">Your order <strong>#' + data.orderId + '</strong> has been saved. Send payment and upload your proof below.</p>';
-
-                    var proofHtml = '<div style="height:1px;background:var(--border-subtle);margin:16px 0;"></div>' +
-                        '<div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Upload Payment Proof</div>' +
-                        '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">After making the payment, upload your payment screenshot/receipt here.</p>' +
-                        '<div style="margin-bottom:12px;">' +
-                            '<label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Payment Screenshot / Receipt (Image or PDF) *</label>' +
-                            '<input type="file" id="payProofFile" accept="image/*,.pdf" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-subtle);background:var(--bg-elevated);color:var(--text-primary);" />' +
-                        '</div>' +
-                        '<button type="button" id="payProofBtn" class="pay-confirm-btn" onclick="submitEasyPaisaProof()" style="width:100%;">' +
-                            '<i class="bi bi-cloud-arrow-up-fill"></i> Submit Payment Proof' +
-                        '</button>';
-
-                    document.getElementById('payEasyPaisaInfo').innerHTML += proofHtml;
+                    document.getElementById('inquiryForm').reset();
+                    if (attachmentInput) attachmentInput.value = '';
+                    document.querySelectorAll('#iq-svc-menu input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+                    updateSvcLabel();
+                    document.getElementById('iq-service-qty-area').innerHTML = '';
+                    document.getElementById('iq-services-area').innerHTML = '';
+                    document.getElementById('iq-order-summary').style.display = 'none';
+                    iqServiceData = {};
+                    updateServiceQtyVisibility();
+                    selectedPayMethod = null;
 
                 } else if (selectedPayMethod === 'stripe') {
                     var resp = await fetch('/api/orders', { method: 'POST', body: formData });
@@ -1699,61 +1699,6 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
             }
-        }
-
-        async function submitEasyPaisaProof() {
-            var fileInput = document.getElementById('payProofFile');
-            if (!fileInput || !fileInput.files.length) {
-                alert('Please upload your payment screenshot/receipt.');
-                return;
-            }
-            if (!window.__epOrderId) {
-                alert('No order found. Please try again.');
-                return;
-            }
-            var btn = document.getElementById('payProofBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
-
-            var formData = new FormData();
-            formData.append('orderId', window.__epOrderId);
-            formData.append('paymentMethod', 'EasyPaisa');
-            formData.append('paidAmount', document.getElementById('pay-total').textContent.replace(/[^0-9.]/g, ''));
-            formData.append('paidVoucher', fileInput.files[0]);
-
-            try {
-                var resp = await fetch('/api/manualpaymentproofs', { method: 'POST', body: formData });
-                var data = await resp.json();
-                if (!resp.ok) throw new Error(data.message || 'Failed');
-
-                closePaymentModal();
-                window.__epOrderId = null;
-
-                document.getElementById('inquirySuccess').innerHTML =
-                    '<i class="bi bi-check-circle-fill"></i>&nbsp; Order submitted with payment proof! Awaiting admin verification.';
-                document.getElementById('inquirySuccess').style.display = 'flex';
-                setTimeout(function() {
-                    document.getElementById('inquirySuccess').style.display = 'none';
-                    document.getElementById('inquirySuccess').innerHTML =
-                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Your inquiry has been submitted! We\'ll get back to you within 24 hours.';
-                }, 5000);
-
-                document.getElementById('inquiryForm').reset();
-                var attInput = document.getElementById('iq-attachment');
-                if (attInput) attInput.value = '';
-                document.querySelectorAll('#iq-svc-menu input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
-                updateSvcLabel();
-                document.getElementById('iq-service-qty-area').innerHTML = '';
-                document.getElementById('iq-services-area').innerHTML = '';
-                document.getElementById('iq-order-summary').style.display = 'none';
-                iqServiceData = {};
-                updateServiceQtyVisibility();
-                selectedPayMethod = null;
-            } catch(err) {
-                alert(err.message || 'Failed to submit payment proof.');
-            }
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill"></i> Submit Payment Proof';
         }
 
 
