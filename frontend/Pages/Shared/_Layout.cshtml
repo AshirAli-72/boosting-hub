@@ -1647,13 +1647,13 @@
                     window.__epOrderId = null;
 
                     document.getElementById('inquirySuccess').innerHTML =
-                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Order #' + data.orderId + ' submitted! Use the <strong>Already Have a Voucher?</strong> section below to upload your payment proof.';
+                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Order #' + data.orderId + ' submitted successfully!';
                     document.getElementById('inquirySuccess').style.display = 'flex';
                     setTimeout(function() {
                         document.getElementById('inquirySuccess').style.display = 'none';
                         document.getElementById('inquirySuccess').innerHTML =
-                            '<i class="bi bi-check-circle-fill"></i>&nbsp; Your inquiry has been submitted! We\'ll get back to you within 24 hours.';
-                    }, 8000);
+                            '<i class="bi bi-check-circle-fill"></i>&nbsp; Order #' + data.orderId + ' submitted successfully!';
+                    }, 5000);
 
                     document.getElementById('inquiryForm').reset();
                     if (attachmentInput) attachmentInput.value = '';
