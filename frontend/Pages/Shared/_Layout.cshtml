@@ -1344,7 +1344,20 @@
                 var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 var timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-                function buildVoucherAccountHtml() { return ''; }
+                function buildVoucherAccountHtml() {
+                    var accs = window.__paymentAccounts || [];
+                    var banks = accs.filter(function(a) { return a.bankName; });
+                    if (!banks.length) return '';
+                    var html = '<div class="v-acc"><div class="v-acc-title"><i class="bi bi-bank"></i> Bank Account Details</div>';
+                    for (var i = 0; i < banks.length; i++) {
+                        var a = banks[i];
+                        html += '<div class="v-acc-row"><span class="v-acc-label">' + esc(a.accountTitle || a.bankName) + '</span><span class="v-acc-value">' +
+                            esc(a.accountNumber || '') + ' · ' + esc(a.bankName) +
+                            '</span></div>';
+                    }
+                    html += '</div>';
+                    return html;
+                }
 
                 var renderId = 'voucher-render-' + Date.now();
                 var voucherDiv = document.createElement('div');
