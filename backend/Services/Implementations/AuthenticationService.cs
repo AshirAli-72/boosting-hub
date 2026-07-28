@@ -62,7 +62,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // ── Live (Production): send verification email ──
-        var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash);
+        var token = _encodeRegistrationPayload(dto.Name, dto.Email, dto.Phone, passwordHash, dto.SocialMediaAccounts);
         var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
         var verificationLink = $"{baseUrl}/verify-email?token={Uri.EscapeDataString(token)}";
 
@@ -433,6 +433,29 @@ public class AuthenticationService : IAuthenticationService
         _db.Users.Add(user);
         await _db.SaveChangesAsync(ct);
 
+        if (payload.SocialMediaAccounts?.Any() == true)
+        {
+            var seenPlatforms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seenUrls = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var sm in payload.SocialMediaAccounts.Where(s => !string.IsNullOrWhiteSpace(s.Username)))
+            {
+                if (!seenPlatforms.Add(sm.Platform))
+                    continue;
+                var profileUrl = sm.ProfileUrl?.Trim();
+                if (!string.IsNullOrEmpty(profileUrl) && !seenUrls.Add(profileUrl))
+                    continue;
+                _db.SocialMediaAccounts.Add(new SocialMediaAccount
+                {
+                    UserId = user.Id,
+                    Platform = sm.Platform,
+                    Username = sm.Username,
+                    ProfileUrl = sm.ProfileUrl,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            await _db.SaveChangesAsync(ct);
+        }
+
         var userRole = await _db.Roles.FirstOrDefaultAsync(r => r.RoleTitle == "User", ct);
         if (userRole == null)
         {
@@ -557,15 +580,26 @@ public class AuthenticationService : IAuthenticationService
         return Result.Success("Email successfully changed.");
     }
 
-    private string _encodeRegistrationPayload(string name, string email, string phone, string passwordHash)
+    private string _encodeRegistrationPayload(string name, string email, string phone, string passwordHash, List<SocialMediaAccountDto>? socialMediaAccounts = null)
     {
+        var smPayload = socialMediaAccounts?
+            .Where(s => !string.IsNullOrWhiteSpace(s.Username))
+            .Select(s => new SocialMediaAccountPayload
+            {
+                Platform = s.Platform,
+                Username = s.Username,
+                ProfileUrl = s.ProfileUrl
+            })
+            .ToList();
+
         var payload = JsonSerializer.Serialize(new
         {
             Name = name,
             Email = email,
             Phone = phone,
             PasswordHash = passwordHash,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            SocialMediaAccounts = smPayload ?? new List<SocialMediaAccountPayload>()
         });
 
         var key = SHA256.HashData(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
@@ -609,6 +643,7 @@ public class AuthenticationService : IAuthenticationService
         public string Phone { get; init; } = "";
         public string PasswordHash { get; init; } = "";
         public DateTime CreatedAt { get; init; }
+        public List<SocialMediaAccountPayload>? SocialMediaAccounts { get; init; }
     }
 
     private string _generateSecureToken()

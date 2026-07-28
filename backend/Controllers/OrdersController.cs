@@ -143,6 +143,170 @@ public class OrdersController : ControllerBase
         return Ok(new { message = "Order submitted! Awaiting admin approval.", orderId = order.Id });
     }
 
+    [HttpPost("draft")]
+    [DisableRequestSizeLimit]
+    public async Task<IActionResult> SaveDraftOrder()
+    {
+        var fullName = Request.Form["fullName"].FirstOrDefault();
+        var email = Request.Form["email"].FirstOrDefault();
+        var platform = Request.Form["platform"].FirstOrDefault();
+        var service = Request.Form["service"].FirstOrDefault();
+        var quantityStr = Request.Form["quantity"].FirstOrDefault();
+        var socialMediaUrl = Request.Form["socialMediaUrl"].FirstOrDefault();
+        var totalAmountStr = Request.Form["totalAmount"].FirstOrDefault();
+        var description = Request.Form["description"].FirstOrDefault();
+        var currency = Request.Form["currency"].FirstOrDefault();
+        var paymentMethod = Request.Form["paymentMethod"].FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(platform) || string.IsNullOrWhiteSpace(service))
+            return BadRequest(new { message = "Platform and Service are required." });
+
+        int.TryParse(quantityStr, out var quantity);
+        decimal.TryParse(totalAmountStr, out var totalAmount);
+
+        var orderCurrency = (currency ?? "USD").Trim().ToUpperInvariant();
+
+        string? attachmentPath = null;
+        if (Request.Form.Files.Count > 0)
+        {
+            var file = Request.Form.Files[0];
+            if (file.Length > 0)
+            {
+                var attachmentsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "attachments");
+                if (!Directory.Exists(attachmentsDir))
+                    Directory.CreateDirectory(attachmentsDir);
+
+                var ext = Path.GetExtension(file.FileName);
+                var fileName = $"order_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(attachmentsDir, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                attachmentPath = $"attachments/{fileName}";
+            }
+        }
+
+        var order = new Orders
+        {
+            FullName = fullName,
+            Email = email,
+            Platform = platform,
+            Service = service,
+            Quantity = quantity.ToString(),
+            SocialMediaUrl = socialMediaUrl,
+            TotalAmount = totalAmount,
+            Currency = orderCurrency,
+            Description = description,
+            Attachment = attachmentPath,
+            Status = StatusHelper.OrderDraft,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.Orders.Add(order);
+        await _db.SaveChangesAsync();
+
+        order.VoucherNo = GenerateVoucherNumber(order.Id);
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Draft order #{OrderId} saved with voucher {VoucherNo}.", order.Id, order.VoucherNo);
+
+        return Ok(new { message = "Draft saved.", orderId = order.Id, voucherNo = order.VoucherNo });
+    }
+
+    private static string GenerateVoucherNumber(int orderId)
+    {
+        return $"VCH-{DateTime.UtcNow:yyyy}-{orderId:D5}";
+    }
+
+    [HttpGet("lookup/{voucherNo}")]
+    public async Task<IActionResult> LookupByVoucherNo(string voucherNo)
+    {
+        var order = await _db.Orders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.VoucherNo == voucherNo && o.Status == StatusHelper.OrderDraft);
+
+        if (order == null)
+            return NotFound(new { message = "Voucher not found or already processed." });
+
+        return Ok(new
+        {
+            order.Id,
+            order.VoucherNo,
+            order.FullName,
+            order.Email,
+            order.Platform,
+            order.Service,
+            order.Quantity,
+            order.SocialMediaUrl,
+            order.TotalAmount,
+            order.Currency,
+            order.Description,
+            order.Attachment,
+            order.CreatedAt
+        });
+    }
+
+    [HttpPost("{id}/upload-paid-voucher")]
+    [DisableRequestSizeLimit]
+    public async Task<IActionResult> UploadPaidVoucher(int id)
+    {
+        var order = await _db.Orders.FindAsync(id);
+        if (order == null)
+            return NotFound(new { message = "Order not found." });
+
+        if (order.Status != StatusHelper.OrderDraft)
+            return BadRequest(new { message = "Order is not in draft status." });
+
+        var paymentMethod = Request.Form["paymentMethod"].FirstOrDefault();
+        var paidAmountStr = Request.Form["paidAmount"].FirstOrDefault();
+
+        decimal.TryParse(paidAmountStr, out var paidAmount);
+        if (paidAmount <= 0) paidAmount = order.TotalAmount;
+
+        string? voucherPath = null;
+        if (Request.Form.Files.Count > 0)
+        {
+            var file = Request.Form.Files[0];
+            if (file.Length > 0)
+            {
+                var vouchersDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "payment-vouchers");
+                if (!Directory.Exists(vouchersDir))
+                    Directory.CreateDirectory(vouchersDir);
+
+                var ext = Path.GetExtension(file.FileName);
+                var fileName = $"voucher_{id}_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(vouchersDir, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                voucherPath = $"payment-vouchers/{fileName}";
+            }
+        }
+
+        order.Status = StatusHelper.OrderPending;
+
+        var proof = new ManualPaymentProof
+        {
+            OrderId = id,
+            PaidAmount = paidAmount,
+            PaymentMethod = paymentMethod ?? "easypaisa",
+            PaidVoucher = voucherPath,
+            SubmitDate = DateTime.UtcNow,
+            Status = StatusHelper.ManualPaymentPending
+        };
+
+        _db.ManualPaymentProofs.Add(proof);
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Paid voucher uploaded for Draft Order #{OrderId}.", id);
+
+        return Ok(new { message = "Payment proof submitted! Awaiting admin verification.", proofId = proof.Id });
+    }
+
     [HttpPost("{id}/approve")]
     public async Task<IActionResult> ApproveOrder(int id)
     {
@@ -154,6 +318,14 @@ public class OrdersController : ControllerBase
             return BadRequest(new { message = $"Order is already {StatusHelper.OrderStatusToString(order.Status)}." });
 
         order.Status = StatusHelper.OrderApproved;
+
+        var pendingProofs = await _db.ManualPaymentProofs
+            .Where(p => p.OrderId == id && p.Status == StatusHelper.ManualPaymentPending)
+            .ToListAsync();
+        foreach (var proof in pendingProofs)
+        {
+            proof.Status = StatusHelper.ManualPaymentPaid;
+        }
 
         var quantity = int.TryParse(order.Quantity, out var q) && q > 0 ? q : 1;
         var tasksGenerated = GenerateTasksForOrder(order, quantity);
@@ -230,7 +402,9 @@ public class OrdersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetOrders([FromQuery] string? status = null)
     {
-        var query = _db.Orders.AsNoTracking().AsQueryable();
+        var query = _db.Orders.AsNoTracking()
+            .Where(o => o.Status != StatusHelper.OrderDraft)
+            .AsQueryable();
         if (!string.IsNullOrEmpty(status))
             query = query.Where(o => StatusHelper.OrderStatusToString(o.Status) == status);
 
@@ -250,7 +424,8 @@ public class OrdersController : ControllerBase
                 o.Status,
                 o.CreatedAt,
                 o.Attachment,
-                o.RejectReason
+                o.RejectReason,
+                o.VoucherNo
             })
             .ToListAsync();
 

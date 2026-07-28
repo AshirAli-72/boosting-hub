@@ -28,8 +28,9 @@ namespace BoostingHub.backend.Data.Migrations
                    status = table.Column<int>(type: "int", nullable: false),
                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                    attachment = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                   reject_reason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true)
-               },
+                   reject_reason = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                   voucher_no = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
+                },
                constraints: table =>
                {
                    table.PrimaryKey("PK_orders", x => x.id);
@@ -38,13 +39,22 @@ namespace BoostingHub.backend.Data.Migrations
                 name: "IX_orders_status",
                 table: "orders",
                 column: "status");
+            migrationBuilder.CreateIndex(
+                name: "IX_orders_voucher_no",
+                table: "orders",
+                column: "voucher_no",
+                unique: true,
+                filter: "[voucher_no] IS NOT NULL");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropIndex(
+                name: "IX_orders_voucher_no",
+                table: "orders");
             migrationBuilder.DropTable(
-                 name: "orders");
+                  name: "orders");
         }
     }
 }

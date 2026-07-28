@@ -8,6 +8,8 @@
     <link rel="icon" type="image/png" href="~/img/icon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @if (ViewData["PageType"]?.ToString() == "landing")
     {
@@ -50,13 +52,14 @@
                 <nav class="header-nav" id="headerNav">
                     <a href="#features">Features</a>
                     <a href="#stats">Stats</a>
-                    <a href="#get-started">Get Started</a>
+                    <a href="#how-earners">How It Works</a>
+                    <a href="#contact">Contact Us</a>
                     <div class="mobile-nav-cta">
                         <button class="theme-toggle-btn mobile-theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
                             <i class="bi bi-moon-fill dark-icon"></i><i class="bi bi-sun-fill light-icon"></i> <span class="theme-text">Theme</span>
                         </button>
                         <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Login</a>
-                        <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus"></i> Get Started</a>
+                        <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus-fill"></i> Sign Up</a>
                     </div>
                 </nav>
                 <div class="header-cta" id="headerCta">
@@ -65,7 +68,7 @@
                         <i class="bi bi-sun-fill light-icon"></i>
                     </button>
                     <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Login</a>
-                    <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus"></i> Get Started</a>
+                    <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus-fill"></i> Sign Up</a>
                 </div>
                 <button class="mobile-toggle" id="mobileToggle" onclick="toggleMobileNav()">&#9776;</button>
             </div>
@@ -90,8 +93,8 @@
                             Boost your social presence with authentic likes, followers, and views.
                         </p>
                         <div class="hero-actions">
-                            <a href="/register" class="btn-hero-primary">
-                                <i class="bi bi-rocket-takeoff"></i> Get Started Free
+                            <a href="#contact" class="btn-hero-primary">
+                                <i class="bi bi-envelope-fill"></i> Contact Us
                             </a>
                             <a href="#features" class="btn-hero-secondary">
                                 <i class="bi bi-play-circle"></i> See How It Works
@@ -245,9 +248,9 @@
             </section>
 
             <!-- ── Clients Section ── -->
-            <section class="inquiry-section" id="get-started">
+            <section class="inquiry-section" id="place-order">
                 <div class="section-header">
-                    <div class="section-label"><i class="bi bi-people-fill"></i> Get Started</div>
+                    <div class="section-label"><i class="bi bi-cart-check-fill"></i> Place Your Order</div>
                     <h2 class="section-title section-title-light">Place Your Order</h2>
                     <p class="section-subtitle">Choose your Platform, Service, and Quantity — pay to confirm and tasks are auto-generated for our community to complete.</p>
                     <div id="iq-currency-badge" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 16px;border-radius:20px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:var(--primary);font-size:0.85rem;font-weight:700;" title="Prices displayed in your local currency"></div>
@@ -304,7 +307,26 @@
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Attachment <span>*</span> <small>(Screenshot of current stats before starting, e.g. followers/following count, likes, views — so we can verify completion)</small></label>
-                                    <input type="file" id="iq-attachment" accept="image/*" style="font-size:0.9rem;" required />
+                                    <div class="file-upload-wrapper" id="iq-attachment-wrapper">
+                                        <input type="file" id="iq-attachment" accept="image/*,.pdf,.doc,.docx" required hidden onchange="updateFileName(this)" />
+                                        <label for="iq-attachment" class="file-upload-label">
+                                            <div class="file-upload-icon"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                                            <div class="file-upload-text">
+                                                <div class="file-upload-title">Click to upload or drag &amp; drop</div>
+                                                <div class="file-upload-hint" id="iq-attachment-hint">PNG, JPG, WEBP, PDF up to 10MB</div>
+                                            </div>
+                                        </label>
+                                        <div class="file-preview" id="iq-attachment-preview" style="display:none;">
+                                            <img id="iq-attachment-img" src="" alt="Preview" />
+                                            <div class="file-preview-info">
+                                                <div class="file-preview-name" id="iq-attachment-name">—</div>
+                                                <div class="file-preview-size" id="iq-attachment-size">—</div>
+                                            </div>
+                                            <button type="button" class="file-preview-remove" onclick="removeAttachment()" aria-label="Remove file">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="inquiry-field inquiry-field-full">
                                     <label>Description <small>(optional)</small></label>
@@ -329,16 +351,116 @@
                         </button>
                     </form>
                 </div>
+
+                <!-- ── Voucher Lookup ── -->
+                <div id="voucherLookupCard">
+                    <div class="inquiry-form-card" style="margin-top:32px;">
+                        <div class="inquiry-section-group" style="border-bottom:none;">
+                            <div style="display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:24px;" onclick="toggleVoucherLookup()">
+                                <i class="bi bi-file-earmark-text" style="color:var(--primary);font-size:1.1rem;"></i>
+                                <span style="font-weight:800;color:var(--text-primary);font-size:1.05rem;text-transform:uppercase;letter-spacing:0.3px;">Already Have a Voucher?</span>
+                                <span style="margin-left:auto;color:var(--text-muted);" id="voucherLookupToggleIcon"><i class="bi bi-chevron-down"></i></span>
+                            </div>
+                            <div id="voucherLookupBody" style="display:none;">
+                                <div id="voucherLookupSuccess" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:14px 18px;margin-bottom:20px;align-items:center;gap:8px;color:#166534;font-size:0.85rem;font-weight:500;"></div>
+                                <div id="voucherLookupError" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:14px 18px;margin-bottom:20px;align-items:center;gap:8px;color:#b91c1c;font-size:0.85rem;font-weight:500;"><span id="voucherLookupErrorText"></span></div>
+
+                                <div id="voucherLookupStep1">
+                                    <div class="inquiry-section-group" style="padding:0;border:none;margin-bottom:0;">
+                                        <div class="inquiry-group-title"><i class="bi bi-upc-scan"></i> Enter Voucher Number</div>
+                                        <div class="inquiry-grid">
+                                            <div class="inquiry-field" style="flex:1;">
+                                                <label>Voucher Number <span>*</span></label>
+                                                <input type="text" id="voucherInput" placeholder="VCH-2026-00001" required />
+                                            </div>
+                                            <div class="inquiry-field" style="flex:0 0 auto;align-self:flex-end;">
+                                                <button type="button" class="btn-hero-primary" onclick="lookupVoucher()" id="voucherLookupBtn" style="padding:13px 28px;white-space:nowrap;">
+                                                    <i class="bi bi-search"></i> Look Up
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:8px;">Enter the voucher number you received when downloading the payment voucher. We'll load your order details.</p>
+                                    </div>
+                                </div>
+
+                                <div id="voucherLookupStep2" style="display:none;">
+                                    <div class="inquiry-section-group" style="padding:0;border:none;">
+                                        <div class="inquiry-group-title"><i class="bi bi-receipt"></i> Order Details</div>
+                                        <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:16px;padding:20px;">
+                                            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
+                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Voucher No.</span>
+                                                <strong id="vl-voucher" style="font-size:0.9rem;color:var(--text-primary);font-weight:700;">-</strong>
+                                            </div>
+                                            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
+                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Client</span>
+                                                <strong id="vl-name" style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">-</strong>
+                                            </div>
+                                            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
+                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Platform</span>
+                                                <strong id="vl-platform" style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">-</strong>
+                                            </div>
+                                            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
+                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Services</span>
+                                                <strong id="vl-services" style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">-</strong>
+                                            </div>
+                                            <div style="display:flex;justify-content:space-between;padding:10px 0;">
+                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Quantity</span>
+                                                <strong id="vl-qty" style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">-</strong>
+                                            </div>
+                                            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0 0;border-top:2px solid var(--border-subtle);margin-top:4px;">
+                                                <span style="color:var(--text-primary);font-weight:800;font-size:0.92rem;">Total Amount</span>
+                                                <strong id="vl-total" style="font-size:1.3rem;color:var(--primary);font-weight:900;">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="inquiry-section-group voucher-submit-card" style="padding:0;border:none;margin-top:24px;">
+                                        <div class="inquiry-group-title"><i class="bi bi-cloud-arrow-up-fill"></i> Submit Paid Voucher</div>
+                                        <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:16px;">After making the bank transfer, upload your payment receipt or screenshot here. Once submitted, our admin team will verify and approve your order.</p>
+                                        <div class="inquiry-field" style="margin-bottom:16px;">
+                                            <label>Payment Receipt / Screenshot <span>*</span></label>
+                                            <div class="file-upload-wrapper" id="vl-paidVoucher-wrapper">
+                                                <input type="file" id="vl-paidVoucherFile" accept="image/*,.pdf,.doc,.docx" hidden onchange="updateFileName(this, 'vl-paidVoucherFile')" />
+                                                <label for="vl-paidVoucherFile" class="file-upload-label">
+                                                    <div class="file-upload-icon"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                                                    <div class="file-upload-text">
+                                                        <div class="file-upload-title">Click to upload or drag &amp; drop</div>
+                                                        <div class="file-upload-hint" id="vl-paidVoucher-hint">PNG, JPG, PDF up to 10MB</div>
+                                                    </div>
+                                                </label>
+                                                <div class="file-preview" id="vl-paidVoucher-preview" style="display:none;">
+                                                    <img id="vl-paidVoucher-img" src="" alt="Preview" />
+                                                    <div class="file-preview-info">
+                                                        <div class="file-preview-name" id="vl-paidVoucher-name">—</div>
+                                                        <div class="file-preview-size" id="vl-paidVoucher-size">—</div>
+                                                    </div>
+                                                    <button type="button" class="file-preview-remove" onclick="removeAttachmentVoucher()" aria-label="Remove file">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="min-height:56px;">
+                                            <button type="button" id="vl-submitBtn" class="btn-hero-primary w-100" onclick="submitPaidVoucherFromLanding()" style="justify-content:center;padding:16px;font-size:1rem;height:56px;">
+                                                <i class="bi bi-send-check"></i> Submit Paid Voucher
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
-            <!-- ── Payment Modal ── -->
-            <div class="pkg-modal-overlay" id="paymentOverlay" onclick="closePaymentModal()"></div>
-            <div class="pkg-modal" id="paymentModal" style="max-width:520px;">
-                <div class="pkg-modal-header">
+<!-- ── Payment Modal ── -->
+<div class="pkg-modal-overlay" id="paymentOverlay"></div>
+<div class="pkg-modal" id="paymentModal" style="max-width:520px;max-height:90vh;flex-direction:column;">
+                <div class="pkg-modal-header" style="flex-shrink:0;">
                     <h5><i class="bi bi-shield-lock" style="color:var(--primary);"></i> Secure Checkout</h5>
                     <button class="pkg-modal-close" onclick="closePaymentModal()">&times;</button>
                 </div>
-                <div class="pkg-modal-body" style="padding:0;">
+                <div class="pkg-modal-body" style="padding:0;overflow-y:auto;flex:1;min-height:0;">
                     <div style="padding:24px 24px 0;">
                         <div class="payment-summary" style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:16px;padding:20px;margin-bottom:24px;">
                             <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
@@ -359,27 +481,12 @@
 
                         <div style="margin-bottom:20px;">
                             <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Choose Payment Method</div>
-                            <div class="pay-methods-grid">
-                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'easypaisa')">
-                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#00A651,#008C44);">
-                                        <i class="bi bi-wallet2"></i>
-                                    </div>
-                                    <div class="pay-method-info">
-                                        <span class="pay-method-name">EasyPaisa</span>
-                                        <span class="pay-method-desc">EasyPaisa mobile wallet</span>
-                                    </div>
-                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
-                                </button>
-                                <button type="button" class="pay-method-card" onclick="selectPayMethod(this,'stripe')">
-                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#635BFF,#7A73FF);">
-                                        <i class="bi bi-credit-card-2-front"></i>
-                                    </div>
-                                    <div class="pay-method-info">
-                                        <span class="pay-method-name">Card Payment</span>
-                                        <span class="pay-method-desc">Visa, Mastercard via Stripe</span>
-                                    </div>
-                                    <i class="bi bi-chevron-right pay-method-arrow"></i>
-                                </button>
+                            <select id="payMethodSelect" class="pay-method-select" onchange="onPayMethodChange()">
+                                <option value="">— Select a payment method —</option>
+                            </select>
+                            <div id="payMethodAccountDetails" style="display:none;margin-top:12px;background:rgba(99,102,241,0.06);border:1px solid var(--border-subtle);border-radius:10px;padding:14px;">
+                                <div style="font-size:0.75rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;"><i class="bi bi-bank"></i> Account Details</div>
+                                <div id="payMethodDetailsContent"></div>
                             </div>
                         </div>
 
@@ -390,7 +497,22 @@
                     </div>
 
                     <div style="padding:16px 24px 24px;border-top:1px solid var(--border-subtle);">
-                        <button type="button" id="payConfirmBtn" class="pay-confirm-btn" onclick="confirmPayment()">
+                        <div id="payEasyPaisaInfo" style="display:none;background:rgba(0,166,81,0.08);border:1px solid rgba(0,166,81,0.2);border-radius:12px;padding:16px;margin-bottom:16px;">
+                            <div style="font-size:0.82rem;font-weight:700;color:#00A651;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;"><i class="bi bi-wallet2"></i> EasyPaisa Payment</div>
+                            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">Send payment to the EasyPaisa account below, then click "Confirm & Pay" to submit your order.</p>
+                            <div id="payEasyPaisaDetails"></div>
+                        </div>
+                        <div id="payStripeInfo" style="display:none;background:rgba(99,91,255,0.08);border:1px solid rgba(99,91,255,0.2);border-radius:12px;padding:16px;margin-bottom:16px;">
+                            <div style="font-size:0.82rem;font-weight:700;color:#635BFF;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;"><i class="bi bi-credit-card-2-front"></i> Card Payment</div>
+                            <p style="font-size:0.85rem;color:var(--text-secondary);">You will be redirected to Stripe's secure checkout to complete your card payment.</p>
+                        </div>
+                        <button type="button" id="payDownloadVoucherBtn" class="btn btn-outline-primary w-100 mb-2" style="border-radius:12px;padding:10px;" onclick="downloadVoucherFromPayment()">
+                            <i class="bi bi-download"></i> Download Payment Voucher
+                        </button>
+                        <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin-bottom:8px;">
+                            After downloading, use the <strong>"Already Have a Voucher?"</strong> section below the form to submit your paid voucher.
+                        </div>
+                        <button type="button" id="payConfirmBtn" class="pay-confirm-btn" onclick="confirmPayment()" style="margin-top:8px;">
                             <i class="bi bi-lock-fill"></i> Confirm & Pay
                         </button>
                         <p style="color:var(--text-muted);font-size:0.75rem;margin-top:10px;text-align:center;">Your order will be reviewed by our admin team after payment.</p>
@@ -464,7 +586,8 @@
                 <div class="footer-col">
                     <h4>Platform</h4>
                     <a href="#features">Features</a>
-                    <a href="#get-started">Get Started</a>
+                    <a href="#how-earners">How It Works</a>
+                    <a href="#contact">Contact Us</a>
                     <a href="#">FAQ</a>
                 </div>
                 <div class="footer-col">
@@ -587,6 +710,7 @@
     }
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/html2pdf.bundle.min.js"></script>
     <script src="/js/site.js"></script>
     <script src="/_framework/blazor.server.js"></script>
     <script>
@@ -611,9 +735,93 @@
             });
         }
 
+        function updateFileName(input, variant) {
+            var ctxId = (variant === 'vl-paidVoucherFile') ? 'vl-paidVoucher' : 'iq-attachment';
+            var wrapper = document.getElementById(ctxId + '-wrapper');
+            var preview = document.getElementById(ctxId + '-preview');
+            var label = wrapper.querySelector('.file-upload-label');
+            var img = document.getElementById(ctxId + '-img');
+            var nameEl = document.getElementById(ctxId + '-name');
+            var sizeEl = document.getElementById(ctxId + '-size');
+
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                nameEl.textContent = file.name;
+                var kb = file.size / 1024;
+                sizeEl.textContent = kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : kb.toFixed(1) + ' KB';
+
+                var isImage = file.type && file.type.indexOf('image/') === 0;
+                if (isImage && img) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) { img.src = e.target.result; };
+                    reader.readAsDataURL(file);
+                } else if (img) {
+                    img.style.display = 'none';
+                }
+
+                label.style.display = 'none';
+                preview.style.display = 'flex';
+                wrapper.classList.add('has-file');
+            }
+        }
+
+        function removeAttachment() {
+            var input = document.getElementById('iq-attachment');
+            var wrapper = document.getElementById('iq-attachment-wrapper');
+            var preview = document.getElementById('iq-attachment-preview');
+            var label = wrapper.querySelector('.file-upload-label');
+            input.value = '';
+            preview.style.display = 'none';
+            label.style.display = 'flex';
+            wrapper.classList.remove('has-file');
+            var img = document.getElementById('iq-attachment-img');
+            if (img) { img.style.display = ''; img.src = ''; }
+        }
+
+        function removeAttachmentVoucher() {
+            var input = document.getElementById('vl-paidVoucherFile');
+            var wrapper = document.getElementById('vl-paidVoucher-wrapper');
+            var preview = document.getElementById('vl-paidVoucher-preview');
+            var label = wrapper.querySelector('.file-upload-label');
+            input.value = '';
+            preview.style.display = 'none';
+            label.style.display = 'flex';
+            wrapper.classList.remove('has-file');
+            var img = document.getElementById('vl-paidVoucher-img');
+            if (img) { img.style.display = ''; img.src = ''; }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             updateThemeIcons(savedTheme === 'light');
+
+            function wireDropZone(wrapperId, inputId, updateVariant) {
+                const wrapper = document.getElementById(wrapperId);
+                if (!wrapper) return;
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+                    wrapper.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
+                });
+                ['dragenter', 'dragover'].forEach(ev => {
+                    wrapper.addEventListener(ev, () => wrapper.classList.add('is-dragging'));
+                });
+                ['dragleave', 'drop'].forEach(ev => {
+                    wrapper.addEventListener(ev, () => wrapper.classList.remove('is-dragging'));
+                });
+                wrapper.addEventListener('drop', e => {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    if (files && files[0]) {
+                        const input = document.getElementById(inputId);
+                        const dt2 = new DataTransfer();
+                        dt2.items.add(files[0]);
+                        input.files = dt2.files;
+                        updateFileName(input, updateVariant);
+                    }
+                });
+            }
+
+            wireDropZone('iq-attachment-wrapper', 'iq-attachment', undefined);
+            wireDropZone('vl-paidVoucher-wrapper', 'vl-paidVoucherFile', 'vl-paidVoucherFile');
         });
 
         var iqServiceData = {};
@@ -663,6 +871,42 @@
         }
 
         function detectCurrency() {
+            var tz = '';
+            try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e) {}
+            var tzMap = {
+                'Karachi': 'PKR', 'Lahore': 'PKR', 'Islamabad': 'PKR',
+                'Kolkata': 'INR', 'Mumbai': 'INR', 'Delhi': 'INR', 'Calcutta': 'INR',
+                'Dhaka': 'BDT',
+                'London': 'GBP',
+                'New_York': 'USD', 'Los_Angeles': 'USD', 'Chicago': 'USD', 'Denver': 'USD', 'Phoenix': 'USD', 'Anchorage': 'USD', 'Honolulu': 'USD',
+                'Toronto': 'CAD', 'Vancouver': 'CAD', 'Winnipeg': 'CAD', 'Halifax': 'CAD', 'Edmonton': 'CAD',
+                'Sydney': 'AUD', 'Melbourne': 'AUD', 'Brisbane': 'AUD', 'Perth': 'AUD', 'Adelaide': 'AUD', 'Darwin': 'AUD',
+                'Auckland': 'NZD',
+                'Riyadh': 'SAR', 'Dubai': 'AED', 'Qatar': 'QAR', 'Bahrain': 'BHD', 'Kuwait': 'KWT', 'Muscat': 'OMR', 'Tehran': 'IRR',
+                'Istanbul': 'TRY',
+                'Sao_Paulo': 'BRL', 'Fortaleza': 'BRL', 'Belem': 'BRL', 'Manaus': 'BRL',
+                'Tokyo': 'JPY', 'Shanghai': 'CNY', 'Chongqing': 'CNY', 'Harbin': 'CNY', 'Urumqi': 'CNY', 'Seoul': 'KRW',
+                'Lagos': 'NGN', 'Johannesburg': 'ZAR', 'Cairo': 'EGP', 'Nairobi': 'KES',
+                'Manila': 'PHP', 'Jakarta': 'IDR', 'Bangkok': 'THB', 'Kuala_Lumpur': 'MYR',
+                'Singapore': 'SGD', 'Hong_Kong': 'HKD', 'Taipei': 'TWD',
+                'Moscow': 'RUB', 'Kiev': 'UAH', 'Warsaw': 'PLN', 'Prague': 'CZK', 'Budapest': 'HUF', 'Bucharest': 'RON',
+                'Stockholm': 'SEK', 'Oslo': 'NOK', 'Copenhagen': 'DKK', 'Helsinki': 'EUR',
+                'Berlin': 'EUR', 'Paris': 'EUR', 'Rome': 'EUR', 'Madrid': 'EUR', 'Amsterdam': 'EUR',
+                'Mexico_City': 'MXN', 'Monterrey': 'MXN', 'Bogota': 'COP', 'Lima': 'PEN', 'Santiago': 'CLP',
+                'Buenos_Aires': 'ARS', 'Montevideo': 'UYU', 'La_Paz': 'BOB',
+                'Colombo': 'LKR', 'Kathmandu': 'NPR', 'Almaty': 'KZT', 'Tashkent': 'UZB'
+            };
+            for (var key in tzMap) {
+                if (tz.indexOf(key) !== -1) {
+                    iqDetectedCurrency = tzMap[key];
+                    iqDetectedSymbol = iqCurrencySymbols[tzMap[key]] || '$';
+                    if (window.__userCurrencyCache !== undefined) window.__userCurrencyCache = tzMap[key];
+                    updateCurrencyBadge();
+                    refreshAllPrices();
+                    return;
+                }
+            }
+
             if (typeof window.__getUserCurrency === 'function') {
                 window.__getUserCurrency().then(function(cur) {
                     if (cur) {
@@ -671,49 +915,8 @@
                         updateCurrencyBadge();
                         refreshAllPrices();
                     }
-                }).catch(function() { detectCurrencyFallback(); });
-            } else {
-                detectCurrencyFallback();
+                }).catch(function() {});
             }
-        }
-
-        function detectCurrencyFallback() {
-            try {
-                var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-                var tzMap = {
-                    'Karachi': 'PKR', 'Lahore': 'PKR', 'Islamabad': 'PKR',
-                    'Kolkata': 'INR', 'Mumbai': 'INR', 'Delhi': 'INR', 'Calcutta': 'INR',
-                    'Dhaka': 'BDT',
-                    'London': 'GBP',
-                    'New_York': 'USD', 'Los_Angeles': 'USD', 'Chicago': 'USD', 'Denver': 'USD', 'Phoenix': 'USD', 'Anchorage': 'USD', 'Honolulu': 'USD',
-                    'Toronto': 'CAD', 'Vancouver': 'CAD', 'Winnipeg': 'CAD', 'Halifax': 'CAD', 'Edmonton': 'CAD',
-                    'Sydney': 'AUD', 'Melbourne': 'AUD', 'Brisbane': 'AUD', 'Perth': 'AUD', 'Adelaide': 'AUD', 'Darwin': 'AUD',
-                    'Auckland': 'NZD',
-                    'Riyadh': 'SAR', 'Dubai': 'AED', 'Qatar': 'QAR', 'Bahrain': 'BHD', 'Kuwait': 'KWT', 'Muscat': 'OMR', 'Tehran': 'IRR',
-                    'Istanbul': 'TRY',
-                    'Sao_Paulo': 'BRL', 'Fortaleza': 'BRL', 'Belem': 'BRL', 'Manaus': 'BRL',
-                    'Tokyo': 'JPY', 'Shanghai': 'CNY', 'Chongqing': 'CNY', 'Harbin': 'CNY', 'Urumqi': 'CNY', 'Seoul': 'KRW',
-                    'Lagos': 'NGN', 'Johannesburg': 'ZAR', 'Cairo': 'EGP', 'Nairobi': 'KES',
-                    'Manila': 'PHP', 'Jakarta': 'IDR', 'Bangkok': 'THB', 'Kuala_Lumpur': 'MYR',
-                    'Singapore': 'SGD', 'Hong_Kong': 'HKD', 'Taipei': 'TWD',
-                    'Moscow': 'RUB', 'Kiev': 'UAH', 'Warsaw': 'PLN', 'Prague': 'CZK', 'Budapest': 'HUF', 'Bucharest': 'RON',
-                    'Stockholm': 'SEK', 'Oslo': 'NOK', 'Copenhagen': 'DKK', 'Helsinki': 'EUR',
-                    'Berlin': 'EUR', 'Paris': 'EUR', 'Rome': 'EUR', 'Madrid': 'EUR', 'Amsterdam': 'EUR',
-                    'Mexico_City': 'MXN', 'Monterrey': 'MXN', 'Bogota': 'COP', 'Lima': 'PEN', 'Santiago': 'CLP',
-                    'Buenos_Aires': 'ARS', 'Montevideo': 'UYU', 'La_Paz': 'BOB',
-                    'Colombo': 'LKR', 'Kathmandu': 'NPR', 'Almaty': 'KZT', 'Tashkent': 'UZB'
-                };
-                for (var key in tzMap) {
-                    if (tz.indexOf(key) !== -1) {
-                        iqDetectedCurrency = tzMap[key];
-                        iqDetectedSymbol = iqCurrencySymbols[tzMap[key]] || '$';
-                        if (window.__userCurrencyCache !== undefined) window.__userCurrencyCache = tzMap[key];
-                        updateCurrencyBadge();
-                        refreshAllPrices();
-                        return;
-                    }
-                }
-            } catch(e) {}
         }
 
         function refreshAllPrices() {
@@ -975,22 +1178,93 @@
             if (payTotal) payTotal.textContent = sym + parseFloat(totalConverted).toFixed(2);
         }
 
-        function selectPayMethod(el, method) {
-            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
-            el.classList.add('selected');
-            selectedPayMethod = method;
+        function onPayMethodChange() {
+            var sel = document.getElementById('payMethodSelect');
+            var method = sel.value;
+            selectedPayMethod = method || null;
+            var detailsDiv = document.getElementById('payMethodAccountDetails');
+            var contentDiv = document.getElementById('payMethodDetailsContent');
+
+            document.getElementById('payStripeInfo').style.display = 'none';
+
+            if (!method) {
+                detailsDiv.style.display = 'none';
+                return;
+            }
+
+            if (method === 'stripe') {
+                detailsDiv.style.display = 'none';
+                document.getElementById('payStripeInfo').style.display = 'block';
+                return;
+            }
+
+            var accs = window.__paymentAccounts || [];
+            var acct = accs.find(function(a) { return a.accountTitle === method; });
+            if (acct) {
+                detailsDiv.style.display = 'block';
+                var html = '<div style="display:flex;flex-direction:column;gap:6px;">';
+                if (acct.mobileNumber) {
+                    html += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.78rem;color:#94a3b8;">Mobile</span><span style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">' + esc(acct.mobileNumber) + '</span></div>';
+                }
+                if (acct.accountNumber) {
+                    html += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.78rem;color:#94a3b8;">Account #</span><span style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">' + esc(acct.accountNumber) + '</span></div>';
+                }
+                if (acct.bankName) {
+                    html += '<div style="display:flex;justify-content:space-between;"><span style="font-size:0.78rem;color:#94a3b8;">Bank</span><span style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">' + esc(acct.bankName) + '</span></div>';
+                }
+                html += '</div>';
+                contentDiv.innerHTML = html;
+            } else {
+                detailsDiv.style.display = 'block';
+                contentDiv.innerHTML = '<div style="font-size:0.82rem;color:#94a3b8;">Contact admin for account details.</div>';
+            }
         }
 
         function openPaymentModal() {
             selectedPayMethod = null;
-            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
+            document.getElementById('payStripeInfo').style.display = 'none';
+            document.getElementById('payMethodAccountDetails').style.display = 'none';
+            window.__paymentAccounts = [];
+            fetch('/api/manualpaymentproofs/payment-accounts')
+                .then(function(r) { return r.json(); })
+                .then(function(accounts) {
+                    window.__paymentAccounts = accounts;
+                    var sel = document.getElementById('payMethodSelect');
+                    sel.innerHTML = '<option value="">— Select a payment method —</option>';
+                    if (accounts && accounts.length) {
+                        accounts.forEach(function(a) {
+                            var opt = document.createElement('option');
+                            opt.value = a.accountTitle;
+                            opt.textContent = a.accountTitle;
+                            sel.appendChild(opt);
+                        });
+                    }
+                    var stripeOpt = document.createElement('option');
+                    stripeOpt.value = 'stripe';
+                    stripeOpt.textContent = 'Card Payment (Stripe)';
+                    sel.appendChild(stripeOpt);
+                    var epDefault = accounts.find(function(a) { return a.accountTitle === 'EasyPaisa'; });
+                    if (epDefault) {
+                        sel.value = 'EasyPaisa';
+                        onPayMethodChange();
+                    }
+                })
+                .catch(function() {});
             var name = document.getElementById('iq-name').value.trim();
             var email = document.getElementById('iq-email').value.trim();
             var platform = document.getElementById('iq-platform').value;
             var url = document.getElementById('iq-url').value.trim();
+            var attachmentInput = document.getElementById('iq-attachment');
+            var attachmentFile = attachmentInput && attachmentInput.files.length > 0 ? attachmentInput.files[0] : null;
 
             if (!name || !email || !platform || !url) {
                 alert('Please fill in all required fields.'); return;
+            }
+
+            if (!attachmentFile) {
+                alert('Please upload a screenshot of your current stats (e.g. followers, likes, views) before proceeding.');
+                if (attachmentInput) attachmentInput.focus();
+                return;
             }
 
             payCurrency = iqDetectedCurrency || 'USD';
@@ -1032,7 +1306,7 @@
             document.getElementById('pay-total').textContent = sym + parseFloat(totalConverted).toFixed(2);
 
             document.getElementById('paymentOverlay').style.display = 'block';
-            document.getElementById('paymentModal').style.display = 'block';
+            document.getElementById('paymentModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
 
@@ -1041,9 +1315,327 @@
             document.getElementById('paymentModal').style.display = 'none';
             document.body.style.overflow = '';
             selectedPayMethod = null;
-            document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
+            document.getElementById('payEasyPaisaInfo').style.display = 'none';
+            document.getElementById('payStripeInfo').style.display = 'none';
+            document.getElementById('payMethodAccountDetails').style.display = 'none';
             var btn = document.getElementById('payConfirmBtn');
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay'; }
+        }
+
+        async function downloadVoucherFromPayment() {
+            var name = document.getElementById('iq-name').value.trim();
+            var email = document.getElementById('iq-email').value.trim();
+            var platform = document.getElementById('iq-platform').value;
+            var url = document.getElementById('iq-url').value.trim();
+            var description = document.getElementById('iq-description').value.trim();
+            var attachmentInput = document.getElementById('iq-attachment');
+            var attachmentFile = attachmentInput && attachmentInput.files.length > 0 ? attachmentInput.files[0] : null;
+            if (!name || !email || !platform || !url) { alert('Please fill in all required fields.'); return; }
+            if (!attachmentFile) {
+                alert('Please upload a screenshot of your current stats (e.g. followers, likes, views) before downloading the voucher.');
+                if (attachmentInput) attachmentInput.focus();
+                return;
+            }
+
+            var serviceNames = [];
+            var totalQty = 0;
+            var totalAmount = 0;
+            for (var s in iqServiceData) {
+                var d = iqServiceData[s];
+                if (d.selectedPkg) {
+                    serviceNames.push(s);
+                    totalQty += d.qty;
+                    var pkgCurrency = d.pkgCurrency || 'USD';
+                    var priceInPayCurrency = convertCurrency(d.unitPrice, pkgCurrency, payCurrency);
+                    totalAmount += priceInPayCurrency * d.qty;
+                }
+            }
+            if (serviceNames.length === 0) { alert('Please select a service.'); return; }
+
+            var btn = document.getElementById('payDownloadVoucherBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving & Generating...';
+
+            var formData = new FormData();
+            formData.append('fullName', name);
+            formData.append('email', email);
+            formData.append('platform', platform);
+            formData.append('service', serviceNames.join(', '));
+            formData.append('quantity', totalQty);
+            formData.append('socialMediaUrl', url);
+            formData.append('totalAmount', totalAmount);
+            formData.append('description', description || '');
+            formData.append('currency', payCurrency);
+            formData.append('attachment', attachmentFile);
+
+            try {
+                var resp = await fetch('/api/orders/draft', { method: 'POST', body: formData });
+                var data = await resp.json();
+                if (!resp.ok) throw new Error(data.message || 'Failed to save order');
+                var voucherNo = data.voucherNo || ('VCH-' + new Date().getFullYear() + '-' + String(data.orderId).padStart(5, '0'));
+
+                closePaymentModal();
+
+                var sym = iqCurrencySymbols[payCurrency] || '$';
+                var now = new Date();
+                var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                var timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                function buildVoucherAccountHtml() {
+                    var accs = window.__paymentAccounts || [];
+                    if (!accs.length) return '';
+                    var html = '<div class="v-acc"><div class="v-acc-title"><i class="bi bi-bank"></i> Payment Account Details</div>';
+                    for (var i = 0; i < accs.length; i++) {
+                        var a = accs[i];
+                        var detail = '';
+                        if (a.bankName) {
+                            detail = esc(a.accountNumber || '') + ' · ' + esc(a.bankName);
+                        } else {
+                            detail = esc(a.mobileNumber || '');
+                        }
+                        html += '<div class="v-acc-row"><span class="v-acc-label">' + esc(a.accountTitle) + '</span><span class="v-acc-value">' + detail + '</span></div>';
+                    }
+                    html += '</div>';
+                    return html;
+                }
+
+                var renderId = 'voucher-render-' + Date.now();
+                var voucherDiv = document.createElement('div');
+                voucherDiv.id = renderId;
+                voucherDiv.style.cssText = 'position:fixed;top:0;left:0;z-index:-1;opacity:0.001;pointer-events:none;';
+                voucherDiv.innerHTML =
+                     '<style>' +
+                        '.v-shell{width:595px;font-family:Arial,sans-serif;color:#1e293b;background:#fff;border:1px solid #e2e8f0;box-sizing:border-box;}' +
+                        '.v-head{background:#6366f1;color:#fff;padding:20px 24px;}' +
+                        '.v-head-in{display:flex;justify-content:space-between;align-items:center;}' +
+                        '.v-brand{display:flex;align-items:center;gap:10px;}' +
+                        '.v-brand-icon{width:34px;height:34px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}' +
+                        '.v-brand-name{font-size:17px;font-weight:900;letter-spacing:1.5px;}' +
+                        '.v-brand-tag{font-size:9px;opacity:0.75;letter-spacing:1px;}' +
+                        '.v-title{font-size:14px;font-weight:700;text-align:right;}' +
+                        '.v-num{font-size:10px;opacity:0.8;text-align:right;}' +
+                        '.v-info{display:flex;border-bottom:1px solid #e2e8f0;}' +
+                        '.v-info>div{flex:1;padding:8px 12px;text-align:center;border-right:1px solid #e2e8f0;}' +
+                        '.v-info>div:last-child{border-right:none;}' +
+                        '.v-info-label{font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:2px;}' +
+                        '.v-info-value{font-size:12px;font-weight:600;color:#334155;}' +
+                        '.v-body{padding:16px 20px;}' +
+                        '.v-sec-title{font-size:11px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}' +
+                        '.v-row{display:flex;padding:6px 0;border-bottom:1px solid #f1f5f9;}' +
+                        '.v-label{width:120px;font-size:11px;color:#64748b;font-weight:500;flex-shrink:0;}' +
+                        '.v-value{font-size:11px;color:#1e293b;font-weight:600;}' +
+                        '.v-url{word-break:break-all;color:#6366f1;}' +
+                        '.v-mono{font-family:Consolas,monospace;letter-spacing:0.3px;}' +
+                        '.v-acc{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:10px 12px;margin:12px 0;}' +
+                        '.v-acc-title{font-size:10px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}' +
+                        '.v-acc-row{display:flex;padding:3px 0;font-size:11px;}' +
+                        '.v-acc-label{width:90px;color:#92400e;font-weight:500;flex-shrink:0;}' +
+                        '.v-acc-value{color:#1e293b;font-weight:600;}' +
+                        '.v-summary{display:flex;gap:12px;margin-top:14px;}' +
+                        '.v-card{flex:1;padding:12px 14px;border-radius:8px;}' +
+                        '.v-total{background:#f0fdf4;border:1px solid #bbf7d0;}' +
+                        '.v-card-label{font-size:10px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;}' +
+                        '.v-card-amt{font-size:22px;font-weight:900;color:#16a34a;}' +
+                        '.v-foot{background:#f8fafc;border-top:1px solid #e2e8f0;padding:14px 18px;}' +
+                        '.v-foot-grid{display:flex;gap:14px;margin-bottom:10px;}' +
+                        '.v-foot-col{flex:1;}' +
+                        '.v-foot-col h5{font-size:10px;font-weight:700;color:#475569;margin:0 0 4px 0;}' +
+                        '.v-foot-col p{font-size:9px;color:#94a3b8;margin:0;line-height:1.4;}' +
+                        '.v-foot-note{font-size:9px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:8px;}' +
+                    '</style>' +
+                    '<div class="v-shell">' +
+                        '<div class="v-head">' +
+                            '<div class="v-head-in">' +
+                                '<div class="v-brand">' +
+                                    '<div class="v-brand-icon">BH</div>' +
+                                    '<div><div class="v-brand-name">BOOSTING HUB</div><div class="v-brand-tag">Social Engagement Marketplace</div></div>' +
+                                '</div>' +
+                                '<div><div class="v-title">Payment Voucher</div><div class="v-num">' + voucherNo + '</div></div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="v-info">' +
+                            '<div><div class="v-info-label">Issue Date</div><div class="v-info-value">' + dateStr + '</div></div>' +
+                            '<div><div class="v-info-label">Issue Time</div><div class="v-info-value">' + timeStr + '</div></div>' +
+                            '<div><div class="v-info-label">Currency</div><div class="v-info-value">' + payCurrency + ' (' + sym + ')</div></div>' +
+                        '</div>' +
+                        '<div class="v-body">' +
+                            '<div class="v-sec-title">Client &amp; Order Details</div>' +
+                            '<div class="v-row"><div class="v-label">Full Name</div><div class="v-value">' + esc(name) + '</div></div>' +
+                            '<div class="v-row"><div class="v-label">Email</div><div class="v-value">' + esc(email) + '</div></div>' +
+                            '<div class="v-row"><div class="v-label">Platform</div><div class="v-value">' + esc(platform) + '</div></div>' +
+                            '<div class="v-row"><div class="v-label">Quantity</div><div class="v-value v-mono">' + totalQty.toLocaleString('en-US') + ' units</div></div>' +
+                            '<div class="v-row"><div class="v-label">Services</div><div class="v-value">' + esc(serviceNames.join(' · ')) + '</div></div>' +
+                            '<div class="v-row"><div class="v-label">Profile URL</div><div class="v-value v-url">' + esc(url) + '</div></div>' +
+                            (description ? '<div class="v-row"><div class="v-label">Notes</div><div class="v-value">' + esc(description) + '</div></div>' : '') +
+                            buildVoucherAccountHtml() +
+                            '<div class="v-summary">' +
+                                '<div class="v-card v-total">' +
+                                    '<div class="v-card-label">Total Amount Payable</div>' +
+                                    '<div class="v-card-amt">' + sym + parseFloat(totalAmount).toFixed(2) + '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="v-foot">' +
+                            '<div class="v-foot-grid">' +
+                                '<div class="v-foot-col"><h5>Security</h5><p>System-generated voucher. Order saved under #' + voucherNo + '.</p></div>' +
+                                '<div class="v-foot-col"><h5>Next Step</h5><p>Make payment and upload proof via the lookup form.</p></div>' +
+                                '<div class="v-foot-col"><h5>Support</h5><p>Contact admin with your voucher number for help.</p></div>' +
+                            '</div>' +
+                            '<div class="v-foot-note">Generated: ' + dateStr + ' ' + timeStr + ' &nbsp;|&nbsp; Voucher: ' + voucherNo + '</div>' +
+                        '</div>' +
+                    '</div>';
+                document.body.appendChild(voucherDiv);
+
+                await new Promise(function(r) { setTimeout(r, 700); });
+
+                if (typeof html2canvas === 'undefined') {
+                    alert('html2canvas library failed to load. Please refresh the page and try again.');
+                    document.body.removeChild(voucherDiv);
+                    btn.innerHTML = '<i class="bi bi-download"></i> Download Payment Voucher';
+                    btn.disabled = false;
+                    return;
+                }
+
+                var targetNode = document.getElementById(renderId).querySelector('.v-shell');
+                var canvas = await html2canvas(targetNode, {
+                    scale: 3,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    allowTaint: true,
+                    logging: false,
+                    width: 595,
+                    windowWidth: 595
+                });
+                document.body.removeChild(voucherDiv);
+
+                var imgData = canvas.toDataURL('image/jpeg', 0.92);
+                var pdf;
+                if (window.jspdf && window.jspdf.jsPDF) {
+                    pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+                } else {
+                    pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+                }
+                var pageW = pdf.internal.pageSize.getWidth();
+                var imgW = pageW - 10;
+                var imgH = (canvas.height * imgW) / canvas.width;
+                var pageH = pdf.internal.pageSize.getHeight();
+                var vOffset = 10;
+                if (imgH > pageH - 10) { imgH = pageH - 10; }
+                pdf.addImage(imgData, 'JPEG', 5, vOffset, imgW, imgH, undefined, 'FAST');
+                pdf.save(voucherNo + '.pdf');
+
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Voucher Downloaded';
+                btn.disabled = false;
+
+                document.getElementById('paymentOverlay').style.display = 'none';
+                document.getElementById('paymentModal').style.display = 'none';
+                document.body.style.overflow = '';
+                document.getElementById('voucherLookupCard').style.display = 'block';
+                document.getElementById('voucherLookupBody').style.display = 'block';
+                document.getElementById('voucherInput').value = voucherNo;
+                document.getElementById('voucherLookupSuccess').style.display = 'flex';
+                document.getElementById('voucherLookupSuccess').innerHTML = '<i class="bi bi-check-circle-fill" style="font-size:1rem;"></i> Voucher <strong>' + voucherNo + '</strong> generated! Make the bank transfer, then use the form below to submit your paid voucher.';
+
+            } catch(err) {
+                alert(err.message || 'Failed to save order and generate voucher.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-download"></i> Download Payment Voucher';
+            }
+        }
+
+        function toggleVoucherLookup() {
+            var body = document.getElementById('voucherLookupBody');
+            var icon = document.getElementById('voucherLookupToggleIcon');
+            if (body.style.display === 'none' || !body.style.display) {
+                body.style.display = 'block';
+                icon.innerHTML = '<i class="bi bi-chevron-up"></i>';
+            } else {
+                body.style.display = 'none';
+                icon.innerHTML = '<i class="bi bi-chevron-down"></i>';
+            }
+        }
+
+        async function lookupVoucher() {
+            var voucherNo = document.getElementById('voucherInput').value.trim();
+            if (!voucherNo) { alert('Please enter a voucher number.'); return; }
+
+            var btn = document.getElementById('voucherLookupBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Looking up...';
+
+            document.getElementById('voucherLookupError').style.display = 'none';
+
+            try {
+                var resp = await fetch('/api/orders/lookup/' + encodeURIComponent(voucherNo));
+                if (!resp.ok) {
+                    var errData = await resp.json();
+                    throw new Error(errData.message || 'Voucher not found');
+                }
+                var data = await resp.json();
+
+                window.__vlOrderId = data.id;
+                document.getElementById('vl-voucher').textContent = data.voucherNo;
+                document.getElementById('vl-name').textContent = data.fullName || '-';
+                document.getElementById('vl-platform').textContent = data.platform || '-';
+                document.getElementById('vl-services').textContent = data.service || '-';
+                document.getElementById('vl-qty').textContent = data.quantity || '-';
+
+                var sym = iqCurrencySymbols[payCurrency] || (data.currency === 'PKR' ? 'Rs.' : '$');
+                document.getElementById('vl-total').textContent = sym + ' ' + parseFloat(data.totalAmount || 0).toFixed(2);
+
+                document.getElementById('voucherLookupStep1').style.display = 'none';
+                document.getElementById('voucherLookupStep2').style.display = 'block';
+
+            } catch(err) {
+                document.getElementById('voucherLookupErrorText').textContent = err.message || 'Failed to look up voucher.';
+                document.getElementById('voucherLookupError').style.display = 'flex';
+                setTimeout(function() { document.getElementById('voucherLookupError').style.display = 'none'; }, 2000);
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-search"></i> Look Up';
+        }
+
+        async function submitPaidVoucherFromLanding() {
+            var fileInput = document.getElementById('vl-paidVoucherFile');
+            if (!fileInput || !fileInput.files.length) {
+                alert('Please upload your payment receipt/screenshot.');
+                return;
+            }
+            if (!window.__vlOrderId) {
+                alert('No order found. Please look up your voucher first.');
+                return;
+            }
+            var btn = document.getElementById('vl-submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+
+            var formData = new FormData();
+            formData.append('paidAmount', document.getElementById('vl-total').textContent.replace(/[^0-9.]/g, ''));
+            formData.append('paymentMethod', 'Bank Transfer');
+            formData.append('paidVoucher', fileInput.files[0]);
+
+            try {
+                var resp = await fetch('/api/orders/' + window.__vlOrderId + '/upload-paid-voucher', { method: 'POST', body: formData });
+                var result = await resp.json();
+                if (!resp.ok) throw new Error(result.message || 'Failed');
+
+                document.getElementById('voucherLookupSuccess').style.display = 'flex';
+                document.getElementById('voucherLookupSuccess').innerHTML = '<i class="bi bi-check-circle-fill"></i> Payment proof submitted! Awaiting admin verification.';
+                document.getElementById('voucherLookupStep2').style.display = 'none';
+                document.getElementById('voucherLookupStep1').style.display = 'block';
+                document.getElementById('voucherInput').value = '';
+                fileInput.value = '';
+                window.__vlOrderId = null;
+
+                setTimeout(function() {
+                    document.getElementById('voucherLookupSuccess').style.display = 'none';
+                }, 6000);
+
+            } catch(err) {
+                alert(err.message || 'Failed to submit payment proof.');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill"></i> Submit Paid Voucher';
         }
 
         async function confirmPayment() {
@@ -1064,8 +1656,10 @@
             var attachmentFile = attachmentInput && attachmentInput.files.length > 0 ? attachmentInput.files[0] : null;
 
             if (!attachmentFile) {
-                alert('Please upload a screenshot of your current stats (e.g. followers, likes, views) before placing the order.');
+                alert('Please upload a screenshot of your current stats before placing the order.');
                 if (attachmentInput) attachmentInput.focus();
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
                 return;
             }
 
@@ -1082,7 +1676,6 @@
                     totalAmount += priceInPayCurrency * d.qty;
                 }
             }
-
             if (serviceNames.length === 0) { alert('Please select a service.'); return; }
 
             var formData = new FormData();
@@ -1098,18 +1691,122 @@
             formData.append('attachment', attachmentFile);
 
             try {
-                var resp = await fetch('/api/orders', {
-                    method: 'POST',
-                    body: formData
-                });
+                if (selectedPayMethod !== 'stripe') {
+                    var resp = await fetch('/api/orders', { method: 'POST', body: formData });
+                    var data = await resp.json();
+                    if (!resp.ok) throw new Error(data.message || 'Failed');
+
+                    window.__epOrderId = data.orderId;
+
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
+
+                    document.getElementById('payEasyPaisaInfo').style.display = 'block';
+                    document.getElementById('payEasyPaisaInfo').innerHTML =
+                        '<div style="font-size:0.82rem;font-weight:700;color:#00A651;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;"><i class="bi bi-wallet2"></i> ' + esc(selectedPayMethod) + ' Payment</div>' +
+                        '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">Your order <strong>#' + data.orderId + '</strong> has been saved. Send payment and upload your proof below.</p>' +
+                        '<div id="payEasyPaisaDetails"></div>';
+
+                    var accs = window.__paymentAccounts || [];
+                    var ep = accs.find(function(a) { return a.accountTitle === selectedPayMethod; });
+                    var detDiv = document.getElementById('payEasyPaisaDetails');
+                    if (ep) {
+                        var epHtml = '<div style="display:flex;flex-direction:column;gap:4px;">';
+                        if (ep.mobileNumber) epHtml += '<div style="font-size:1rem;font-weight:800;color:#1e293b;">' + esc(ep.mobileNumber) + '</div>';
+                        if (ep.accountNumber) epHtml += '<div style="font-size:0.82rem;color:#6b7280;">Account: ' + esc(ep.accountNumber) + '</div>';
+                        if (ep.bankName) epHtml += '<div style="font-size:0.82rem;color:#6b7280;">Bank: ' + esc(ep.bankName) + '</div>';
+                        epHtml += '</div>';
+                        detDiv.innerHTML = epHtml;
+                    }
+
+                    var proofHtml = '<div style="height:1px;background:var(--border-subtle);margin:16px 0;"></div>' +
+                        '<div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Upload Payment Proof</div>' +
+                        '<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;">After making the payment, upload your payment screenshot/receipt here.</p>' +
+                        '<div style="margin-bottom:12px;">' +
+                            '<label style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:6px;">Payment Screenshot / Receipt (Image or PDF) *</label>' +
+                            '<input type="file" id="payProofFile" accept="image/*,.pdf" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-subtle);background:var(--bg-elevated);color:var(--text-primary);" />' +
+                        '</div>' +
+                        '<button type="button" id="payProofBtn" class="pay-confirm-btn" onclick="submitEasyPaisaProof()" style="width:100%;">' +
+                            '<i class="bi bi-cloud-arrow-up-fill"></i> Submit Payment Proof' +
+                        '</button>';
+
+                    document.getElementById('payEasyPaisaInfo').innerHTML += proofHtml;
+
+                } else if (selectedPayMethod === 'stripe') {
+                    var resp = await fetch('/api/orders', { method: 'POST', body: formData });
+                    var data = await resp.json();
+                    if (!resp.ok) throw new Error(data.message || 'Failed');
+
+                    closePaymentModal();
+
+                    document.getElementById('inquirySuccess').innerHTML =
+                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Order #' + data.orderId + ' submitted! Redirecting to card payment...';
+                    document.getElementById('inquirySuccess').style.display = 'flex';
+                    setTimeout(function() {
+                        document.getElementById('inquirySuccess').style.display = 'none';
+                        document.getElementById('inquirySuccess').innerHTML =
+                            '<i class="bi bi-check-circle-fill"></i>&nbsp; Your inquiry has been submitted! We\'ll get back to you within 24 hours.';
+                    }, 5000);
+
+                    document.getElementById('inquiryForm').reset();
+                    if (attachmentInput) attachmentInput.value = '';
+                    document.querySelectorAll('#iq-svc-menu input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+                    updateSvcLabel();
+                    document.getElementById('iq-service-qty-area').innerHTML = '';
+                    document.getElementById('iq-services-area').innerHTML = '';
+                    document.getElementById('iq-order-summary').style.display = 'none';
+                    iqServiceData = {};
+                    updateServiceQtyVisibility();
+                    selectedPayMethod = null;
+                }
+            } catch(err) {
+                var errEl = document.getElementById('inquiryError');
+                if (errEl) { errEl.style.display = 'block'; document.getElementById('inquiryErrorText').textContent = err.message; }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
+            }
+        }
+
+        async function submitEasyPaisaProof() {
+            var fileInput = document.getElementById('payProofFile');
+            if (!fileInput || !fileInput.files.length) {
+                alert('Please upload your payment screenshot/receipt.');
+                return;
+            }
+            if (!window.__epOrderId) {
+                alert('No order found. Please try again.');
+                return;
+            }
+            var btn = document.getElementById('payProofBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+
+            var formData = new FormData();
+            formData.append('orderId', window.__epOrderId);
+            formData.append('paymentMethod', 'EasyPaisa');
+            formData.append('paidAmount', document.getElementById('pay-total').textContent.replace(/[^0-9.]/g, ''));
+            formData.append('paidVoucher', fileInput.files[0]);
+
+            try {
+                var resp = await fetch('/api/manualpaymentproofs', { method: 'POST', body: formData });
                 var data = await resp.json();
-                if (!resp.ok) { throw new Error(data.message || 'Failed'); }
+                if (!resp.ok) throw new Error(data.message || 'Failed');
 
                 closePaymentModal();
+                window.__epOrderId = null;
+
+                document.getElementById('inquirySuccess').innerHTML =
+                    '<i class="bi bi-check-circle-fill"></i>&nbsp; Order submitted with payment proof! Awaiting admin verification.';
                 document.getElementById('inquirySuccess').style.display = 'flex';
-                document.getElementById('inquiryError').style.display = 'none';
+                setTimeout(function() {
+                    document.getElementById('inquirySuccess').style.display = 'none';
+                    document.getElementById('inquirySuccess').innerHTML =
+                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Your inquiry has been submitted! We\'ll get back to you within 24 hours.';
+                }, 5000);
+
                 document.getElementById('inquiryForm').reset();
-                if (attachmentInput) attachmentInput.value = '';
+                var attInput = document.getElementById('iq-attachment');
+                if (attInput) attInput.value = '';
                 document.querySelectorAll('#iq-svc-menu input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
                 updateSvcLabel();
                 document.getElementById('iq-service-qty-area').innerHTML = '';
@@ -1118,14 +1815,11 @@
                 iqServiceData = {};
                 updateServiceQtyVisibility();
                 selectedPayMethod = null;
-                document.querySelectorAll('.pay-method-card').forEach(function(c) { c.classList.remove('selected'); });
-                setTimeout(function() { document.getElementById('inquirySuccess').style.display = 'none'; }, 5000);
             } catch(err) {
-                var errEl = document.getElementById('inquiryError');
-                if (errEl) { errEl.style.display = 'block'; document.getElementById('inquiryErrorText').textContent = err.message; }
+                alert(err.message || 'Failed to submit payment proof.');
             }
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-lock-fill"></i> Confirm & Pay';
+            btn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill"></i> Submit Payment Proof';
         }
 
 

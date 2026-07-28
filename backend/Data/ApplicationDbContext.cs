@@ -23,7 +23,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Account> Accounts { get; set; }
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<SocialMediaAccount> SocialMediaAccounts { get; set; }
-    public DbSet<Package> Packages { get; set; }
+     public DbSet<Package> Packages { get; set; }
+     public DbSet<ManualPaymentProof> ManualPaymentProofs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -226,6 +227,8 @@ public class ApplicationDbContext : DbContext
             e.Property(a => a.AccountTitle).HasMaxLength(200).IsRequired();
             e.Property(a => a.MobileNumber).HasMaxLength(50).IsRequired();
             e.Property(a => a.Cnic).HasMaxLength(50).IsRequired();
+            e.Property(a => a.AccountNumber).HasMaxLength(100);
+            e.Property(a => a.BankName).HasMaxLength(100);
             e.Property(a => a.Status).HasMaxLength(20);
             e.Property(a => a.CreatedAt).HasColumnType("datetime2");
             e.Property(a => a.UpdatedAt).HasColumnType("datetime2");
@@ -262,6 +265,19 @@ public class ApplicationDbContext : DbContext
             e.HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Cascade);
             e.HasIndex(s => s.UserId);
             e.HasIndex(s => new { s.UserId, s.Platform }).IsUnique();
+        });
+
+        // ── ManualPaymentProof ────────────────────────────────────────────────
+        builder.Entity<ManualPaymentProof>(e =>
+        {
+            e.ToTable("manual_payment_proofs");
+            e.Property(p => p.PaidAmount).HasColumnType("decimal(18,2)");
+            e.Property(p => p.PaidVoucher).HasMaxLength(500);
+            e.Property(p => p.PaymentMethod).HasMaxLength(50);
+            e.Property(p => p.SubmitDate).HasColumnType("datetime2");
+            e.HasOne(p => p.Order).WithMany().HasForeignKey(p => p.OrderId).OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(p => p.OrderId);
+            e.HasIndex(p => p.Status);
         });
 
         // ── Package ─────────────────────────────────────────────────────────

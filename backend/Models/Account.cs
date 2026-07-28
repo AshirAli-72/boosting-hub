@@ -11,6 +11,8 @@ public class Account
     [Column("account_title")] public string AccountTitle { get; set; } = "";
     [Column("mobile_number")] public string MobileNumber { get; set; } = "";
     [Column("cnic")] public string Cnic { get; set; } = "";
+    [Column("account_number")] public string? AccountNumber { get; set; }
+    [Column("bank_name")] public string? BankName { get; set; }
     [Column("is_default")] public bool IsDefault { get; set; }
     [Column("status", TypeName = "nvarchar(20)")] public string Status { get; set; } = "1";
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -131,6 +131,7 @@ body.light-mode .sidebar-brand {
     box-shadow: var(--shadow-card);
     transition: all 0.3s ease;
     position: relative; overflow: hidden;
+    min-height: 90px;
 }
 .stat-card::before {
     content: '';
@@ -605,11 +606,11 @@ body, .admin-sidebar, .admin-header, .admin-content, .admin-card, .stat-card,
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   REPORTS HUB – 4 CARDS IN ONE ROW
+   REPORTS HUB – CARDS IN ONE ROW
    ═══════════════════════════════════════════════════════════════════ */
 .report-cards-row {
     display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-columns: repeat(5, 1fr) !important;
     gap: 16px;
     width: 100%;
 }
@@ -694,7 +695,7 @@ body, .admin-sidebar, .admin-header, .admin-content, .admin-card, .stat-card,
 @media (max-width: 1200px) {
     .admin-content .row.g-3:has(.stat-card) { grid-template-columns: repeat(2, 1fr) !important; }
     .admin-content .row.g-4:has(.stat-card) { grid-template-columns: repeat(2, 1fr) !important; }
-    .report-cards-row { grid-template-columns: repeat(2, 1fr) !important; }
+    .report-cards-row { grid-template-columns: repeat(3, 1fr) !important; }
     .report-metrics-grid { grid-template-columns: repeat(2, 1fr); }
     .admin-content .row.g-4.mb-4:has(.chart-card) { grid-template-columns: 1fr !important; }
     .admin-content .card.shadow-sm.border-0 .row.g-3 { grid-template-columns: repeat(2, 1fr) !important; }

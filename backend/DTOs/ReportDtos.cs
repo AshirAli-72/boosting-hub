@@ -43,3 +43,14 @@ public class OrdersReportDto
     public decimal AvgOrderValue { get; set; }
     public Dictionary<string, int> DailyOrders { get; set; } = new();
 }
+
+public class ManualPaymentProofsReportDto
+{
+    public int TotalProofs { get; set; }
+    public int PendingProofs { get; set; }
+    public int PaidProofs { get; set; }
+    public int RejectedProofs { get; set; }
+    public decimal TotalPaidAmount { get; set; }
+    public decimal AvgPaidAmount { get; set; }
+    public Dictionary<string, int> DailySubmissions { get; set; } = new();
+}

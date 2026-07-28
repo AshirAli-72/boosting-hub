@@ -1,0 +1,271 @@
+@page "/admin/reports/manual-payment-proofs"
+@model BoostingHub.frontend.Pages.Admin.Reports.ManualPaymentProofsReportModel
+@using System.Text.Json
+@using BoostingHub.backend.Common
+@{
+    ViewData["Title"] = "Manual Payment Proofs Report";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+        <div class="admin-header">
+            <div class="d-flex align-items-center gap-3">
+                <h3 class="mb-0"><i class="bi bi-receipt-cutoff text-primary"></i> Manual Payment Proofs Report</h3>
+            </div>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> Admin
+                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    </span>
+                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-content">
+
+            <!-- Action Buttons -->
+            <div class="d-flex align-items-center gap-2 mb-4 no-print">
+                <a href="/admin/reports" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+                <button class="btn btn-sm btn-outline-primary" onclick="printReport()">
+                    <i class="bi bi-printer"></i> Print
+                </button>
+            </div>
+
+            <div class="print-report-header">
+                <div class="prt-brand"><i class="bi bi-rocket-takeoff"></i> Boosting Hub &nbsp;|&nbsp; Manual Payment Proofs Report</div>
+                <div class="prt-meta" id="printMeta"></div>
+            </div>
+
+            <!-- Stats -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-receipt-cutoff"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Proofs</span>
+                            <span class="stat-value" style="color:#fff;">@Model.TotalProofs</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Paid</span>
+                            <span class="stat-value" style="color:#fff;">@Model.PaidProofs</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Pending</span>
+                            <span class="stat-value" style="color:#fff;">@Model.PendingProofs</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background:linear-gradient(135deg,#EF4444 0%,#B91C1C 100%);border:none;">
+                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-x-circle"></i></div>
+                        <div class="stat-info">
+                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Rejected</span>
+                            <span class="stat-value" style="color:#fff;">@Model.RejectedProofs</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card shadow-sm border-0 mb-4 no-print">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label report-filter-label">Date From</label>
+                            <input type="date" id="mp-from" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label report-filter-label">Date To</label>
+                            <input type="date" id="mp-to" class="form-control form-control-sm" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label report-filter-label">Status</label>
+                            <select id="mp-status" class="form-select form-select-sm">
+                                <option value="all">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary btn-sm w-100" onclick="applyMpFilter()">
+                                <i class="bi bi-funnel"></i> Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="row g-4 mb-4 no-print">
+                <div class="col-md-8">
+                    <div class="card shadow-sm border-0 chart-card chart-line">
+                        <div class="card-body">
+                            <h6 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Daily Submissions (Last 7 Days)</h6>
+                            <canvas id="mpLineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 chart-card chart-pie">
+                        <div class="card-body">
+                            <h6 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Proof Status</h6>
+                            <canvas id="mpPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Table -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom no-print" style="border-color:var(--border-subtle)!important;">
+                        <h6 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>All Payment Proofs — Detail</h6>
+                        <span class="badge bg-warning text-dark">@Model.TotalProofs records</span>
+                    </div>
+                    <div class="print-table-title">All Payment Proofs — Detail</div>
+                    <div class="table-responsive">
+                        <table class="admin-table mb-0 align-middle" id="mpTable">
+                            <thead class="admin-thead">
+                                <tr>
+                                    <th>#</th><th>Order ID</th><th>Client</th><th>Method</th><th>Amount</th><th>Status</th><th>Submitted</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model.ProofsTableData)
+                                {
+                                    <tr>
+                                        <td>@p.Id</td>
+                                        <td>@p.OrderId</td>
+                                        <td>@(p.Order?.FullName ?? p.Order?.Email ?? "—")</td>
+                                        <td><i class="bi @(p.PaymentMethod == "easypaisa" ? "bi-wallet2" : "bi-credit-card") me-1"></i> @(p.PaymentMethod == "easypaisa" ? "EasyPaisa" : "Stripe")</td>
+                                        <td class="fw-semibold">₨@p.PaidAmount.ToString("N2")</td>
+                                        <td>
+                                            @{
+                                                var pBadgeClass = p.Status == StatusHelper.ManualPaymentPaid ? "report-badge-success"
+                                                    : p.Status == StatusHelper.ManualPaymentPending ? "report-badge-warning"
+                                                    : "report-badge-danger";
+                                                var pLabel = StatusHelper.ManualPaymentStatusToString(p.Status);
+                                            }
+                                            <span class="report-badge @pBadgeClass">@pLabel</span>
+                                        </td>
+                                        <td>@p.SubmitDate.ToString("MMM dd, yyyy HH:mm")</td>
+                                    </tr>
+                                }
+                                @if (!Model.ProofsTableData.Any())
+                                {
+                                    <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted);">No payment proofs found</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="print-footer">
+                Boosting Hub &bull; Manual Payment Proofs Report &bull; <span id="printDate"></span> &bull; Confidential
+            </div>
+
+        </div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+.report-filter-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.report-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+.report-badge-success  { background: #10B981; color: #fff; }
+.report-badge-warning  { background: #F59E0B; color: #1a1a1a; }
+.report-badge-danger   { background: #EF4444; color: #fff; }
+.print-report-header, .print-footer, .print-table-title { display: none; }
+@@media print {
+    .no-print, .admin-sidebar, .admin-header, .sidebar-mobile-toggle, .sidebar-overlay { display: none !important; }
+    .admin-main { margin-left: 0 !important; }
+    .admin-content { padding: 0 !important; background: #fff !important; }
+    body, html { background: #fff !important; color: #1E293B !important; }
+    .print-report-header { display: flex !important; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; padding-bottom: 8px; margin-bottom: 6px; }
+    .prt-brand { font-size: 16px; font-weight: 700; color: #1E293B !important; }
+    .prt-meta { font-size: 9px; color: #64748B !important; text-align: right; }
+    .print-table-title { display: block !important; font-size: 12px; font-weight: 700; color: #1E293B; padding: 8px 0 6px; border-bottom: 1px solid #CBD5E1; margin-bottom: 0; }
+    .admin-table { width: 100% !important; border-collapse: collapse !important; border: 1px solid #CBD5E1 !important; font-size: 9px !important; }
+    .admin-table thead, .admin-thead { background: #F1F5F9 !important; }
+    .admin-table th { background: #F1F5F9 !important; color: #475569 !important; padding: 6px 8px !important; font-size: 8px !important; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 2px solid #CBD5E1 !important; border-right: 1px solid #E2E8F0 !important; }
+    .admin-table th:last-child { border-right: none !important; }
+    .admin-table td { padding: 5px 8px !important; border-bottom: 1px solid #E2E8F0 !important; border-right: 1px solid #E2E8F0 !important; color: #334155 !important; font-size: 9px !important; background: #fff !important; }
+    .admin-table td:last-child { border-right: none !important; }
+    .admin-table tr:nth-child(even) td { background: #F8FAFC !important; }
+    .admin-table tr:last-child td { border-bottom: 2px solid #CBD5E1 !important; }
+    .report-badge { font-size: 7px !important; padding: 1px 5px !important; border-radius: 3px !important; background: #E2E8F0 !important; color: #475569 !important; }
+    .print-footer { display: block !important; margin-top: 20px; padding-top: 8px; border-top: 1px solid #CBD5E1; font-size: 8px; color: #94A3B8; text-align: center; }
+    .row.g-3, .stat-card { display: none !important; }
+    .row.g-4 { display: none !important; }
+    @@page { margin: 12mm 15mm; size: A4 portrait; }
+}
+</style>
+<script>
+    var mpLineLabels = @Html.Raw(JsonSerializer.Serialize(Model.TrendLabels));
+    var mpLineData   = @Html.Raw(JsonSerializer.Serialize(Model.TrendData));
+
+    function isLight() { return document.body.classList.contains('light-mode'); }
+
+    var mpLine = new Chart(document.getElementById('mpLineChart'), {
+        type: 'line',
+        data: { labels: mpLineLabels, datasets: [{ label: 'Proofs', data: mpLineData, borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.12)', fill: true, tension: 0.4, pointBackgroundColor: '#F59E0B', pointRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }, y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#64748B' : 'rgba(241,245,249,0.4)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } } } }
+    });
+
+    var mpPie = new Chart(document.getElementById('mpPieChart'), {
+        type: 'doughnut',
+        data: { labels: ['Paid', 'Pending', 'Rejected'], datasets: [{ data: [@Model.PaidProofs, @Model.PendingProofs, @Model.RejectedProofs], backgroundColor: ['#10B981','#F59E0B','#EF4444'], borderWidth: 0, hoverOffset: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#334155' : 'rgba(241,245,249,0.65)', padding: 14 } } } }
+    });
+
+    function applyMpFilter() {
+        var from   = document.getElementById('mp-from').value;
+        var to     = document.getElementById('mp-to').value;
+        var status = document.getElementById('mp-status').value;
+        var rows = document.querySelectorAll('#mpTable tbody tr');
+        rows.forEach(function(row) {
+            var dateCell   = row.cells[6] ? row.cells[6].textContent.trim() : '';
+            var statusCell = row.cells[5] ? row.cells[5].textContent.trim() : '';
+            var rowDate    = dateCell ? new Date(dateCell) : null;
+            var fromDate   = from ? new Date(from) : null;
+            var toDate     = to ? new Date(to + 'T23:59:59') : null;
+            var matchDate  = (!fromDate || (rowDate && rowDate >= fromDate)) && (!toDate || (rowDate && rowDate <= toDate));
+            var matchStatus = status === 'all' || statusCell === status;
+            row.style.display = (matchDate && matchStatus) ? '' : 'none';
+        });
+    }
+
+    function printReport() {
+        var now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+        document.getElementById('printMeta').innerHTML = 'Generated: ' + now + '<br>Boosting Hub — Admin Panel';
+        document.getElementById('printDate').textContent = now;
+        window.print();
+    }
+
+    function toggleProfileMenu() {
+        var menu = document.getElementById('profileMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    }
+    document.addEventListener('click', function(e) {
+        var pd = document.getElementById('profileDropdown');
+        if (pd && !pd.contains(e.target)) { var m = document.getElementById('profileMenu'); if (m) m.style.display = 'none'; }
+    });
+</script>
+}

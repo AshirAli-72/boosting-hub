@@ -16,6 +16,7 @@ public static class StatusHelper
 
     // ── Order Status ──────────────────────────────────────────────────────────
     // orders.status (int) - stored as int in DB
+    public const int OrderDraft = 5;
     public const int OrderApproved = 1;
     public const int OrderPending = 2;
     public const int OrderRejected = 3;
@@ -23,6 +24,7 @@ public static class StatusHelper
 
     public static string OrderStatusToString(int status) => status switch
     {
+        OrderDraft => "Draft",
         OrderApproved => "Approved",
         OrderPending => "Pending",
         OrderRejected => "Rejected",
@@ -128,5 +130,19 @@ public static class StatusHelper
         "1" => "Active",
         "2" => "Inactive",
         _ => "Active"
+    };
+
+    // ── Manual Payment Proof Status ──────────────────────────────────────────
+    // manual_payment_proofs.status (int) - stored as int in DB
+    public const int ManualPaymentPending = 1;
+    public const int ManualPaymentPaid = 2;
+    public const int ManualPaymentRejected = 3;
+
+    public static string ManualPaymentStatusToString(int status) => status switch
+    {
+        ManualPaymentPending => "Pending",
+        ManualPaymentPaid => "Paid",
+        ManualPaymentRejected => "Rejected",
+        _ => "Pending"
     };
 }

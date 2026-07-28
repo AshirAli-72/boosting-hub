@@ -14,7 +14,7 @@ public class ReportService : IReportService
 
     public async Task<RevenueReportDto> GetRevenueReportAsync()
     {
-        var orders = await _db.Orders.AsNoTracking().ToListAsync();
+        var orders = await _db.Orders.AsNoTracking().Where(o => o.Status != StatusHelper.OrderDraft).ToListAsync();
 
         var totalRevenue   = orders.Where(o => o.Status == StatusHelper.OrderApproved).Sum(o => o.TotalAmount);
         var totalOrders    = orders.Count;
@@ -124,7 +124,7 @@ public class ReportService : IReportService
 
     public async Task<OrdersReportDto> GetOrdersReportAsync()
     {
-        var orders = await _db.Orders.AsNoTracking().ToListAsync();
+        var orders = await _db.Orders.AsNoTracking().Where(o => o.Status != StatusHelper.OrderDraft).ToListAsync();
 
         var totalOrders = orders.Count;
         var approvedOrders = orders.Count(o => o.Status == StatusHelper.OrderApproved);
@@ -154,6 +154,36 @@ public class ReportService : IReportService
             TotalRevenue   = totalRevenue,
             AvgOrderValue  = avgOrderValue,
             DailyOrders    = dailyOrders
+        };
+    }
+
+    public async Task<ManualPaymentProofsReportDto> GetManualPaymentProofsReportAsync()
+    {
+        var proofs = await _db.ManualPaymentProofs.AsNoTracking().ToListAsync();
+        var totalProofs = proofs.Count;
+        var pendingProofs = proofs.Count(p => p.Status == StatusHelper.ManualPaymentPending);
+        var paidProofs = proofs.Count(p => p.Status == StatusHelper.ManualPaymentPaid);
+        var rejectedProofs = proofs.Count(p => p.Status == StatusHelper.ManualPaymentRejected);
+        var totalPaidAmount = proofs.Where(p => p.Status == StatusHelper.ManualPaymentPaid).Sum(p => p.PaidAmount);
+        var avgPaidAmount = paidProofs > 0 ? totalPaidAmount / paidProofs : 0;
+
+        var since = DateTime.UtcNow.Date.AddDays(-6);
+        var daily = new Dictionary<string, int>();
+        for (var i = 0; i < 7; i++)
+        {
+            var day = since.AddDays(i);
+            daily[day.ToString("MMM dd")] = proofs.Count(p => p.SubmitDate.Date == day);
+        }
+
+        return new ManualPaymentProofsReportDto
+        {
+            TotalProofs = totalProofs,
+            PendingProofs = pendingProofs,
+            PaidProofs = paidProofs,
+            RejectedProofs = rejectedProofs,
+            TotalPaidAmount = totalPaidAmount,
+            AvgPaidAmount = avgPaidAmount,
+            DailySubmissions = daily
         };
     }
 }

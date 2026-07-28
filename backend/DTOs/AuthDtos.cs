@@ -85,3 +85,10 @@ public class SocialMediaAccountDto
     public string Username { get; set; } = string.Empty;
     public string? ProfileUrl { get; set; }
 }
+
+public class SocialMediaAccountPayload
+{
+    public string Platform { get; set; } = "";
+    public string Username { get; set; } = "";
+    public string? ProfileUrl { get; set; }
+}

@@ -21,6 +21,8 @@ namespace BoostingHub.backend.Data.Migrations
                     account_title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     mobile_number = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     cnic = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    account_number = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    bank_name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     is_default = table.Column<bool>(type: "bit", nullable: false),
                     status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),

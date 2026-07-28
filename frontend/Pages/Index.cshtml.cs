@@ -41,7 +41,9 @@ public class IndexModel : PageModel
 
             TotalUsers = filteredUsers.Count;
 
-            TotalOrders = await _db.Orders.CountAsync();
+            TotalOrders = await _db.Orders
+                .Where(o => o.Status == StatusHelper.OrderApproved)
+                .CountAsync();
 
             var tasks = await _db.TaskGenerates.ToListAsync();
             var completedCounts = await _db.TaskCompletes

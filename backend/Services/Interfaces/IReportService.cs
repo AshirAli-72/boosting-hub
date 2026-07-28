@@ -8,4 +8,5 @@ public interface IReportService
     Task<UsersReportDto> GetUsersReportAsync();
     Task<TasksReportDto> GetTasksReportAsync();
     Task<OrdersReportDto> GetOrdersReportAsync();
+    Task<ManualPaymentProofsReportDto> GetManualPaymentProofsReportAsync();
 }

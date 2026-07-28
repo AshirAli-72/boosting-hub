@@ -150,7 +150,7 @@ public class DashboardService : IDashboardService
         var unverified = filteredUsers.Count(u => u.EmailVerifiedAt == null);
         var registeredToday = filteredUsers.Count(u => u.CreatedAt >= today);
 
-        var totalOrders = await _db.Orders.CountAsync();
+        var totalOrders = await _db.Orders.Where(o => o.Status != StatusHelper.OrderDraft).CountAsync();
         var totalRevenue = await _db.Orders
             .Where(o => o.Status == StatusHelper.OrderApproved)
             .SumAsync(o => o.TotalAmount);
@@ -158,7 +158,7 @@ public class DashboardService : IDashboardService
         // Order chart — only last 7 days
         var sevenDaysAgo = today.AddDays(-6);
         var recentOrderDates = await _db.Orders
-            .Where(o => o.CreatedAt >= sevenDaysAgo)
+            .Where(o => o.CreatedAt >= sevenDaysAgo && o.Status != StatusHelper.OrderDraft)
             .Select(o => o.CreatedAt)
             .ToListAsync();
 
@@ -178,6 +178,7 @@ public class DashboardService : IDashboardService
 
         // Order status pie chart
         var statusGroups = (await _db.Orders
+            .Where(o => o.Status != StatusHelper.OrderDraft)
             .Select(o => StatusHelper.OrderStatusToString(o.Status))
             .ToListAsync())
             .GroupBy(s => s)

@@ -40,6 +40,12 @@ public class IndexModel : PageModel
     // ── Orders table (for orders hub) ─────────────────────────────────────────
     public List<Orders> OrdersTableData { get; set; } = new();
 
+    // ── Manual Payment Proofs ─────────────────────────────────────────────────
+    public int TotalPaymentProofs   { get; set; }
+    public int PendingPaymentProofs { get; set; }
+    public int PaidPaymentProofs    { get; set; }
+    public int RejectedPaymentProofs { get; set; }
+
     // ── Trend data (last 7 days) ──────────────────────────────────────────────
     public List<string> OrderTrendLabels { get; set; } = new();
     public List<int>    OrderTrendData   { get; set; } = new();
@@ -124,6 +130,12 @@ public class IndexModel : PageModel
             TaskTrendLabels.Add(day.ToString("MMM dd"));
             TaskTrendData.Add(dailyTasks.FirstOrDefault(d => d.Date == day)?.Count ?? 0);
         }
+
+        // ── Manual Payment Proofs ─────────────────────────────────────────────
+        TotalPaymentProofs    = await _db.ManualPaymentProofs.CountAsync();
+        PendingPaymentProofs  = await _db.ManualPaymentProofs.CountAsync(p => p.Status == StatusHelper.ManualPaymentPending);
+        PaidPaymentProofs     = await _db.ManualPaymentProofs.CountAsync(p => p.Status == StatusHelper.ManualPaymentPaid);
+        RejectedPaymentProofs = await _db.ManualPaymentProofs.CountAsync(p => p.Status == StatusHelper.ManualPaymentRejected);
 
         return Page();
     }

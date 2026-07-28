@@ -85,6 +85,16 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("cnic");
 
+                    b.Property<string>("AccountNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("account_number");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("bank_name");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("created_at");

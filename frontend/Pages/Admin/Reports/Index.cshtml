@@ -173,6 +173,41 @@
                     </div>
                 </div>
 
+                <!-- Manual Payment Proofs Card -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="report-hub-card">
+                        <div class="rhc-header" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);">
+                            <div class="rhc-icon"><i class="bi bi-receipt-cutoff"></i></div>
+                            <div class="rhc-badge">Payments</div>
+                        </div>
+                        <div class="rhc-body">
+                            <div class="rhc-stat-row">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Total Proofs</span>
+                                    <span class="rhc-stat-value">@Model.TotalPaymentProofs</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Paid</span>
+                                    <span class="rhc-stat-value">@Model.PaidPaymentProofs</span>
+                                </div>
+                            </div>
+                            <div class="rhc-stat-row mt-2">
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Pending</span>
+                                    <span class="rhc-stat-value">@Model.PendingPaymentProofs</span>
+                                </div>
+                                <div class="rhc-stat">
+                                    <span class="rhc-stat-label">Rejected</span>
+                                    <span class="rhc-stat-value">@Model.RejectedPaymentProofs</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rhc-footer">
+                            <a href="/admin/reports/manual-payment-proofs" class="rhc-btn"><i class="bi bi-credit-card"></i> View Report</a>
+                        </div>
+                    </div>
+                </div>
+
             </div><!-- /row -->
         </div><!-- /admin-content -->
 

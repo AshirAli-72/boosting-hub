@@ -23,6 +23,7 @@ public class Orders
     [Column("created_at")] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     [Column("attachment")] public string? Attachment { get; set; }
     [Column("reject_reason")] public string? RejectReason { get; set; }
+    [Column("voucher_no")] public string? VoucherNo { get; set; }
 
     [NotMapped] public decimal Budget { get; set; }
 

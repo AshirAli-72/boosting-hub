@@ -30,6 +30,8 @@ public class AccountService : IAccountService
                 AccountTitle = a.AccountTitle,
                 MobileNumber = a.MobileNumber,
                 Cnic = a.Cnic,
+                AccountNumber = a.AccountNumber,
+                BankName = a.BankName,
                 IsDefault = a.IsDefault,
                 Status = StatusHelper.AccountStatusToString(a.Status),
                 CreatedAt = a.CreatedAt
@@ -63,6 +65,8 @@ public class AccountService : IAccountService
             AccountTitle = dto.AccountTitle,
             MobileNumber = dto.MobileNumber,
             Cnic = dto.Cnic,
+            AccountNumber = dto.AccountNumber,
+            BankName = dto.BankName,
             IsDefault = dto.IsDefault,
             Status = StatusHelper.AccountActive,
             CreatedAt = DateTime.UtcNow,
@@ -86,6 +90,8 @@ public class AccountService : IAccountService
             AccountTitle = account.AccountTitle,
             MobileNumber = account.MobileNumber,
             Cnic = account.Cnic,
+            AccountNumber = account.AccountNumber,
+            BankName = account.BankName,
             IsDefault = account.IsDefault,
             Status = StatusHelper.AccountStatusToString(account.Status),
             CreatedAt = account.CreatedAt

@@ -95,66 +95,6 @@
 
 <div class="admin-content">
 
-    <!-- ── Stats Row ── -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="stat-card" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 100%);border:none;">
-                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calendar-check"></i></div>
-                <div class="stat-info">
-                    <span class="stat-label" style="color:rgba(255,255,255,0.75);">Today</span>
-                    <span class="stat-value" style="color:#fff;">@Model.Stats.TotalToday</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
-                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calendar-week"></i></div>
-                <div class="stat-info">
-                    <span class="stat-label" style="color:rgba(255,255,255,0.75);">This Week</span>
-                    <span class="stat-value" style="color:#fff;">@Model.Stats.TotalThisWeek</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
-                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calendar-month"></i></div>
-                <div class="stat-info">
-                    <span class="stat-label" style="color:rgba(255,255,255,0.75);">This Month</span>
-                    <span class="stat-value" style="color:#fff;">@Model.Stats.TotalThisMonth</span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
-                <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-person-fill"></i></div>
-                <div class="stat-info">
-                    <span class="stat-label" style="color:rgba(255,255,255,0.75);">Most Active</span>
-                    <span class="stat-value" style="color:#fff;font-size:1rem;">@Model.Stats.MostActiveUser</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Charts ── -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-7">
-            <div class="card shadow-sm border-0 chart-card chart-line">
-                <div class="card-body">
-                    <h5 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Activity Over Time</h5>
-                    <canvas id="activityLineChart" style="width:100%!important;height:280px!important;"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-5">
-            <div class="card shadow-sm border-0 chart-card chart-pie">
-                <div class="card-body">
-                    <h5 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> By Event Type</h5>
-                    <canvas id="activityPieChart" style="width:100%!important;max-width:360px!important;height:300px!important;margin:0 auto;"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- ── Activity Feed ── -->
     <div class="activity-log-card mt-2">
         <div class="activity-log-header">
@@ -359,52 +299,6 @@
             if (pd && !pd.contains(e.target)) {
                 var m = document.getElementById('profileMenu');
                 if (m) m.style.display = 'none';
-            }
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script>
-        var lineLabels = @Html.Raw(JsonSerializer.Serialize(Model.Stats.ByDay.Select(d => d.Day).ToList()));
-        var lineData   = @Html.Raw(JsonSerializer.Serialize(Model.Stats.ByDay.Select(d => d.Count).ToList()));
-        var pieLabels  = @Html.Raw(JsonSerializer.Serialize(Model.Stats.ByEvent.Select(e => e.Event).ToList()));
-        var pieData    = @Html.Raw(JsonSerializer.Serialize(Model.Stats.ByEvent.Select(e => e.Count).ToList()));
-        var pieColors  = new ['#6366F1','#3B82F6','#10B981','#F59E0B','#EC4899','#8B5CF6','#14B8A6','#EF4444'];
-
-        function isLight() { return document.body.classList.contains('light-mode'); }
-
-        var activityLineChart = new Chart(document.getElementById('activityLineChart'), {
-            type: 'line',
-            data: {
-                labels: lineLabels,
-                datasets: [{
-                    label: 'Activities',
-                    data: lineData,
-                    borderColor: '#6366F1',
-                    backgroundColor: 'rgba(99,102,241,0.12)',
-                    fill: true, tension: 0.4,
-                    pointBackgroundColor: '#6366F1',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: isLight() ? '#71717A' : 'rgba(250,250,250,0.45)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } },
-                    y: { beginAtZero: true, ticks: { stepSize: 1, color: isLight() ? '#71717A' : 'rgba(250,250,250,0.45)' }, grid: { color: isLight() ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)' } }
-                }
-            }
-        });
-
-        var activityPieChart = new Chart(document.getElementById('activityPieChart'), {
-            type: 'doughnut',
-            data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 0 }] },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#3F3F46' : 'rgba(250,250,250,0.70)', padding: 16 } } },
-                cutout: '65%'
             }
         });
     </script>
