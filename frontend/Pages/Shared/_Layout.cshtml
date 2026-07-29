@@ -1543,7 +1543,6 @@
                 var sym = iqCurrencySymbols[payCurrency] || (data.currency === 'PKR' ? 'Rs.' : '$');
                 document.getElementById('vl-total').textContent = sym + ' ' + parseFloat(data.totalAmount || 0).toFixed(2);
 
-                document.getElementById('voucherLookupStep1').style.display = 'none';
                 document.getElementById('voucherLookupStep2').style.display = 'block';
 
             } catch(err) {

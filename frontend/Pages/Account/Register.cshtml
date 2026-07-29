@@ -132,11 +132,11 @@
                         <div id="socialAccountsSection" style="background:var(--bg-elevated);border:1px solid var(--border-muted);border-radius:12px;padding:16px;margin:16px 0;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <p style="font-size:0.82rem;color:var(--text-muted);margin:0;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
-                                    <i class="bi bi-globe2 me-1"></i> Social Media Accounts <span style="color:var(--accent);">*</span>
+                                    <i class="bi bi-globe2 me-1"></i> Social Media Accounts
                                 </p>
                             </div>
                             <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 12px;">
-                                Required to accept platform-specific tasks.
+                                Optional. Add your social accounts to accept platform-specific tasks.
                             </p>
                             <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="openSocialModal()" style="border-radius:8px;">
                                 <i class="bi bi-plus-circle me-1"></i> Add Social Accounts
@@ -444,13 +444,6 @@
             });
         }
 
-        document.getElementById('registerForm').addEventListener('submit', function(e) {
-            if (savedAccounts.length === 0) {
-                e.preventDefault();
-                showToast('Please add at least one social media account.', 'danger');
-                openSocialModal();
-                return false;
-            }
-        });
+
     </script>
 }

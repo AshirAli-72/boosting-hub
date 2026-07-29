@@ -20,6 +20,8 @@ public class IndexModel : PageModel
 
     [BindProperty] public BoostingHub.backend.Models.Account Input { get; set; } = new();
 
+    public bool HasBankAccount { get; set; }
+
     public async Task<IActionResult> OnGetAsync()
     {
         var role = HttpContext.Session.GetString("UserRole");
@@ -29,9 +31,11 @@ public class IndexModel : PageModel
         if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out var userId))
         {
             Accounts = await _db.Accounts
-                .Where(a => a.UserId == userId)
+                .Where(a => a.UserId == userId && a.AccountTitle == "Bank")
                 .OrderByDescending(a => a.CreatedAt)
                 .ToListAsync();
+
+            HasBankAccount = Accounts.Any();
         }
 
         return Page();
@@ -46,19 +50,22 @@ public class IndexModel : PageModel
         if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
             return RedirectToPage("/Account/Login");
 
-        if (string.IsNullOrWhiteSpace(Input.AccountTitle))
+        var existingBank = await _db.Accounts.AnyAsync(a => a.UserId == userId && a.AccountTitle == "Bank");
+        if (existingBank)
         {
-            TempData["Error"] = "Account type is required.";
+            TempData["Error"] = "A bank account already exists. You can only have one bank account.";
             return RedirectToPage();
         }
 
-        if (Input.AccountTitle == "Bank" && string.IsNullOrWhiteSpace(Input.AccountNumber))
+        Input.AccountTitle = "Bank";
+
+        if (string.IsNullOrWhiteSpace(Input.AccountNumber))
         {
             TempData["Error"] = "Account number is required for bank accounts.";
             return RedirectToPage();
         }
 
-        if (Input.AccountTitle == "Bank" && string.IsNullOrWhiteSpace(Input.BankName))
+        if (string.IsNullOrWhiteSpace(Input.BankName))
         {
             TempData["Error"] = "Bank name is required for bank accounts.";
             return RedirectToPage();
@@ -76,11 +83,11 @@ public class IndexModel : PageModel
         var account = new BoostingHub.backend.Models.Account
         {
             UserId = userId,
-            AccountTitle = Input.AccountTitle,
+            AccountTitle = "Bank",
             MobileNumber = Input.MobileNumber ?? "",
             Cnic = Input.Cnic ?? "",
             AccountNumber = Input.AccountNumber,
-            BankName = Input.AccountTitle == "Bank" ? Input.BankName : null,
+            BankName = Input.BankName,
             IsDefault = Input.IsDefault,
             Status = StatusHelper.AccountActive,
             CreatedAt = DateTime.UtcNow,
@@ -90,7 +97,7 @@ public class IndexModel : PageModel
         _db.Accounts.Add(account);
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Account created successfully.";
+        TempData["Success"] = "Bank account created successfully.";
         return RedirectToPage();
     }
 

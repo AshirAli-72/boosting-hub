@@ -29,17 +29,23 @@
             </div>
             <div class="card shadow-sm border-0">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-credit-card text-primary me-2"></i> Payment Accounts</h5>
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAccountModal">
-                        <i class="bi bi-plus-circle"></i> Add Account
-                    </button>
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-bank text-primary me-2"></i> Bank Accounts</h5>
+                    @if (!Model.HasBankAccount)
+                    {
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAccountModal">
+                            <i class="bi bi-plus-circle"></i> Add Bank Account
+                        </button>
+                    }
+                    else
+                    {
+                        <span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-check-circle text-success"></i> Bank account exists</span>
+                    }
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="admin-table mb-0 align-middle">
                             <thead class="admin-thead">
                                 <tr>
-                                    <th>Account Type</th>
                                     <th>Bank Name</th>
                                     <th>Mobile Number</th>
                                     <th>CNIC</th>
@@ -54,17 +60,7 @@
                                 @foreach (var acc in Model.Accounts)
                                 {
                                     <tr>
-                                        <td class="fw-medium">
-                                            @if (acc.AccountTitle == "Bank")
-                                            {
-                                                <span class="admin-badge" style="background:rgba(59,130,246,0.15);color:#3B82F6;"><i class="bi bi-bank me-1"></i> Bank</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="admin-badge" style="background:rgba(16,185,129,0.15);color:#10B981;"><i class="bi bi-wallet2 me-1"></i> EasyPaisa</span>
-                                            }
-                                        </td>
-                                        <td>@(acc.BankName ?? "—")</td>
+                                        <td><span class="admin-badge" style="background:rgba(59,130,246,0.15);color:#3B82F6;"><i class="bi bi-bank me-1"></i> @(acc.BankName ?? "—")</span></td>
                                         <td>@acc.MobileNumber</td>
                                         <td>@acc.Cnic</td>
                                         <td>@(acc.AccountNumber ?? "—")</td>
@@ -91,7 +87,7 @@
                                 }
                                 @if (!Model.Accounts.Any())
                                 {
-                                    <tr><td colspan="9" class="text-center text-muted py-5">No accounts found. <a href="#" data-bs-toggle="modal" data-bs-target="#createAccountModal">Add one now</a>.</td></tr>
+                                    <tr><td colspan="8" class="text-center text-muted py-5">No bank account added yet. <a href="#" data-bs-toggle="modal" data-bs-target="#createAccountModal">Add one now</a>.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -104,33 +100,15 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content border-0 shadow-lg">
                         <div class="modal-header border-bottom-0">
-                            <h5 class="modal-title fw-semibold" id="createAccountModalLabel"><i class="bi bi-credit-card text-primary"></i> Add Payment Account</h5>
+                            <h5 class="modal-title fw-semibold" id="createAccountModalLabel"><i class="bi bi-bank text-primary"></i> Add Bank Account</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-4">
                             <form method="post" asp-page-handler="Create">
+                                <input type="hidden" asp-for="Input.AccountTitle" value="Bank" />
                                 <div class="mb-3">
-                                    <label class="form-label fw-medium text-secondary">Account Type</label>
-                                    <select asp-for="Input.AccountTitle" class="form-select" id="adminAccountTypeSelect" onchange="toggleAdminAccountNumberField()">
-                                        <option value="EasyPaisa">EasyPaisa</option>
-                                        <option value="Bank">Bank</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-medium text-secondary">Mobile Number</label>
-                                    <input asp-for="Input.MobileNumber" class="form-control" type="tel" placeholder="03XX-XXXXXXX" required />
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-medium text-secondary">CNIC</label>
-                                    <input asp-for="Input.Cnic" class="form-control" placeholder="XXXXX-XXXXXXX-X" required />
-                                </div>
-                                <div class="mb-3" id="adminAccountNumberField" style="display:none;">
-                                    <label class="form-label fw-medium text-secondary">Account Number</label>
-                                    <input asp-for="Input.AccountNumber" class="form-control" placeholder="Enter bank account number" />
-                                </div>
-                                <div class="mb-3" id="adminBankNameField" style="display:none;">
                                     <label class="form-label fw-medium text-secondary">Bank Name</label>
-                                    <select asp-for="Input.BankName" class="form-select">
+                                    <select asp-for="Input.BankName" class="form-select" required>
                                         <option value="">Select Bank</option>
                                         <option value="Allied Bank Limited">Allied Bank Limited (ABL)</option>
                                         <option value="Askari Bank">Askari Bank</option>
@@ -150,12 +128,24 @@
                                         <option value="United Bank Limited">United Bank Limited (UBL)</option>
                                     </select>
                                 </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-secondary">Account Number</label>
+                                    <input asp-for="Input.AccountNumber" class="form-control" placeholder="Enter bank account number" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-secondary">Mobile Number</label>
+                                    <input asp-for="Input.MobileNumber" class="form-control" type="tel" placeholder="03XX-XXXXXXX" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-medium text-secondary">CNIC</label>
+                                    <input asp-for="Input.Cnic" class="form-control" placeholder="XXXXX-XXXXXXX-X" required />
+                                </div>
                                 <div class="mb-4 form-check">
                                     <input asp-for="Input.IsDefault" class="form-check-input" />
                                     <label class="form-check-label" asp-for="Input.IsDefault">Set as default account</label>
                                 </div>
                                 <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary py-2"><i class="bi bi-save"></i> Save Account</button>
+                                    <button type="submit" class="btn btn-primary py-2"><i class="bi bi-save"></i> Save Bank Account</button>
                                 </div>
                             </form>
                         </div>
@@ -188,16 +178,6 @@
             }
         });
 
-        function toggleAdminAccountNumberField() {
-            var select = document.getElementById('adminAccountTypeSelect');
-            var numField = document.getElementById('adminAccountNumberField');
-            var bankField = document.getElementById('adminBankNameField');
-            if (select) {
-                var isBank = select.value === 'Bank';
-                if (numField) numField.style.display = isBank ? 'block' : 'none';
-                if (bankField) bankField.style.display = isBank ? 'block' : 'none';
-            }
-        }
-        document.addEventListener('DOMContentLoaded', function() { toggleAdminAccountNumberField(); });
+
     </script>
 }

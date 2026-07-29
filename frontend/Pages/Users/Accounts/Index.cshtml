@@ -25,11 +25,18 @@
         <div class="admin-content">
             <div class="card shadow-sm border-0">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-semibold"><i class="bi bi-credit-card text-primary me-2"></i> Payment Accounts</h5>
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-wallet2 text-primary me-2"></i> EasyPaisa Account</h5>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAccountModal">
-                            <i class="bi bi-plus-circle"></i> Add Account
-                        </button>
+                        @if (!Model.HasEasyPaisaAccount)
+                        {
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAccountModal">
+                                <i class="bi bi-plus-circle"></i> Add EasyPaisa
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-check-circle text-success"></i> EasyPaisa account exists</span>
+                        }
                         <a href="/user/settings" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
                     </div>
                 </div>
@@ -38,11 +45,8 @@
                             <table class="admin-table mb-0 align-middle">
                             <thead class="admin-thead">
                                 <tr>
-                                    <th>Account Type</th>
-                                    <th>Bank Name</th>
                                     <th>Mobile Number</th>
                                     <th>CNIC</th>
-                                    <th>Account Number</th>
                                     <th>Default</th>
                                     <th>Status</th>
                                     <th>Created</th>
@@ -53,11 +57,8 @@
                                 @foreach (var acc in Model.Accounts)
                                 {
                                     <tr>
-                                        <td class="fw-medium">@acc.AccountTitle</td>
-                                        <td>@(acc.BankName ?? "—")</td>
                                         <td>@acc.MobileNumber</td>
                                         <td>@acc.Cnic</td>
-                                        <td>@(acc.AccountNumber ?? "—")</td>
                                         <td>
                                             @if (acc.IsDefault)
                                             {
@@ -81,7 +82,7 @@
                                 }
                                 @if (!Model.Accounts.Any())
                                 {
-                                    <tr><td colspan="9" class="text-center text-muted py-5">No accounts found. <a href="#" data-bs-toggle="modal" data-bs-target="#createAccountModal">Add one now</a>.</td></tr>
+                                    <tr><td colspan="6" class="text-center text-muted py-5">No EasyPaisa account added yet. <a href="#" data-bs-toggle="modal" data-bs-target="#createAccountModal">Add one now</a>.</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -94,23 +95,18 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content border-0 shadow-lg">
                         <div class="modal-header border-bottom-0">
-                            <h5 class="modal-title fw-semibold" id="createAccountModalLabel"><i class="bi bi-credit-card text-primary"></i> Add Payment Account</h5>
+                            <h5 class="modal-title fw-semibold" id="createAccountModalLabel"><i class="bi bi-wallet2 text-primary"></i> Add EasyPaisa Account</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-4">
                             <form method="post" asp-page-handler="Create">
-                                <div class="mb-3">
-                                    <label class="form-label fw-medium text-secondary">Account Type</label>
-                                     <select asp-for="Input.AccountTitle" class="form-select" id="accountTypeSelect" onchange="toggleAccountNumberField()">
-                                        <option value="EasyPaisa">EasyPaisa</option>
-                                    </select>
-                                </div>
+                                <input type="hidden" asp-for="Input.AccountTitle" value="EasyPaisa" />
                                 <div class="mb-3">
                                     <label class="form-label fw-medium text-secondary">Mobile Number</label>
                                     <input asp-for="Input.MobileNumber" class="form-control" type="tel" placeholder="03XX-XXXXXXX" required />
                                     <span asp-validation-for="Input.MobileNumber" class="text-danger small"></span>
                                 </div>
-                                    <div class="mb-3">
+                                <div class="mb-3">
                                     <label class="form-label fw-medium text-secondary">CNIC</label>
                                     <input asp-for="Input.Cnic" class="form-control" placeholder="XXXXX-XXXXXXX-X" required />
                                     <span asp-validation-for="Input.Cnic" class="text-danger small"></span>
@@ -120,7 +116,7 @@
                                     <label class="form-check-label" asp-for="Input.IsDefault">Set as default account</label>
                                 </div>
                                 <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary py-2"><i class="bi bi-save"></i> Save Account</button>
+                                    <button type="submit" class="btn btn-primary py-2"><i class="bi bi-save"></i> Save EasyPaisa</button>
                                 </div>
                             </form>
                         </div>
@@ -153,16 +149,6 @@
             }
         });
 
-        function toggleAccountNumberField() {
-            var select = document.getElementById('accountTypeSelect');
-            var numField = document.getElementById('accountNumberField');
-            var bankField = document.getElementById('bankNameField');
-            if (select) {
-                var isBank = select.value === 'Bank';
-                if (numField) numField.style.display = isBank ? 'block' : 'none';
-                if (bankField) bankField.style.display = isBank ? 'block' : 'none';
-            }
-        }
-        document.addEventListener('DOMContentLoaded', function() { toggleAccountNumberField(); });
+
     </script>
 }
