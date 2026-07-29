@@ -4,6 +4,7 @@ using BoostingHub.backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoostingHub.backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260729124628_create_website_settings_table")]
+    partial class create_website_settings_table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -558,10 +561,15 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("address");
 
-                    b.Property<string>("FaviconPath")
+                    b.Property<string>("FacebookUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
-                        .HasColumnName("favicon_path");
+                        .HasColumnName("facebook_url");
+
+                    b.Property<string>("FaviconUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("favicon_url");
 
                     b.Property<string>("FooterDescription")
                         .HasMaxLength(2000)
@@ -573,10 +581,25 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("footer_text");
 
+                    b.Property<string>("HeroCtaText")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("hero_cta_text");
+
+                    b.Property<string>("HeroCtaUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("hero_cta_url");
+
                     b.Property<string>("HeroDescription")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)")
                         .HasColumnName("hero_description");
+
+                    b.Property<string>("HeroImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("hero_image_url");
 
                     b.Property<string>("HeroSubtitle")
                         .HasMaxLength(500)
@@ -588,15 +611,20 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(300)")
                         .HasColumnName("hero_title");
 
+                    b.Property<string>("InstagramUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("instagram_url");
+
                     b.Property<string>("LinkedInUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("linkedin_url");
 
-                    b.Property<string>("LogoPath")
+                    b.Property<string>("LogoUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
-                        .HasColumnName("logo_path");
+                        .HasColumnName("logo_url");
 
                     b.Property<string>("SiteName")
                         .IsRequired()
@@ -622,6 +650,11 @@ namespace BoostingHub.backend.Data.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("updated_at");
+
+                    b.Property<string>("YouTubeUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("youtube_url");
 
                     b.HasKey("Id");
 

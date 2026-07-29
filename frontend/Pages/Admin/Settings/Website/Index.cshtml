@@ -1,0 +1,411 @@
+@page "/admin/settings/website"
+@model BoostingHub.frontend.Pages.Admin.Settings.Website.IndexModel
+@{
+    ViewData["Title"] = "Website Settings";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+<style>
+.settings-page { max-width: 1360px; margin: 0 auto; }
+
+/* ── Section card ── */
+.st-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-card); margin-bottom: 1.25rem; overflow: hidden; transition: box-shadow 0.2s; }
+.st-card:hover { box-shadow: var(--shadow-card); }
+.st-card-head { display: flex; align-items: center; gap: 12px; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-subtle); background: var(--bg-elevated); }
+.st-card-head .icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+.st-card-head .icon.brand { background: rgba(109,40,217,0.12); color: #a78bfa; }
+body.light-mode .st-card-head .icon.brand { background: #ede9fe; color: #6d28d9; }
+.st-card-head .icon.hero { background: rgba(29,78,216,0.12); color: #60a5fa; }
+body.light-mode .st-card-head .icon.hero { background: #dbeafe; color: #1d4ed8; }
+.st-card-head .icon.about { background: rgba(4,120,87,0.12); color: #34d399; }
+body.light-mode .st-card-head .icon.about { background: #d1fae5; color: #047857; }
+.st-card-head .icon.contact { background: rgba(180,83,9,0.12); color: #fbbf24; }
+body.light-mode .st-card-head .icon.contact { background: #fef3c7; color: #b45309; }
+.st-card-head .icon.footer { background: rgba(190,24,93,0.12); color: #f472b6; }
+body.light-mode .st-card-head .icon.footer { background: #fce7f3; color: #be185d; }
+.st-card-head .icon.social { background: rgba(67,56,202,0.12); color: #818cf8; }
+body.light-mode .st-card-head .icon.social { background: #e0e7ff; color: #4338ca; }
+.st-card-head h6 { font-size: 0.92rem; font-weight: 600; margin: 0; color: var(--text-primary); }
+.st-card-head p { font-size: 0.78rem; color: var(--text-muted); margin: 1px 0 0; }
+.st-card-body { padding: 1.5rem; }
+
+/* ── Form controls ── */
+.fg { margin-bottom: 1.25rem; }
+.fg:last-child { margin-bottom: 0; }
+.fg-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.35rem; letter-spacing: 0.01em; }
+.fg-input { width: 100%; border: 1.5px solid var(--border-muted); border-radius: 8px; padding: 0.52rem 0.85rem; font-size: 0.9rem; background: var(--bg-surface); color: var(--text-primary); transition: border-color 0.2s, box-shadow 0.2s; }
+.fg-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); outline: none; }
+.fg-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+textarea.fg-input { resize: vertical; min-height: 76px; line-height: 1.5; }
+
+/* ── File upload ── */
+.upload-zone { position: relative; border: 2px dashed var(--border-muted); border-radius: var(--radius-card); padding: 1.25rem; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg-surface); }
+.upload-zone:hover { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 5%, transparent); }
+body.light-mode .upload-zone:hover { background: #f5f3ff; }
+.upload-zone.dragover { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); }
+body.light-mode .upload-zone.dragover { background: #ede9fe; }
+.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.upload-zone .thumb { width: 72px; height: 72px; margin: 0 auto 0.6rem; border-radius: 10px; overflow: hidden; background: var(--bg-elevated); border: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: center; }
+.upload-zone .thumb img { width: 100%; height: 100%; object-fit: contain; }
+.upload-zone .thumb .empty { font-size: 1.6rem; color: var(--text-muted); }
+.upload-zone .file-name { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem; word-break: break-all; }
+.upload-zone .hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; }
+.upload-zone.favicon .thumb { width: 48px; height: 48px; border-radius: 8px; }
+
+/* ── Social pills ── */
+.social-row { display: flex; flex-direction: column; gap: 0.85rem; }
+.social-item { display: flex; align-items: center; gap: 12px; }
+.social-item .brand-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; }
+.social-item .brand-icon.x { background: rgba(0,0,0,0.08); color: var(--text-primary); }
+body.light-mode .social-item .brand-icon.x { background: #f2f2f2; color: #111; }
+.social-item .brand-icon.linkedin { background: rgba(10,102,194,0.12); color: #0a66c2; }
+body.light-mode .social-item .brand-icon.linkedin { background: #e8f4fd; color: #0a66c2; }
+.social-item .si-input { flex: 1; position: relative; }
+.social-item .si-input input { width: 100%; border: 1.5px solid var(--border-muted); border-radius: 8px; padding: 0.52rem 0.85rem 0.52rem 2.4rem; font-size: 0.9rem; background: var(--bg-surface); color: var(--text-primary); outline: none; transition: border-color 0.2s; }
+.social-item .si-input input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+.social-item .si-input input::placeholder { color: var(--text-muted); opacity: 0.6; }
+.social-item .si-input .domain { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted); pointer-events: none; }
+
+/* ── Save bar ── */
+.save-bar { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-card); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; }
+.save-bar .status { font-size: 0.82rem; color: var(--text-muted); }
+.save-bar .status i { margin-right: 6px; }
+.btn-save { background: var(--primary); border: none; border-radius: 8px; padding: 0.55rem 2rem; font-weight: 600; font-size: 0.9rem; color: #fff; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; cursor: pointer; }
+.btn-save:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px var(--primary-glow); }
+.btn-save:active { transform: translateY(0); }
+.btn-save.loading { pointer-events: none; opacity: 0.7; }
+.btn-save .spinner { display: none; }
+.btn-save.loading .spinner { display: inline-block; }
+
+/* ── Device mockup ── */
+.mockup { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 20px; box-shadow: var(--shadow-card); overflow: hidden; }
+.mockup-bar { display: flex; align-items: center; gap: 8px; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-subtle); }
+.mockup-bar .dots { display: flex; gap: 5px; }
+.mockup-bar .dots span { width: 8px; height: 8px; border-radius: 50%; }
+.mockup-bar .dots span:nth-child(1) { background: #ff5f56; }
+.mockup-bar .dots span:nth-child(2) { background: #ffbd2e; }
+.mockup-bar .dots span:nth-child(3) { background: #27c93f; }
+.mockup-bar .site-url { font-size: 0.72rem; color: var(--text-muted); background: var(--bg-elevated); border-radius: 4px; padding: 0.2rem 0.6rem; margin-left: auto; }
+.mockup-body { padding: 1.5rem 1.5rem 2rem; }
+.mockup-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+.mockup-brand .m-logo { width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: color-mix(in srgb, var(--primary) 15%, transparent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+body.light-mode .mockup-brand .m-logo { background: #f0edff; }
+.mockup-brand .m-logo img { width: 100%; height: 100%; object-fit: contain; }
+.mockup-brand .m-logo .empty { font-size: 1.2rem; color: var(--primary); }
+.mockup-brand .m-name { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; color: var(--text-primary); }
+.mockup-hero { background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, transparent), color-mix(in srgb, var(--accent) 8%, transparent)); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf2f4); }
+.mockup-hero .mh-title { font-weight: 700; font-size: 1rem; color: var(--text-primary); margin-bottom: 0.25rem; }
+.mockup-hero .mh-sub { font-size: 0.8rem; color: var(--text-muted); }
+.mockup-desc { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; }
+.mockup-footer { border-top: 1px solid var(--border-subtle); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); }
+.mockup-footer .m-social { display: flex; gap: 10px; font-size: 0.9rem; }
+</style>
+
+<div class="admin-header">
+    <h3><i class="bi bi-sliders2 text-primary"></i> Website Settings</h3>
+    <div class="admin-header-right">
+        <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+            <i class="bi bi-moon-stars fs-5"></i>
+        </button>
+        <div class="user-profile-dropdown" id="profileDropdown">
+            <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                <i class="bi bi-person-circle"></i> Admin
+                <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+            </span>
+            <div class="profile-menu" id="profileMenu" style="display:none;">
+                <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-content settings-page">
+    <div class="mb-3">
+        <a href="/admin/settings" class="btn btn-outline-secondary btn-sm" style="border-radius:8px;"><i class="bi bi-arrow-left"></i> Back to Settings</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="settingsForm">
+        <div class="row g-4">
+            @* ── Left: Form ── *@
+            <div class="col-lg-7">
+
+                @* ── Branding ── *@
+                <div class="st-card">
+                    <div class="st-card-head">
+                        <div class="icon brand"><i class="bi bi-brush"></i></div>
+                        <div><h6>Branding</h6><p>Site name, logo and favicon</p></div>
+                    </div>
+                    <div class="st-card-body">
+                        <div class="fg">
+                            <label class="fg-label">Site Name</label>
+                            <input asp-for="Input.SiteName" class="fg-input" placeholder="Your brand name" required />
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="fg-label">Logo</label>
+                                <div class="upload-zone" id="logoZone">
+                                    <div class="thumb" id="logoThumb">
+                                        @if (!string.IsNullOrEmpty(Model.Input.LogoUrl))
+                                        {
+                                            <img src="@Model.Input.LogoUrl" alt="Logo" />
+                                        }
+                                        else
+                                        {
+                                            <span class="empty"><i class="bi bi-image"></i></span>
+                                        }
+                                    </div>
+                                    <div class="file-name" id="logoFileName">@(string.IsNullOrEmpty(Model.Input.LogoUrl) ? "No file selected" : "logo.png")</div>
+                                    <div class="hint">PNG, JPG, WEBP &bull; 120&times;120+</div>
+                                    <input asp-for="Input.LogoFile" accept="image/*" onchange="handleFile(this, 'logoThumb', 'logoFileName')" />
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="fg-label">Favicon</label>
+                                <div class="upload-zone favicon" id="faviconZone">
+                                    <div class="thumb" id="faviconThumb">
+                                        @if (!string.IsNullOrEmpty(Model.Input.FaviconUrl))
+                                        {
+                                            <img src="@Model.Input.FaviconUrl" alt="Favicon" />
+                                        }
+                                        else
+                                        {
+                                            <span class="empty"><i class="bi bi-filetype-ico"></i></span>
+                                        }
+                                    </div>
+                                    <div class="file-name" id="faviconFileName">@(string.IsNullOrEmpty(Model.Input.FaviconUrl) ? "No file selected" : "favicon.ico")</div>
+                                    <div class="hint">ICO, PNG &bull; 32&times;32 or 64&times;64</div>
+                                    <input asp-for="Input.FaviconFile" accept="image/*" onchange="handleFile(this, 'faviconThumb', 'faviconFileName')" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── Hero ── *@
+                <div class="st-card">
+                    <div class="st-card-head">
+                        <div class="icon hero"><i class="bi bi-layers"></i></div>
+                        <div><h6>Hero Section</h6><p>Landing page banner content</p></div>
+                    </div>
+                    <div class="st-card-body">
+                        <div class="fg">
+                            <label class="fg-label">Hero Title</label>
+                            <input asp-for="Input.HeroTitle" class="fg-input" placeholder="e.g. Grow Your Social Presence" />
+                        </div>
+                        <div class="fg">
+                            <label class="fg-label">Hero Subtitle</label>
+                            <input asp-for="Input.HeroSubtitle" class="fg-input" placeholder="e.g. The easiest way to boost your engagement" />
+                        </div>
+                        <div class="fg">
+                            <label class="fg-label">Hero Description</label>
+                            <textarea asp-for="Input.HeroDescription" class="fg-input" rows="3" placeholder="A short paragraph about what your platform offers"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── About ── *@
+                <div class="st-card">
+                    <div class="st-card-head">
+                        <div class="icon about"><i class="bi bi-info-lg"></i></div>
+                        <div><h6>About</h6><p>Tell visitors about your platform</p></div>
+                    </div>
+                    <div class="st-card-body">
+                        <div class="fg">
+                            <label class="fg-label">About Title</label>
+                            <input asp-for="Input.AboutTitle" class="fg-input" placeholder="e.g. Why Choose Us" />
+                        </div>
+                        <div class="fg">
+                            <label class="fg-label">About Description</label>
+                            <textarea asp-for="Input.AboutDescription" class="fg-input" rows="4" placeholder="Describe your platform's value proposition and key features"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── Contact ── *@
+                <div class="st-card">
+                    <div class="st-card-head">
+                        <div class="icon contact"><i class="bi bi-envelope"></i></div>
+                        <div><h6>Contact</h6><p>Support and business details</p></div>
+                    </div>
+                    <div class="st-card-body">
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <div class="fg">
+                                    <label class="fg-label">Email</label>
+                                    <input asp-for="Input.SupportEmail" class="fg-input" type="email" placeholder="support@example.com" />
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="fg">
+                                    <label class="fg-label">Phone</label>
+                                    <input asp-for="Input.SupportPhone" class="fg-input" type="tel" placeholder="+92 300 1234567" />
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="fg">
+                                    <label class="fg-label">Address</label>
+                                    <textarea asp-for="Input.Address" class="fg-input" rows="2" placeholder="Street, city, country"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── Footer ── *@
+                <div class="st-card">
+                    <div class="st-card-head">
+                        <div class="icon footer"><i class="bi bi-layout-three-columns"></i></div>
+                        <div><h6>Footer</h6><p>Copyright and footer description</p></div>
+                    </div>
+                    <div class="st-card-body">
+                        <div class="fg">
+                            <label class="fg-label">Footer Text</label>
+                            <input asp-for="Input.FooterText" class="fg-input" placeholder="&copy; 2026 Your Company. All rights reserved." />
+                        </div>
+                        <div class="fg">
+                            <label class="fg-label">Footer Description</label>
+                            <textarea asp-for="Input.FooterDescription" class="fg-input" rows="2" placeholder="A brief description shown in the footer"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── Social ── *@
+                <div class="st-card">
+                    <div class="st-card-head">
+                        <div class="icon social"><i class="bi bi-share"></i></div>
+                        <div><h6>Social Links</h6><p>Connect your social media profiles</p></div>
+                    </div>
+                    <div class="st-card-body">
+                        <div class="social-row">
+                            <div class="social-item">
+                                <div class="brand-icon x"><i class="bi bi-twitter-x"></i></div>
+                                <div class="si-input">
+                                    <span class="domain">x.com/</span>
+                                    <input asp-for="Input.TwitterUrl" placeholder="username" />
+                                </div>
+                            </div>
+                            <div class="social-item">
+                                <div class="brand-icon linkedin"><i class="bi bi-linkedin"></i></div>
+                                <div class="si-input">
+                                    <span class="domain">linkedin.com/company/</span>
+                                    <input asp-for="Input.LinkedInUrl" placeholder="company-name" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── Save bar ── *@
+                <div class="save-bar">
+                    <div class="status"><i class="bi bi-clock-history"></i> Changes are saved on submit</div>
+                    <button type="submit" class="btn-save" id="saveBtn">
+                        <span class="spinner"><i class="bi bi-arrow-repeat spin"></i></span>
+                        <span class="btn-text"><i class="bi bi-check2"></i> Save Changes</span>
+                    </button>
+                </div>
+            </div>
+
+            @* ── Right: Preview ── *@
+            <div class="col-lg-5">
+                <div style="position:sticky;top:1rem;">
+                    <div class="mockup" id="mockup">
+                        <div class="mockup-bar">
+                            <div class="dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span class="site-url" id="muUrl">@(string.IsNullOrEmpty(Model.Input.SiteName) ? "yoursite.com" : Model.Input.SiteName.ToLower().Replace(" ", "") + ".com")</span>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="mockup-brand">
+                                <div class="m-logo" id="muLogo">
+                                    @if (!string.IsNullOrEmpty(Model.Input.LogoUrl))
+                                    {
+                                        <img src="@Model.Input.LogoUrl" alt="Logo" />
+                                    }
+                                    else
+                                    {
+                                        <span class="empty"><i class="bi bi-rocket-takeoff"></i></span>
+                                    }
+                                </div>
+                                <div class="m-name" id="muName">@Model.Input.SiteName</div>
+                            </div>
+                            <div class="mockup-hero">
+                                <div class="mh-title" id="muHeroTitle">@(Model.Input.HeroTitle ?? "Your Headline Here")</div>
+                                <div class="mh-sub" id="muHeroSub">@(Model.Input.HeroSubtitle ?? "Supporting text goes here")</div>
+                            </div>
+                            <div class="mockup-desc" id="muAbout">@(Model.Input.AboutDescription ?? "Share what makes your platform unique...")</div>
+                            <div class="mockup-footer">
+                                <span id="muFooter">@(string.IsNullOrEmpty(Model.Input.FooterText) ? Html.Raw("&copy; 2026 Company") : Model.Input.FooterText)</span>
+                                <div class="m-social">
+                                    @if (!string.IsNullOrEmpty(Model.Input.TwitterUrl))
+                                    {
+                                        <span style="color:var(--text-muted);"><i class="bi bi-twitter-x"></i></span>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.Input.LinkedInUrl))
+                                    {
+                                        <span style="color:#0a66c2;"><i class="bi bi-linkedin"></i></span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:1rem;padding:0.85rem 1rem;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:12px;font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;">
+                        <i class="bi bi-info-circle"></i> Preview updates on save. Uploaded images may take a moment to appear.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <style>
+        @@keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.8s linear infinite; }
+    </style>
+    <script>
+        @if (!string.IsNullOrEmpty(Model.TempData["Success"] as string))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@TempData["Success"]', 'success'); });</text>
+        }
+        @if (TempData["Error"] is string eMsg && !string.IsNullOrEmpty(eMsg))
+        {
+            <text>document.addEventListener('DOMContentLoaded', function() { showToast('@eMsg', 'danger'); });</text>
+        }
+
+        function handleFile(input, thumbId, nameId) {
+            var file = input.files[0];
+            if (!file) return;
+            var thumb = document.getElementById(thumbId);
+            document.getElementById(nameId).textContent = file.name;
+            var reader = new FileReader();
+            reader.onload = function(e) { thumb.innerHTML = '<img src="' + e.target.result + '" alt="Preview" />'; };
+            reader.readAsDataURL(file);
+        }
+
+        document.querySelectorAll('.upload-zone').forEach(function(z) {
+            z.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('dragover'); });
+            z.addEventListener('dragleave', function() { this.classList.remove('dragover'); });
+            z.addEventListener('drop', function(e) { e.preventDefault(); this.classList.remove('dragover'); });
+        });
+
+        document.getElementById('settingsForm').addEventListener('submit', function() {
+            var btn = document.getElementById('saveBtn');
+            btn.classList.add('loading');
+            btn.querySelector('.btn-text').textContent = ' Saving...';
+        });
+
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+    </script>
+}

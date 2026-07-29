@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<SocialMediaAccount> SocialMediaAccounts { get; set; }
      public DbSet<Package> Packages { get; set; }
+     public DbSet<SiteSetting> SiteSettings { get; set; }
      public DbSet<ManualPaymentProof> ManualPaymentProofs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -278,6 +279,27 @@ public class ApplicationDbContext : DbContext
             e.HasOne(p => p.Order).WithMany().HasForeignKey(p => p.OrderId).OnDelete(DeleteBehavior.NoAction);
             e.HasIndex(p => p.OrderId);
             e.HasIndex(p => p.Status);
+        });
+
+        // ── SiteSetting ────────────────────────────────────────────────────
+        builder.Entity<SiteSetting>(e =>
+        {
+            e.Property(s => s.SiteName).HasMaxLength(200).IsRequired();
+            e.Property(s => s.LogoPath).HasMaxLength(500);
+            e.Property(s => s.FaviconPath).HasMaxLength(500);
+            e.Property(s => s.HeroTitle).HasMaxLength(300);
+            e.Property(s => s.HeroSubtitle).HasMaxLength(500);
+            e.Property(s => s.HeroDescription).HasMaxLength(2000);
+            e.Property(s => s.AboutTitle).HasMaxLength(300);
+            e.Property(s => s.AboutDescription).HasMaxLength(4000);
+            e.Property(s => s.SupportEmail).HasMaxLength(200);
+            e.Property(s => s.SupportPhone).HasMaxLength(50);
+            e.Property(s => s.Address).HasMaxLength(500);
+            e.Property(s => s.FooterText).HasMaxLength(500);
+            e.Property(s => s.FooterDescription).HasMaxLength(2000);
+            e.Property(s => s.TwitterUrl).HasMaxLength(500);
+            e.Property(s => s.LinkedInUrl).HasMaxLength(500);
+            e.Property(s => s.UpdatedAt).HasColumnType("datetime2");
         });
 
         // ── Package ─────────────────────────────────────────────────────────
