@@ -46,7 +46,7 @@ public class ManualPaymentProofsController : ControllerBase
             var file = Request.Form.Files[0];
             if (file.Length > 0)
             {
-                var vouchersDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "payment-vouchers");
+                var vouchersDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "payment-vouchers");
                 if (!Directory.Exists(vouchersDir))
                     Directory.CreateDirectory(vouchersDir);
 
@@ -58,7 +58,7 @@ public class ManualPaymentProofsController : ControllerBase
                 {
                     await file.CopyToAsync(stream);
                 }
-                voucherPath = $"payment-vouchers/{fileName}";
+                voucherPath = $"uploads/payment-vouchers/{fileName}";
             }
         }
 

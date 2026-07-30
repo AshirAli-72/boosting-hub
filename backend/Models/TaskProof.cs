@@ -11,7 +11,7 @@ public class TaskProof
     [Column("task_id")] public int TaskId { get; set; }
 
     [Column("proof_url")] public string ProofUrl { get; set; } = string.Empty;
-    [Column("proof_type")] public string ProofType { get; set; } = string.Empty;
+    [Column("image_path")] public string ImagePath { get; set; } = string.Empty;
 
     [Column("date")] public DateTime Date { get; set; } = DateTime.UtcNow;
     [Column("status", TypeName = "nvarchar(50)")] public string Status { get; set; } = "2";

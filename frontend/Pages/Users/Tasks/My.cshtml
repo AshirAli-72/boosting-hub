@@ -58,14 +58,29 @@
                 '  <h5 style="margin:0 0 20px 0;"><i class="bi bi-upload text-primary me-2"></i>Submit Proof</h5>',
                 '  <div id="pf-error" style="display:none;color:var(--danger,#EF4444);padding:10px 14px;background:rgba(248,113,113,0.12);border-radius:6px;margin-bottom:16px;font-size:0.9rem;"></div>',
                 '  <div style="margin-bottom:16px;">',
-                '    <label style="display:block;margin-bottom:6px;font-weight:500;color:var(--text-secondary,#94a3b8);">Proof URL <span style="color:var(--danger,#EF4444);">*</span></label>',
+                '    <label style="display:block;margin-bottom:6px;font-weight:500;color:var(--text-secondary,#94a3b8);">Proof URL</label>',
                 '    <input type="url" id="pf-url" class="form-control" placeholder="https://imgur.com/screenshot.png" style="color:var(--text-primary,#f1f5f9);background:var(--bg-elevated,rgba(255,255,255,0.05));border:1px solid var(--border-muted,rgba(255,255,255,0.1));" />',
                 '  </div>',
                 '  <div style="margin-bottom:20px;">',
-                '    <label style="display:block;margin-bottom:6px;font-weight:500;color:var(--text-secondary,#94a3b8);">Proof Type</label>',
-                '    <select id="pf-type" class="form-select" style="color:var(--text-primary,#f1f5f9);background:var(--bg-elevated,rgba(255,255,255,0.05));border:1px solid var(--border-muted,rgba(255,255,255,0.1));">',
-                '      <option value="URL">URL</option>',
-                '    </select>',
+                '    <label style="display:block;margin-bottom:6px;font-weight:500;color:var(--text-secondary,#94a3b8);">Screenshot <span style="color:var(--danger,#EF4444);">*</span></label>',
+                '    <div class="file-upload-wrapper" id="pf-wrapper">',
+                '      <input type="file" id="pf-file" accept="image/png,image/jpeg,image/jpg,image/webp" hidden onchange="updateProofFileName(this)" />',
+                '      <label for="pf-file" class="file-upload-label">',
+                '        <div class="file-upload-icon"><i class="bi bi-cloud-arrow-up-fill"></i></div>',
+                '        <div class="file-upload-text">',
+                '          <div class="file-upload-title">Click to upload or drag &amp; drop</div>',
+                '          <div class="file-upload-hint" id="pf-hint">PNG, JPG, WEBP up to 5MB</div>',
+                '        </div>',
+                '      </label>',
+                '      <div class="file-preview" id="pf-preview" style="display:none;">',
+                '        <img id="pf-img" src="" alt="Preview" />',
+                '        <div class="file-preview-info">',
+                '          <div class="file-preview-name" id="pf-name">—</div>',
+                '          <div class="file-preview-size" id="pf-size">—</div>',
+                '        </div>',
+                '        <button type="button" class="file-preview-remove" onclick="removeProofFile()" aria-label="Remove file"><i class="bi bi-x-lg"></i></button>',
+                '      </div>',
+                '    </div>',
                 '  </div>',
                 '  <div style="display:flex;justify-content:flex-end;gap:8px;">',
                 '    <button type="button" class="btn btn-secondary" onclick="closeProofForm()" style="background:var(--bg-elevated,rgba(255,255,255,0.08));color:var(--text-primary,#f1f5f9);border:1px solid var(--border-muted,rgba(255,255,255,0.1));">Cancel</button>',
@@ -74,7 +89,69 @@
                 '</div>'
             ].join('\n');
             document.body.appendChild(overlay);
+            wirePfDropZone();
             document.getElementById('pf-submit').onclick = function() { submitProof(taskId, taskUrl); };
+        }
+
+        function updateProofFileName(input) {
+            var wrapper = document.getElementById('pf-wrapper');
+            var preview = document.getElementById('pf-preview');
+            var label = wrapper.querySelector('.file-upload-label');
+            var img = document.getElementById('pf-img');
+            var nameEl = document.getElementById('pf-name');
+            var sizeEl = document.getElementById('pf-size');
+            if (input.files && input.files[0]) {
+                var file = input.files[0];
+                nameEl.textContent = file.name;
+                var kb = file.size / 1024;
+                sizeEl.textContent = kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : kb.toFixed(1) + ' KB';
+                var isImage = file.type && file.type.indexOf('image/') === 0;
+                if (isImage && img) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) { img.src = e.target.result; };
+                    reader.readAsDataURL(file);
+                }
+                label.style.display = 'none';
+                preview.style.display = 'flex';
+                wrapper.classList.add('has-file');
+            }
+        }
+        function removeProofFile() {
+            var input = document.getElementById('pf-file');
+            var wrapper = document.getElementById('pf-wrapper');
+            var preview = document.getElementById('pf-preview');
+            var label = wrapper.querySelector('.file-upload-label');
+            input.value = '';
+            preview.style.display = 'none';
+            label.style.display = 'flex';
+            wrapper.classList.remove('has-file');
+            var img = document.getElementById('pf-img');
+            if (img) img.src = '';
+        }
+
+        function wirePfDropZone() {
+            var wrapper = document.getElementById('pf-wrapper');
+            if (!wrapper) return;
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(ev) {
+                wrapper.addEventListener(ev, function(e) { e.preventDefault(); e.stopPropagation(); });
+            });
+            ['dragenter', 'dragover'].forEach(function(ev) {
+                wrapper.addEventListener(ev, function() { wrapper.classList.add('is-dragging'); });
+            });
+            ['dragleave', 'drop'].forEach(function(ev) {
+                wrapper.addEventListener(ev, function() { wrapper.classList.remove('is-dragging'); });
+            });
+            wrapper.addEventListener('drop', function(e) {
+                var dt = e.dataTransfer;
+                var files = dt.files;
+                if (files && files[0]) {
+                    var input = document.getElementById('pf-file');
+                    var dt2 = new DataTransfer();
+                    dt2.items.add(files[0]);
+                    input.files = dt2.files;
+                    updateProofFileName(input);
+                }
+            });
         }
 
         function closeProofForm() {
@@ -88,20 +165,18 @@
         }
 
         async function submitProof(taskId, taskUrl) {
-            var url = document.getElementById('pf-url').value.trim();
-            if (!url) { showPfError('Please enter a proof URL.'); return; }
-            if (taskUrl && url === taskUrl) {
-                showPfError('Proof URL cannot be the same as the target URL. Please provide a different proof URL.');
-                return;
-            }
+            var fileInput = document.getElementById('pf-file');
+            var file = fileInput ? fileInput.files[0] : null;
+            if (!file) { showPfError('Please select a screenshot file to upload.'); return; }
+            if (file.size > 5 * 1024 * 1024) { showPfError('File size must be under 5 MB.'); return; }
             document.getElementById('pf-error').style.display = 'none';
             var btn = document.getElementById('pf-submit');
             btn.disabled = true; btn.innerHTML = 'Submitting...';
             try {
                 var fd = new FormData();
                 fd.append('taskId', taskId);
-                fd.append('proofUrl', url);
-                fd.append('proofType', document.getElementById('pf-type').value);
+                fd.append('proofUrl', document.getElementById('pf-url').value.trim());
+                fd.append('proofFile', file);
                 var resp = await fetch('/my-tasks?handler=SubmitProof', { method: 'POST', body: fd });
                 if (!resp.ok) {
                     var bodyText = await resp.text();

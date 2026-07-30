@@ -223,7 +223,7 @@ CREATE TABLE [task_proofs] (
     [user_id] int NOT NULL,
     [task_id] int NOT NULL,
     [proof_url] nvarchar(2048) NOT NULL,
-    [proof_type] nvarchar(50) NOT NULL,
+    [image_path] nvarchar(500) NOT NULL,
     [date] datetime2 NOT NULL,
     [status] nvarchar(50) NOT NULL,
     [verification_status] nvarchar(50) NOT NULL DEFAULT N'None',

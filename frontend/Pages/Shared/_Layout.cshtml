@@ -680,7 +680,7 @@
                             <a href="/admin/reports" class="sidebar-link @(rp.StartsWith("/admin/reports") ? "active" : "")"><i class="bi bi-bar-chart-line"></i> Reports</a>
                             <a href="/admin/in-progress" class="sidebar-link @(rp == "/admin/in-progress" ? "active" : "")"><i class="bi bi-hourglass-split"></i> In Progress</a>
                             <a href="/admin/completed" class="sidebar-link @(rp == "/admin/completed" ? "active" : "")"><i class="bi bi-check2-all"></i> Completed</a>
-                            <a href="/admin/inquiries" class="sidebar-link @(rp == "/admin/inquiries" ? "active" : "")"><i class="bi bi-inbox"></i> Orders</a>
+                            <a href="/admin/orders" class="sidebar-link @(rp == "/admin/orders" ? "active" : "")"><i class="bi bi-inbox"></i> Orders</a>
                             <a href="/admin/proof-review" class="sidebar-link @(rp == "/admin/proof-review" ? "active" : "")"><i class="bi bi-shield-check"></i> Proof Review</a>
                             <a href="/admin/activity-logs" class="sidebar-link @(rp.StartsWith("/admin/activity-logs") ? "active" : "")"><i class="bi bi-clock-history"></i> Activity Log</a>
                             <div class="sidebar-divider"></div>
@@ -1333,8 +1333,11 @@
 
             try {
                 var resp = await fetch('/api/orders/draft', { method: 'POST', body: formData });
+                if (!resp.ok) {
+                    var txt = await resp.text();
+                    throw new Error(txt.substring(0, 300));
+                }
                 var data = await resp.json();
-                if (!resp.ok) throw new Error(data.message || 'Failed to save order');
                 var voucherNo = data.voucherNo || ('VCH-' + new Date().getFullYear() + '-' + String(data.orderId).padStart(5, '0'));
 
                 closePaymentModal();
@@ -1652,19 +1655,22 @@
             try {
                 if (selectedPayMethod !== 'stripe') {
                     var resp = await fetch('/api/orders', { method: 'POST', body: formData });
+                    if (!resp.ok) {
+                        var txt = await resp.text();
+                        throw new Error(txt.substring(0, 300));
+                    }
                     var data = await resp.json();
-                    if (!resp.ok) throw new Error(data.message || 'Failed');
 
                     closePaymentModal();
                     window.__epOrderId = null;
 
                     document.getElementById('inquirySuccess').innerHTML =
-                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Order #' + data.orderId + ' submitted successfully!';
+                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Order submitted successfully!';
                     document.getElementById('inquirySuccess').style.display = 'flex';
                     setTimeout(function() {
                         document.getElementById('inquirySuccess').style.display = 'none';
                         document.getElementById('inquirySuccess').innerHTML =
-                            '<i class="bi bi-check-circle-fill"></i>&nbsp; Order #' + data.orderId + ' submitted successfully!';
+                            '<i class="bi bi-check-circle-fill"></i>&nbsp; Order submitted successfully!';
                     }, 5000);
 
                     document.getElementById('inquiryForm').reset();
@@ -1680,13 +1686,16 @@
 
                 } else if (selectedPayMethod === 'stripe') {
                     var resp = await fetch('/api/orders', { method: 'POST', body: formData });
+                    if (!resp.ok) {
+                        var txt = await resp.text();
+                        throw new Error(txt.substring(0, 300));
+                    }
                     var data = await resp.json();
-                    if (!resp.ok) throw new Error(data.message || 'Failed');
 
                     closePaymentModal();
 
                     document.getElementById('inquirySuccess').innerHTML =
-                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Order #' + data.orderId + ' submitted! Redirecting to card payment...';
+                        '<i class="bi bi-check-circle-fill"></i>&nbsp; Order submitted successfully! Redirecting to card payment...';
                     document.getElementById('inquirySuccess').style.display = 'flex';
                     setTimeout(function() {
                         document.getElementById('inquirySuccess').style.display = 'none';

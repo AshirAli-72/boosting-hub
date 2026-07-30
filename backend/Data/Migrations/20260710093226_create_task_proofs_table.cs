@@ -19,7 +19,7 @@ namespace BoostingHub.backend.Data.Migrations
                     user_id = table.Column<int>(type: "int", nullable: false),
                     task_id = table.Column<int>(type: "int", nullable: false),
                     proof_url = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false),
-                    proof_type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    image_path = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     verification_status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false, defaultValue: "None"),

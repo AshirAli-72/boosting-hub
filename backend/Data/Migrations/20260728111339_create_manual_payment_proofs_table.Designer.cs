@@ -691,11 +691,11 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("date");
 
-                    b.Property<string>("ProofType")
+                    b.Property<string>("ImagePath")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasColumnName("proof_type");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("image_path");
 
                     b.Property<string>("ProofUrl")
                         .IsRequired()

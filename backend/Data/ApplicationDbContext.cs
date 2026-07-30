@@ -141,7 +141,7 @@ public class ApplicationDbContext : DbContext
             e.ToTable("task_proofs");
             e.Property(p => p.Date).HasColumnType("datetime2");
             e.Property(p => p.ProofUrl).HasMaxLength(2048);
-            e.Property(p => p.ProofType).HasMaxLength(50);
+            e.Property(p => p.ImagePath).HasMaxLength(500);
             e.Property(p => p.Status).HasMaxLength(50);
             e.Property(p => p.VerificationStatus).IsRequired().HasDefaultValue(4);
             e.Property(p => p.RejectReason).HasMaxLength(1000);

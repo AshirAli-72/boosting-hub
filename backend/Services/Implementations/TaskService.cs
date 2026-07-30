@@ -370,7 +370,7 @@ public class TaskService : ITaskService, IDisposable
                         Reward = t.Reward,
                         Status = StatusHelper.TaskProofStatusToString(proof.VerificationStatus == StatusHelper.VerificationRejected ? StatusHelper.TaskProofRejected : StatusHelper.TaskProofSubmitted),
                         ProofUrl = proof.ProofUrl,
-                        ProofType = proof.ProofType,
+                        ImagePath = proof.ImagePath,
                         ProofStatus = StatusHelper.TaskProofStatusToString(proof.Status),
                         VerificationStatus = StatusHelper.VerificationStatusToString(proof.VerificationStatus),
                         RejectReason = proof.RejectReason
@@ -388,7 +388,7 @@ public class TaskService : ITaskService, IDisposable
                         Reward = t.Reward,
                         Status = StatusHelper.TaskCompleteStatusToString(comp.Status),
                         ProofUrl = proof?.ProofUrl,
-                        ProofType = proof?.ProofType,
+                        ImagePath = proof?.ImagePath,
                         ProofStatus = proof != null ? StatusHelper.TaskProofStatusToString(proof.Status) : null,
                         VerificationStatus = proof != null ? StatusHelper.VerificationStatusToString(proof.VerificationStatus) : null,
                         RejectReason = proof?.RejectReason
@@ -418,7 +418,7 @@ public class TaskService : ITaskService, IDisposable
         }
     }
 
-    public async Task<Result> SubmitProofAsync(int taskId, string proofUrl, string proofType, int userId)
+    public async Task<Result> SubmitProofAsync(int taskId, string proofUrl, string imagePath, int userId)
     {
         try
         {
@@ -474,7 +474,7 @@ public class TaskService : ITaskService, IDisposable
                 UserId = userId,
                 TaskId = taskId,
                 ProofUrl = proofUrl,
-                ProofType = proofType,
+                ImagePath = imagePath,
                 Date = DateTime.UtcNow,
                 Status = StatusHelper.TaskProofSubmitted,
                 VerificationStatus = verification.Success ? StatusHelper.VerificationPendingReview : StatusHelper.VerificationRejected,
@@ -527,6 +527,7 @@ public class TaskService : ITaskService, IDisposable
                 UserId = x.p.UserId,
                 UserName = x.u.Name ?? string.Empty,
                 ProofUrl = x.p.ProofUrl,
+                ImagePath = x.p.ImagePath,
                 Platform = x.t.Platform,
                 Service = x.t.Service,
                 TaskUrl = x.t.Url,
@@ -853,7 +854,7 @@ public class TaskService : ITaskService, IDisposable
                         Currency = taskCurrency ?? "PKR",
                         Status = status,
                         ProofUrl = proof.ProofUrl,
-                        ProofType = proof.ProofType,
+                        ImagePath = proof.ImagePath,
                         ProofStatus = StatusHelper.TaskProofStatusToString(proof.Status),
                         VerificationStatus = StatusHelper.VerificationStatusToString(proof.VerificationStatus),
                         RejectReason = proof.RejectReason
@@ -873,7 +874,7 @@ public class TaskService : ITaskService, IDisposable
                         Currency = taskCurrency ?? "PKR",
                         Status = status,
                         ProofUrl = proof?.ProofUrl,
-                        ProofType = proof?.ProofType,
+                        ImagePath = proof?.ImagePath,
                         ProofStatus = proof != null ? StatusHelper.TaskProofStatusToString(proof.Status) : null,
                         VerificationStatus = proof != null ? StatusHelper.VerificationStatusToString(proof.VerificationStatus) : null,
                         RejectReason = proof?.RejectReason
@@ -914,7 +915,6 @@ public class TaskService : ITaskService, IDisposable
     {
         var query = _db.TaskProofs
             .AsNoTracking()
-            .Where(p => p.VerificationStatus == StatusHelper.VerificationPendingReview)
             .Join(_db.Users, p => p.UserId, u => u.Id, (p, u) => new { p, u })
             .Join(_db.TaskGenerates, x => x.p.TaskId, t => t.Id, (x, t) => new { x.p, x.u, t })
             .Join(_db.Orders, x => x.t.OrderId, o => o.Id, (x, o) => new { x.p, x.u, x.t, o });
@@ -943,6 +943,7 @@ public class TaskService : ITaskService, IDisposable
                 UserId = x.p.UserId,
                 UserName = x.u.Name ?? string.Empty,
                 ProofUrl = x.p.ProofUrl,
+                ImagePath = x.p.ImagePath,
                 Platform = x.t.Platform,
                 Service = x.t.Service,
                 TaskUrl = x.t.Url,

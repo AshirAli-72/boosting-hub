@@ -144,7 +144,7 @@ public class MyTaskDto
     public string Status { get; set; } = string.Empty;
     public DateTime AcceptedAt { get; set; }
     public string? ProofUrl { get; set; }
-    public string? ProofType { get; set; }
+    public string? ImagePath { get; set; }
     public string? ProofStatus { get; set; }
     public string? VerificationStatus { get; set; }
     public string? RejectReason { get; set; }
@@ -153,7 +153,7 @@ public class MyTaskDto
 public class SubmitProofDto
 {
     public string ProofUrl { get; set; } = string.Empty;
-    public string ProofType { get; set; } = string.Empty;
+    public string ImagePath { get; set; } = string.Empty;
 }
 
 public class SubmitOrderDto

@@ -35,55 +35,70 @@
         @if (proofs.Count == 0)
         {
             <div class="text-center py-5 text-muted">
-                <i class="bi bi-check2-all fs-1"></i>
-                <p class="mt-2">All proofs have been reviewed!</p>
+                <i class="bi bi-inbox fs-1"></i>
+                <p class="mt-2">No proofs found.</p>
             </div>
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle admin-table">
+                <table class="table admin-table mb-0 align-middle">
                     <thead class="admin-thead">
                         <tr>
                             <th>ID</th>
                             <th>Worker</th>
                             <th>Platform</th>
                             <th>Service</th>
-                            <th>Proof URL</th>
-                            <th>Submitted</th>
                             <th>Reward</th>
-                            <th>Target URL</th>
-                            <th>Actions</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th class="text-end pe-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var p in proofs)
                         {
                             <tr>
-                                <td>#@p.ProofId</td>
+                                <td class="fw-semibold">#@p.ProofId</td>
                                 <td>@p.UserName</td>
-                                <td><span class="badge bg-info">@p.Platform</span></td>
-                                <td>@p.Service</td>
+                                <td><span class="admin-badge me-1" style="background:rgba(124,58,237,0.15);color:var(--primary-light);">@p.Platform</span></td>
+                                <td><span class="admin-badge me-1" style="background:rgba(13,148,136,0.15);color:#0D9488;">@p.Service</span></td>
+                                <td><span class="fw-bold" style="color:var(--success);">@GetCurrencySymbol(p.Currency ?? "USD")@p.Reward.ToString("F2")</span></td>
                                 <td>
-                                    <a href="@p.ProofUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.ProofUrl">
-                                        <i class="bi bi-box-arrow-up-right me-1"></i>View
-                                    </a>
+                                    @if (p.VerificationStatus == "PendingReview")
+                                    {
+                                        <span class="inquiry-status-badge inquiry-status-pending">Pending</span>
+                                    }
+                                    else if (p.VerificationStatus == "Approved")
+                                    {
+                                        <span class="inquiry-status-badge inquiry-status-approved">Approved</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inquiry-status-badge inquiry-status-rejected">Rejected</span>
+                                    }
                                 </td>
-                                <td>@p.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                                <td class="fw-bold" style="color:var(--success);">@GetCurrencySymbol(p.Currency ?? "USD")@p.Reward.ToString("F2")</td>
-                                <td>
-                                    <a href="@p.TaskUrl" target="_blank" class="text-truncate d-inline-block" style="max-width:200px;" title="@p.TaskUrl">
-                                        <i class="bi bi-box-arrow-up-right me-1"></i>View
-                                    </a>
-                                </td>
-                                <td>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-success" @onclick="() => Approve(p.ProofId)">
-                                            <i class="bi bi-check-lg"></i> Approve
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" @onclick="() => OpenReject(p.ProofId)">
-                                            <i class="bi bi-x-lg"></i> Reject
-                                        </button>
+                                <td><span class="admin-td-small">@p.SubmittedAt.ToString("MMM dd, yyyy")</span></td>
+                                <td class="text-end pe-4">
+                                    <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+                                        @if (p.VerificationStatus == "PendingReview")
+                                        {
+                                            <button class="btn btn-sm" @onclick="() => Approve(p.ProofId)"
+                                                    style="border-radius:8px;font-weight:600;padding:4px 12px;background:rgba(16,185,129,0.15);color:#10B981;border:1px solid rgba(16,185,129,0.3);">
+                                                <i class="bi bi-check-circle"></i> Approve
+                                            </button>
+                                            <button class="btn btn-sm" @onclick="() => OpenReject(p.ProofId)"
+                                                    style="border-radius:8px;font-weight:600;padding:4px 12px;background:rgba(239,68,68,0.15);color:#EF4444;border:1px solid rgba(239,68,68,0.3);">
+                                                <i class="bi bi-x-circle"></i> Reject
+                                            </button>
+                                        }
+                                        @if (!string.IsNullOrEmpty(p.ImagePath))
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => OpenImageViewer(p.ImagePath)"
+                                                    style="border-radius:8px;font-weight:500;padding:4px 10px;">
+                                                <i class="bi bi-eye"></i> View
+                                            </button>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -196,21 +211,28 @@
             if (result.IsSuccess)
             {
                 await JS.InvokeVoidAsync("showToast", result.Message, "success");
-                await LoadProofs();
+                var proof = proofs.FirstOrDefault(p => p.ProofId == proofId);
+                if (proof != null)
+                {
+                    proof.VerificationStatus = "Approved";
+                    proofs = new List<ProofReviewDto>(proofs);
+                }
             }
             else
             {
                 await JS.InvokeVoidAsync("showToast", result.Message, "danger");
-                hasError = true;
-                errorMessage = result.Message;
             }
         }
         catch (Exception ex)
         {
-            hasError = true;
-            errorMessage = ex.Message;
             Logger.LogError(ex, "Failed to approve proof {ProofId}", proofId);
+            await JS.InvokeVoidAsync("showToast", "Failed to approve proof.", "danger");
         }
+    }
+
+    private async Task OpenImageViewer(string? imagePath)
+    {
+        await JS.InvokeVoidAsync("open", imagePath, "_blank");
     }
 
     private async Task OpenReject(int proofId)
@@ -227,9 +249,14 @@
             var result = await TaskService.RejectProofAsync(proofId, reason);
             if (result.IsSuccess)
             {
+                var proof = proofs.FirstOrDefault(p => p.ProofId == proofId);
+                if (proof != null)
+                {
+                    proof.VerificationStatus = "Rejected";
+                    proofs = new List<ProofReviewDto>(proofs);
+                }
                 await JS.InvokeVoidAsync("showToast", "Proof rejected successfully.", "success");
                 await JS.InvokeVoidAsync("closeRejectModal");
-                await LoadProofs();
             }
             else
             {

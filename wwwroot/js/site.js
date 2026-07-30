@@ -95,6 +95,19 @@ window.showRejectModalError = function (msg) {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-x-lg me-1"></i>Reject'; }
 };
 
+window.showImageOverlay = function (imagePath) {
+    var overlay = document.createElement('div');
+    overlay.id = 'bh-image-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);';
+    overlay.innerHTML =
+        '<div style="position:relative;max-width:90vw;max-height:90vh;">' +
+        '  <button onclick="document.getElementById(\'bh-image-overlay\').remove()" style="position:absolute;top:-40px;right:0;background:none;border:none;color:#fff;font-size:1.8rem;cursor:pointer;padding:4px;line-height:1;opacity:0.7;">&times;</button>' +
+        '  <img src="' + imagePath + '" alt="Proof screenshot" style="max-width:100%;max-height:85vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.5);" />' +
+        '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+};
+
 window.__userCurrencyCache = null;
 window.__getUserCurrency = function() {
     if (window.__userCurrencyCache) return Promise.resolve(window.__userCurrencyCache);

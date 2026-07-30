@@ -63,6 +63,12 @@ body {
 }
 
 body.landing-page {
+    --primary:        #3B82F6;
+    --primary-dark:   #2563EB;
+    --primary-light:  #60A5FA;
+    --primary-glow:   rgba(59, 130, 246, 0.25);
+    --accent:         #3B82F6;
+    --accent-light:   #60A5FA;
     background: var(--bg-base);
     color: var(--text-primary);
 }

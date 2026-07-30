@@ -30,6 +30,8 @@ public class OrdersController : ControllerBase
     [DisableRequestSizeLimit]
     public async Task<IActionResult> SubmitOrder()
     {
+        try
+        {
         var fullName = Request.Form["fullName"].FirstOrDefault();
         var email = Request.Form["email"].FirstOrDefault();
         var platform = Request.Form["platform"].FirstOrDefault();
@@ -60,9 +62,8 @@ public class OrdersController : ControllerBase
             var file = Request.Form.Files[0];
             if (file.Length > 0)
             {
-                var attachmentsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "attachments");
-                if (!Directory.Exists(attachmentsDir))
-                    Directory.CreateDirectory(attachmentsDir);
+                var attachmentsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "attachments");
+                Directory.CreateDirectory(attachmentsDir);
 
                 var ext = Path.GetExtension(file.FileName);
                 var fileName = $"order_{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
@@ -72,7 +73,7 @@ public class OrdersController : ControllerBase
                 {
                     await file.CopyToAsync(stream);
                 }
-                attachmentPath = $"attachments/{fileName}";
+                attachmentPath = $"uploads/attachments/{fileName}";
             }
         }
 
@@ -141,6 +142,12 @@ public class OrdersController : ControllerBase
         }
 
         return Ok(new { message = "Order submitted! Awaiting admin approval.", orderId = order.Id });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "SubmitOrder failed");
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     [HttpPost("draft")]
@@ -172,7 +179,7 @@ public class OrdersController : ControllerBase
             var file = Request.Form.Files[0];
             if (file.Length > 0)
             {
-                var attachmentsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "attachments");
+                var attachmentsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "attachments");
                 if (!Directory.Exists(attachmentsDir))
                     Directory.CreateDirectory(attachmentsDir);
 
@@ -184,7 +191,7 @@ public class OrdersController : ControllerBase
                 {
                     await file.CopyToAsync(stream);
                 }
-                attachmentPath = $"attachments/{fileName}";
+                attachmentPath = $"uploads/attachments/{fileName}";
             }
         }
 
@@ -271,7 +278,7 @@ public class OrdersController : ControllerBase
             var file = Request.Form.Files[0];
             if (file.Length > 0)
             {
-                var vouchersDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "payment-vouchers");
+                var vouchersDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "payment-vouchers");
                 if (!Directory.Exists(vouchersDir))
                     Directory.CreateDirectory(vouchersDir);
 
@@ -283,7 +290,7 @@ public class OrdersController : ControllerBase
                 {
                     await file.CopyToAsync(stream);
                 }
-                voucherPath = $"payment-vouchers/{fileName}";
+                voucherPath = $"uploads/payment-vouchers/{fileName}";
             }
         }
 

@@ -1,4 +1,4 @@
-@page "/admin/inquiries"
+@page "/admin/orders"
 @model BoostingHub.frontend.Pages.Admin.Inquiries.IndexModel
 @using BoostingHub.backend.Common
 @{
@@ -150,153 +150,92 @@
                                         <tr class="collapse" id="collapse-@item.Id" style="border-bottom:1px solid var(--border-subtle);">
                                             <td colspan="10" style="background:linear-gradient(180deg, rgba(99,102,241,0.03) 0%, rgba(0,0,0,0.02) 100%); padding: 0; border-top:none;">
                                                 <div style="padding:24px;">
-                                                     <div class="order-sum-3col">
-                                                            <div class="order-sum-card">
-                                                                <div class="order-sum-card-title"><i class="bi bi-info-circle-fill"></i> Order Details</div>
-                                                                <div class="order-sum-fields">
-                                                                    <div class="order-sum-field">
-                                                                        <span class="field-label">Client</span>
-                                                                        <span class="field-value strong">@(item.FullName ?? "—")</span>
-                                                                    </div>
-                                                                    <div class="order-sum-field">
-                                                                        <span class="field-label">Email</span>
-                                                                        <span class="field-value mono">@(item.Email ?? "—")</span>
-                                                                    </div>
-                                                                    <div class="order-sum-field">
-                                                                        <span class="field-label">Platform(s)</span>
-                                                                        <span class="field-value">
-                                                                            @foreach (var p in item.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                                                                            {
-                                                                                <span class="sum-tag tag-purple">@p</span>
-                                                                            }
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="order-sum-field">
-                                                                        <span class="field-label">Service(s)</span>
-                                                                        <span class="field-value">
-                                                                            @foreach (var s in item.Service.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                                                                            {
-                                                                                <span class="sum-tag tag-teal">@s</span>
-                                                                            }
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="order-sum-field">
-                                                                        <span class="field-label">Quantity</span>
-                                                                        <span class="field-value strong">@item.Quantity</span>
-                                                                    </div>
-                                                                    <div class="order-sum-field">
-                                                                        <span class="field-label">Amount</span>
-                                                                        <span class="field-value strong" style="color:#16a34a;">@CurrencySymbol(item.Currency)@item.Budget.ToString("N2")</span>
-                                                                    </div>
-                                                                    @if (!string.IsNullOrEmpty(item.SocialMediaUrl))
-                                                                    {
-                                                                        <div class="order-sum-field">
-                                                                            <span class="field-label">URL</span>
-                                                                            <span class="field-value" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                                                                <a href="@item.SocialMediaUrl" target="_blank" style="color:#6366f1;text-decoration:none;font-size:0.75rem;">@item.SocialMediaUrl</a>
-                                                                            </span>
-                                                                        </div>
-                                                                    }
-                                                                    @if (!string.IsNullOrEmpty(item.Description))
-                                                                    {
-                                                                        <div class="order-sum-field" style="flex-direction:column;align-items:flex-start;gap:4px;">
-                                                                            <span class="field-label">Notes</span>
-                                                                            <span class="field-value" style="text-align:left;width:100%;font-weight:400;font-size:0.76rem;color:var(--text-secondary,#475569);">@item.Description</span>
-                                                                        </div>
-                                                                    }
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="order-sum-card">
-                                                                <div class="order-sum-card-title"><i class="bi bi-paperclip"></i> Attachment</div>
+                                                    <div class="order-sum-3col-three">
+                                                        <div class="order-sum-card order-sum-card-square">
+                                                            <div class="order-sum-card-title"><i class="bi bi-paperclip"></i> Attachment</div>
+                                                            <div class="order-sum-card-body">
                                                                 @if (!string.IsNullOrEmpty(item.Attachment))
                                                                 {
                                                                     var isImage = item.Attachment.EndsWith(".png") || item.Attachment.EndsWith(".jpg") || item.Attachment.EndsWith(".jpeg") || item.Attachment.EndsWith(".gif") || item.Attachment.EndsWith(".webp");
                                                                     if (isImage)
                                                                     {
-                                                                        <div class="order-sum-attachment">
-                                                                            <a href="/@item.Attachment" target="_blank">
-                                                                                <img src="/@item.Attachment" alt="Order attachment" class="sum-thumb" />
-                                                                            </a>
-                                                                            <div class="sum-thumb-info">
-                                                                                <div class="sum-thumb-name">@System.IO.Path.GetFileName(item.Attachment)</div>
-                                                                                <a href="/@item.Attachment" target="_blank" class="sum-thumb-view"><i class="bi bi-box-arrow-up-right"></i> View Full</a>
-                                                                            </div>
-                                                                        </div>
+                                                                        <a href="/@item.Attachment" target="_blank" class="order-sum-card-image-link">
+                                                                            <img src="/@item.Attachment" alt="Attachment" class="order-sum-card-image" />
+                                                                        </a>
                                                                     }
                                                                     else
                                                                     {
-                                                                        <a href="/@item.Attachment" target="_blank" class="sum-thumb-file"><i class="bi bi-file-earmark-arrow-down"></i> @System.IO.Path.GetFileName(item.Attachment)</a>
+                                                                        <a href="/@item.Attachment" target="_blank" class="order-sum-card-file"><i class="bi bi-file-earmark-arrow-down"></i> @System.IO.Path.GetFileName(item.Attachment)</a>
                                                                     }
                                                                 }
                                                                 else
                                                                 {
-                                                                    <p style="font-size:0.78rem;color:#94a3b8;margin:16px 0;text-align:center;">No attachment provided</p>
+                                                                    <div class="order-sum-card-empty">No attachment</div>
                                                                 }
                                                             </div>
+                                                        </div>
 
-                                                            <div class="order-sum-card">
-                                                                <div class="order-sum-card-title"><i class="bi bi-credit-card-2-front-fill"></i> Submitted Voucher</div>
-                                                                @if (Model.PaymentProofs.TryGetValue(item.Id, out var proof))
+                                                        <div class="order-sum-card order-sum-card-square">
+                                                            <div class="order-sum-card-title"><i class="bi bi-credit-card-2-front-fill"></i> Paid Voucher</div>
+                                                            <div class="order-sum-card-body">
+                                                                @if (Model.PaymentProofs.TryGetValue(item.Id, out var proof) && !string.IsNullOrEmpty(proof.PaidVoucher))
                                                                 {
-                                                                    <div class="order-sum-payment">
-                                                                        <div class="pay-row">
-                                                                            <span class="field-label">Method</span>
-                                                                            <span class="field-value">@(proof.PaymentMethod == "easypaisa" ? "EasyPaisa" : proof.PaymentMethod)</span>
-                                                                        </div>
-                                                                        <div class="pay-row">
-                                                                            <span class="field-label">Amount</span>
-                                                                            <span class="field-value strong" style="color:#16a34a;">@CurrencySymbol(item.Currency)@proof.PaidAmount.ToString("N2")</span>
-                                                                        </div>
-                                                                        <div class="pay-row">
-                                                                            <span class="field-label">Submitted</span>
-                                                                            <span class="field-value">@proof.SubmitDate.ToString("MMM dd, yyyy · HH:mm")</span>
-                                                                        </div>
-                                                                        <div class="pay-row">
-                                                                            <span class="field-label">Status</span>
-                                                                            <span class="field-value">
-                                                                                @if (proof.Status == StatusHelper.ManualPaymentPending) { <span class="inquiry-status-badge inquiry-status-pending" style="font-size:0.72rem;padding:2px 10px;">Pending</span> }
-                                                                                else if (proof.Status == StatusHelper.ManualPaymentPaid) { <span class="inquiry-status-badge inquiry-status-approved" style="font-size:0.72rem;padding:2px 10px;">Paid</span> }
-                                                                                else { <span class="inquiry-status-badge inquiry-status-rejected" style="font-size:0.72rem;padding:2px 10px;">Rejected</span> }
-                                                                            </span>
-                                                                        </div>
-                                                                        @if (!string.IsNullOrEmpty(proof.PaidVoucher))
-                                                                        {
-                                                                            <div style="height:1px;background:rgba(99,102,241,0.12);margin:10px 0;"></div>
-                                                                            <div class="order-sum-attachment">
-                                                                                @{
-                                                                                    var pVIsImage = proof.PaidVoucher.EndsWith(".png") || proof.PaidVoucher.EndsWith(".jpg") || proof.PaidVoucher.EndsWith(".jpeg") || proof.PaidVoucher.EndsWith(".gif") || proof.PaidVoucher.EndsWith(".webp");
-                                                                                }
-                                                                                @if (pVIsImage)
-                                                                                {
-                                                                                    <a href="/@proof.PaidVoucher" target="_blank"><img src="/@proof.PaidVoucher" class="sum-thumb" /></a>
-                                                                                    <div class="sum-thumb-info">
-                                                                                        <div class="sum-thumb-name">Voucher</div>
-                                                                                        <a href="/@proof.PaidVoucher" target="_blank" class="sum-thumb-view"><i class="bi bi-box-arrow-up-right"></i> View Proof</a>
-                                                                                    </div>
-                                                                                }
-                                                                                else
-                                                                                {
-                                                                                    <a href="/@proof.PaidVoucher" target="_blank" class="sum-thumb-file"><i class="bi bi-file-earmark-arrow-down"></i> View Voucher</a>
-                                                                                }
-                                                                            </div>
-                                                                        }
-                                                                    </div>
+                                                                    var pVIsImage = proof.PaidVoucher.EndsWith(".png") || proof.PaidVoucher.EndsWith(".jpg") || proof.PaidVoucher.EndsWith(".jpeg") || proof.PaidVoucher.EndsWith(".gif") || proof.PaidVoucher.EndsWith(".webp");
+                                                                    if (pVIsImage)
+                                                                    {
+                                                                        <a href="/@proof.PaidVoucher" target="_blank" class="order-sum-card-image-link">
+                                                                            <img src="/@proof.PaidVoucher" alt="Voucher" class="order-sum-card-image" />
+                                                                        </a>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <a href="/@proof.PaidVoucher" target="_blank" class="order-sum-card-file"><i class="bi bi-file-earmark-arrow-down"></i> View Voucher</a>
+                                                                    }
                                                                 }
                                                                 else
                                                                 {
-                                                                    <p style="font-size:0.78rem;color:#94a3b8;margin:16px 0;text-align:center;">No voucher submitted yet</p>
-                                                                    @if (item.Status == StatusHelper.OrderRejected && !string.IsNullOrEmpty(item.RejectReason))
+                                                                    <div class="order-sum-card-empty">No voucher</div>
+                                                                }
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="order-sum-card order-sum-card-square">
+                                                            <div class="order-sum-card-title"><i class="bi bi-info-circle-fill"></i> Summary</div>
+                                                            <div class="order-sum-card-body" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px;">
+                                                            <div class="order-sum-field" style="width:100%;">
+                                                                <span class="field-label">Platform</span>
+                                                                <span class="field-value" style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;">
+                                                                    @foreach (var pl in item.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                                                                     {
-                                                                        <div style="margin-top:10px;padding:10px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;">
-                                                                            <p style="font-size:0.75rem;color:#EF4444;font-weight:600;margin:0 0 4px 0;"><i class="bi bi-exclamation-triangle-fill"></i> Rejection Reason</p>
-                                                                            <p style="font-size:0.75rem;color:var(--text-secondary);margin:0;">@item.RejectReason</p>
-                                                                        </div>
+                                                                        <span class="sum-tag tag-purple" style="font-size:0.6rem;padding:1px 6px;">@pl</span>
                                                                     }
+                                                                </span>
+                                                            </div>
+                                                                <div class="order-sum-field" style="width:100%;">
+                                                                    <span class="field-label">Service</span>
+                                                                    <span class="field-value">@item.Service</span>
+                                                                </div>
+                                                                <div class="order-sum-field" style="width:100%;">
+                                                                    <span class="field-label">Amount</span>
+                                                                    <span class="field-value strong" style="color:#16a34a;">@CurrencySymbol(item.Currency)@item.Budget.ToString("N2")</span>
+                                                                </div>
+                                                                <div class="order-sum-field" style="width:100%;">
+                                                                    <span class="field-label">Qty</span>
+                                                                    <span class="field-value">@item.Quantity</span>
+                                                                </div>
+                                                                @if (!string.IsNullOrEmpty(item.SocialMediaUrl))
+                                                                {
+                                                                    <div class="order-sum-field" style="width:100%;">
+                                                                        <span class="field-label">URL</span>
+                                                                        <span class="field-value" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                                            <a href="@item.SocialMediaUrl" target="_blank" style="color:#6366f1;text-decoration:none;font-size:0.7rem;">@item.SocialMediaUrl</a>
+                                                                        </span>
+                                                                    </div>
                                                                 }
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>
                                             </td>
                                         </tr>
                                     }
@@ -337,6 +276,15 @@
 
 <style>
     .order-sum-3col { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .order-sum-3col-three { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .order-sum-card-square { width:100%; height:150px; display:flex; flex-direction:column; padding:0; overflow:hidden; }
+    .order-sum-card-square .order-sum-card-title { padding:10px 12px; margin-bottom:0; border-bottom:1px solid var(--border-subtle,#e2e8f0); flex-shrink:0; }
+    .order-sum-card-body { flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; min-height:0; }
+    .order-sum-card-image-link { display:flex; width:100%; height:100%; align-items:center; justify-content:center; }
+    .order-sum-card-image { width:100%; height:100%; object-fit:cover; display:block; }
+    .order-sum-card-file { font-size:0.72rem; color:#6366f1; text-decoration:none; text-align:center; padding:8px; }
+    .order-sum-card-file:hover { text-decoration:underline; }
+    .order-sum-card-empty { font-size:0.75rem; color:#94a3b8; }
     .order-sum-card { background:var(--bg-elevated,#fff); border:1px solid var(--border-subtle,#e2e8f0); border-radius:10px; padding:14px 16px; }
     .order-sum-card-title { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.7px; color:#94a3b8; margin-bottom:10px; display:flex; align-items:center; gap:5px; }
     .order-sum-card-title i { font-size:0.78rem; }

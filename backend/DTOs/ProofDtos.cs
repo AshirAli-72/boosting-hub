@@ -14,6 +14,7 @@ public class ProofReviewDto
     public int UserId { get; set; }
     public string UserName { get; set; } = string.Empty;
     public string ProofUrl { get; set; } = string.Empty;
+    public string? ImagePath { get; set; }
     public string Platform { get; set; } = string.Empty;
     public string Service { get; set; } = string.Empty;
     public string TaskUrl { get; set; } = string.Empty;
