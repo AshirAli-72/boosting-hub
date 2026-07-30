@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace BoostingHub.backend.Services.Implementations;
 
-public class SiteSettingService : ISiteSettingService
+public class WebsiteSettingService : IWebsiteSettingService
 {
     private readonly ApplicationDbContext _db;
     private readonly IWebHostEnvironment _env;
@@ -17,32 +17,32 @@ public class SiteSettingService : ISiteSettingService
     private const string LogoDir = "uploads\\site\\logo";
     private const string FaviconDir = "uploads\\site\\favicon";
 
-    public SiteSettingService(ApplicationDbContext db, IWebHostEnvironment env)
+    public WebsiteSettingService(ApplicationDbContext db, IWebHostEnvironment env)
     {
         _db = db;
         _env = env;
     }
 
-    public async Task<Result<SiteSettingDto>> GetAsync()
+    public async Task<Result<WebsiteSettingDto>> GetAsync()
     {
-        var setting = await _db.SiteSettings.AsNoTracking().FirstOrDefaultAsync();
+        var setting = await _db.WebsiteSettings.AsNoTracking().FirstOrDefaultAsync();
         if (setting == null)
         {
-            setting = new SiteSetting();
-            _db.SiteSettings.Add(setting);
+            setting = new WebsiteSetting();
+            _db.WebsiteSettings.Add(setting);
             await _db.SaveChangesAsync();
         }
 
-        return Result<SiteSettingDto>.Success(MapToDto(setting));
+        return Result<WebsiteSettingDto>.Success(MapToDto(setting));
     }
 
-    public async Task<Result> UpdateAsync(SiteSettingDto dto)
+    public async Task<Result> UpdateAsync(WebsiteSettingDto dto)
     {
-        var setting = await _db.SiteSettings.FirstOrDefaultAsync();
+        var setting = await _db.WebsiteSettings.FirstOrDefaultAsync();
         if (setting == null)
         {
-            setting = new SiteSetting();
-            _db.SiteSettings.Add(setting);
+            setting = new WebsiteSetting();
+            _db.WebsiteSettings.Add(setting);
         }
 
         setting.SiteName = dto.SiteName ?? "Boosting Hub";
@@ -89,7 +89,7 @@ public class SiteSettingService : ISiteSettingService
         return $"/{subDir.Replace("\\", "/")}/{fileName}";
     }
 
-    private static SiteSettingDto MapToDto(SiteSetting s) => new()
+    private static WebsiteSettingDto MapToDto(WebsiteSetting s) => new()
     {
         SiteName = s.SiteName,
         LogoUrl = s.LogoPath,

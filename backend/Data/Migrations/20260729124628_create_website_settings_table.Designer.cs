@@ -537,7 +537,7 @@ namespace BoostingHub.backend.Data.Migrations
                     b.ToTable("roles_has_permissions");
                 });
 
-            modelBuilder.Entity("BoostingHub.backend.Models.SiteSetting", b =>
+            modelBuilder.Entity("BoostingHub.backend.Models.WebsiteSetting", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -561,15 +561,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("address");
 
-                    b.Property<string>("FacebookUrl")
+                    b.Property<string>("FaviconPath")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
-                        .HasColumnName("facebook_url");
-
-                    b.Property<string>("FaviconUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("favicon_url");
+                        .HasColumnName("favicon_path");
 
                     b.Property<string>("FooterDescription")
                         .HasMaxLength(2000)
@@ -581,25 +576,10 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("footer_text");
 
-                    b.Property<string>("HeroCtaText")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("hero_cta_text");
-
-                    b.Property<string>("HeroCtaUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("hero_cta_url");
-
                     b.Property<string>("HeroDescription")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)")
                         .HasColumnName("hero_description");
-
-                    b.Property<string>("HeroImageUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("hero_image_url");
 
                     b.Property<string>("HeroSubtitle")
                         .HasMaxLength(500)
@@ -611,20 +591,15 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(300)")
                         .HasColumnName("hero_title");
 
-                    b.Property<string>("InstagramUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("instagram_url");
-
                     b.Property<string>("LinkedInUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("linkedin_url");
 
-                    b.Property<string>("LogoUrl")
+                    b.Property<string>("LogoPath")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)")
-                        .HasColumnName("logo_url");
+                        .HasColumnName("logo_path");
 
                     b.Property<string>("SiteName")
                         .IsRequired()
@@ -651,14 +626,9 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("updated_at");
 
-                    b.Property<string>("YouTubeUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("youtube_url");
-
                     b.HasKey("Id");
 
-                    b.ToTable("site_settings");
+                    b.ToTable("website_settings");
                 });
 
             modelBuilder.Entity("BoostingHub.backend.Models.SocialMediaAccount", b =>

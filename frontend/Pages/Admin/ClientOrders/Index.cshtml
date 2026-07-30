@@ -204,12 +204,7 @@
                                                             <div class="order-sum-card-body" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px;">
                                                             <div class="order-sum-field" style="width:100%;">
                                                                 <span class="field-label">Platform</span>
-                                                                <span class="field-value" style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;">
-                                                                    @foreach (var pl in item.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                                                                    {
-                                                                        <span class="sum-tag tag-purple" style="font-size:0.6rem;padding:1px 6px;">@pl</span>
-                                                                    }
-                                                                </span>
+                                                                <span class="field-value" style="font-size:0.7rem;">@item.Platform</span>
                                                             </div>
                                                                 <div class="order-sum-field" style="width:100%;">
                                                                     <span class="field-label">Service</span>
@@ -277,7 +272,7 @@
 <style>
     .order-sum-3col { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
     .order-sum-3col-three { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    .order-sum-card-square { width:100%; height:150px; display:flex; flex-direction:column; padding:0; overflow:hidden; }
+    .order-sum-card-square { width:100%; height:180px; display:flex; flex-direction:column; padding:0; overflow:hidden; }
     .order-sum-card-square .order-sum-card-title { padding:10px 12px; margin-bottom:0; border-bottom:1px solid var(--border-subtle,#e2e8f0); flex-shrink:0; }
     .order-sum-card-body { flex:1; display:flex; align-items:center; justify-content:center; overflow:hidden; min-height:0; }
     .order-sum-card-image-link { display:flex; width:100%; height:100%; align-items:center; justify-content:center; }

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace BoostingHub.backend.DTOs;
 
-public class SiteSettingDto
+public class WebsiteSettingDto
 {
     // Branding
     public string SiteName { get; set; } = "Boosting Hub";

@@ -308,8 +308,8 @@ CREATE INDEX [IX_manual_payment_proofs_order_id] ON [manual_payment_proofs] ([or
 CREATE INDEX [IX_manual_payment_proofs_status] ON [manual_payment_proofs] ([status]);
 GO
 
--- ── Site Settings ──────────────────────────────────────────
-CREATE TABLE [site_settings] (
+-- ── Website Settings ──────────────────────────────────────────
+CREATE TABLE [website_settings] (
     [id] int NOT NULL IDENTITY,
     [site_name] nvarchar(200) NOT NULL,
     [logo_path] nvarchar(500) NULL,
@@ -327,7 +327,7 @@ CREATE TABLE [site_settings] (
     [twitter_url] nvarchar(500) NULL,
     [linkedin_url] nvarchar(500) NULL,
     [updated_at] datetime2 NOT NULL,
-    CONSTRAINT [PK_site_settings] PRIMARY KEY ([id])
+    CONSTRAINT [PK_website_settings] PRIMARY KEY ([id])
 );
 GO
 

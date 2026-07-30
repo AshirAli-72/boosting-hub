@@ -1,7 +1,22 @@
+@using BoostingHub.backend.Services.Interfaces
+@inject IWebsiteSettingService WebsiteSettingSvc
+@{
+    var wsResult = await WebsiteSettingSvc.GetAsync();
+    var ws = wsResult.Data;
+}
 <aside class="admin-sidebar user-sidebar">
     <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
-        <span>Boosting Hub</span>
+        <div class="sidebar-brand-icon">
+            @if (!string.IsNullOrEmpty(ws?.LogoUrl))
+            {
+                <img src="@ws.LogoUrl" alt="@ws.SiteName" style="width:100%;height:100%;object-fit:contain;" />
+            }
+            else
+            {
+                <i class="bi bi-rocket-takeoff"></i>
+            }
+        </div>
+        <span>@(ws?.SiteName ?? "Boosting Hub")</span>
     </div>
     <nav class="sidebar-nav">
         <a href="/dashboard" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>

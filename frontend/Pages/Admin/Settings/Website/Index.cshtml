@@ -281,15 +281,13 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                             <div class="social-item">
                                 <div class="brand-icon x"><i class="bi bi-twitter-x"></i></div>
                                 <div class="si-input">
-                                    <span class="domain">x.com/</span>
-                                    <input asp-for="Input.TwitterUrl" placeholder="username" />
+                                    <input asp-for="Input.TwitterUrl" placeholder="https://x.com/username" />
                                 </div>
                             </div>
                             <div class="social-item">
                                 <div class="brand-icon linkedin"><i class="bi bi-linkedin"></i></div>
                                 <div class="si-input">
-                                    <span class="domain">linkedin.com/company/</span>
-                                    <input asp-for="Input.LinkedInUrl" placeholder="company-name" />
+                                    <input asp-for="Input.LinkedInUrl" placeholder="https://linkedin.com/in/profile" />
                                 </div>
                             </div>
                         </div>
@@ -325,10 +323,10 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                                     }
                                     else
                                     {
-                                        <span class="empty"><i class="bi bi-rocket-takeoff"></i></span>
-                                    }
-                                </div>
-                                <div class="m-name" id="muName">@Model.Input.SiteName</div>
+                                    <span class="empty"><i class="bi bi-rocket-takeoff"></i></span>
+                                }
+                            </div>
+                            <div class="m-name" id="muName">@Model.Input.SiteName</div>
                             </div>
                             <div class="mockup-hero">
                                 <div class="mh-title" id="muHeroTitle">@(Model.Input.HeroTitle ?? "Your Headline Here")</div>

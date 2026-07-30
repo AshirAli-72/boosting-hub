@@ -1,7 +1,22 @@
+@using BoostingHub.backend.Services.Interfaces
+@inject IWebsiteSettingService WebsiteSettingSvc
+@{
+    var wsResult = await WebsiteSettingSvc.GetAsync();
+    var ws = wsResult.Data;
+}
 <aside class="admin-sidebar">
     <div class="sidebar-brand">
-        <div class="sidebar-brand-icon"><i class="bi bi-rocket-takeoff"></i></div>
-        <span>Boosting Hub</span>
+        <div class="sidebar-brand-icon">
+            @if (!string.IsNullOrEmpty(ws?.LogoUrl))
+            {
+                <img src="@ws.LogoUrl" alt="@ws.SiteName" style="width:100%;height:100%;object-fit:contain;" />
+            }
+            else
+            {
+                <i class="bi bi-rocket-takeoff"></i>
+            }
+        </div>
+        <span>@(ws?.SiteName ?? "Boosting Hub")</span>
     </div>
     <nav class="sidebar-nav">
         <a href="/admin-panel" class="sidebar-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
@@ -9,7 +24,8 @@
         <a href="/admin/in-progress" class="sidebar-link"><i class="bi bi-hourglass-split"></i> In Progress</a>
         <a href="/admin/completed" class="sidebar-link"><i class="bi bi-check2-all"></i> Completed</a>
         <a href="/admin/orders" class="sidebar-link"><i class="bi bi-inbox"></i> Orders</a>
-        <a href="/admin/proof-review" class="sidebar-link"><i class="bi bi-shield-check"></i> ProofReview</a>
+        <a href="/admin/proof-review" class="sidebar-link"><i class="bi bi-shield-check"></i> Proof Review</a>
+        <a href="/admin/activity-logs" class="sidebar-link"><i class="bi bi-clock-history"></i> Activity Log</a>
         <div class="sidebar-divider"></div>
         <a href="/admin/settings" class="sidebar-link"><i class="bi bi-gear"></i> Settings</a>
         <a href="/logout" class="sidebar-link sidebar-logout"><i class="bi bi-box-arrow-right"></i> Logout</a>

@@ -129,7 +129,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPackageService, PackageService>();
-builder.Services.AddScoped<ISiteSettingService, SiteSettingService>();
+builder.Services.AddScoped<IWebsiteSettingService, WebsiteSettingService>();
 builder.Services.AddHttpClient("ProofVerification", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(10);

@@ -24,7 +24,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ActivityLog> ActivityLogs { get; set; }
     public DbSet<SocialMediaAccount> SocialMediaAccounts { get; set; }
      public DbSet<Package> Packages { get; set; }
-     public DbSet<SiteSetting> SiteSettings { get; set; }
+     public DbSet<WebsiteSetting> WebsiteSettings { get; set; }
      public DbSet<ManualPaymentProof> ManualPaymentProofs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -281,9 +281,10 @@ public class ApplicationDbContext : DbContext
             e.HasIndex(p => p.Status);
         });
 
-        // ── SiteSetting ────────────────────────────────────────────────────
-        builder.Entity<SiteSetting>(e =>
+        // ── WebsiteSetting ────────────────────────────────────────────────────
+        builder.Entity<WebsiteSetting>(e =>
         {
+            e.ToTable("website_settings");
             e.Property(s => s.SiteName).HasMaxLength(200).IsRequired();
             e.Property(s => s.LogoPath).HasMaxLength(500);
             e.Property(s => s.FaviconPath).HasMaxLength(500);

@@ -8,22 +8,22 @@ namespace BoostingHub.frontend.Pages.Admin.Settings.Website;
 
 public class IndexModel : PageModel
 {
-    private readonly ISiteSettingService _siteSettingService;
+    private readonly IWebsiteSettingService _websiteSettingService;
 
-    public IndexModel(ISiteSettingService siteSettingService)
+    public IndexModel(IWebsiteSettingService websiteSettingService)
     {
-        _siteSettingService = siteSettingService;
+        _websiteSettingService = websiteSettingService;
     }
 
     [BindProperty]
-    public SiteSettingDto Input { get; set; } = new();
+    public WebsiteSettingDto Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
         var role = HttpContext.Session.GetString("UserRole");
         if (role != "Admin") return RedirectToPage("/Account/Login");
 
-        var result = await _siteSettingService.GetAsync();
+        var result = await _websiteSettingService.GetAsync();
         if (result.IsSuccess && result.Data != null)
             Input = result.Data;
 
@@ -35,7 +35,7 @@ public class IndexModel : PageModel
         var role = HttpContext.Session.GetString("UserRole");
         if (role != "Admin") return RedirectToPage("/Account/Login");
 
-        var result = await _siteSettingService.UpdateAsync(Input);
+        var result = await _websiteSettingService.UpdateAsync(Input);
         if (result.IsSuccess)
         {
             TempData["Success"] = result.Message;

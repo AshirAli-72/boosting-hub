@@ -534,7 +534,7 @@ namespace BoostingHub.backend.Data.Migrations
                     b.ToTable("roles_has_permissions");
                 });
 
-            modelBuilder.Entity("BoostingHub.backend.Models.SiteSetting", b =>
+            modelBuilder.Entity("BoostingHub.backend.Models.WebsiteSetting", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -625,7 +625,7 @@ namespace BoostingHub.backend.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("site_settings");
+                    b.ToTable("website_settings");
                 });
 
             modelBuilder.Entity("BoostingHub.backend.Models.SocialMediaAccount", b =>

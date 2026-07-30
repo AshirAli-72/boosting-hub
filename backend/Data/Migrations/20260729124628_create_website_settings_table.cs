@@ -8,11 +8,10 @@ namespace BoostingHub.backend.Data.Migrations
     /// <inheritdoc />
     public partial class create_website_settings_table : Migration
     {
-    /// <inheritdoc />
-    protected override void Up(MigrationBuilder migrationBuilder)
-    {
-        migrationBuilder.CreateTable(
-                name: "site_settings",
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.CreateTable(
+                name: "website_settings",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "int", nullable: false)
@@ -36,15 +35,13 @@ namespace BoostingHub.backend.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_site_settings", x => x.id);
+                    table.PrimaryKey("PK_website_settings", x => x.id);
                 });
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "site_settings");
+            migrationBuilder.DropTable(name: "website_settings");
         }
     }
 }
