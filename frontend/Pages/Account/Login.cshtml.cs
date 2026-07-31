@@ -28,7 +28,7 @@ public class LoginModel : PageModel
     {
         if (!ModelState.IsValid) return Page();
 
-        var result = await _authService.LoginAsync(Input, HttpContext);
+        var result = await _authService.LoginAsync(Input);
 
         if (result.IsSuccess)
         {

@@ -2,6 +2,8 @@ using System.Text.Json;
 using BoostingHub.backend.Data;
 using BoostingHub.backend.Models;
 using BoostingHub.backend.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace BoostingHub.backend.Services.Implementations;
 
@@ -9,11 +11,13 @@ public class ActivityLogService : IActivityLogService
 {
     private readonly ApplicationDbContext _db;
     private readonly ILogger<ActivityLogService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ActivityLogService(ApplicationDbContext db, ILogger<ActivityLogService> logger)
+    public ActivityLogService(ApplicationDbContext db, ILogger<ActivityLogService> logger, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task LogAsync(
@@ -28,7 +32,6 @@ public class ActivityLogService : IActivityLogService
         string? subjectName = null,
         string? oldValues = null,
         string? newValues = null,
-        HttpContext? httpContext = null,
         CancellationToken ct = default)
     {
         try
@@ -46,7 +49,7 @@ public class ActivityLogService : IActivityLogService
                 SubjectName = subjectName,
                 OldValues = oldValues,
                 NewValues = newValues,
-                IpAddress = httpContext?.Connection?.RemoteIpAddress?.ToString(),
+                IpAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
                 CreatedAt = DateTime.UtcNow
             };
 

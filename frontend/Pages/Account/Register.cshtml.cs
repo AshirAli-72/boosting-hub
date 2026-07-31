@@ -49,7 +49,7 @@ public class RegisterModel : PageModel
     {
         if (!ModelState.IsValid) return Page();
 
-        var result = await _authService.RegisterAsync(Input, HttpContext);
+        var result = await _authService.RegisterAsync(Input);
 
         if (result.IsSuccess)
         {

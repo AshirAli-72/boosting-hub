@@ -14,6 +14,5 @@ public interface IActivityLogService
         string? subjectName = null,
         string? oldValues = null,
         string? newValues = null,
-        HttpContext? httpContext = null,
         CancellationToken ct = default);
 }

@@ -45,7 +45,7 @@ public class AuthenticationService : IAuthenticationService
         _notificationService = notificationService;
     }
 
-    public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterDto dto, HttpContext httpContext, CancellationToken ct = default)
+    public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterDto dto, CancellationToken ct = default)
     {
         if (await _db.Users.AnyAsync(u => u.Email == dto.Email, ct))
             return Result.Failure<AuthResponseDto>("Email already registered", "DUPLICATE_EMAIL");
@@ -58,7 +58,7 @@ public class AuthenticationService : IAuthenticationService
         // ── Local (Development): create user directly, no email needed ──
         if (_env.IsDevelopment())
         {
-            return await _registerDirectlyAsync(dto, passwordHash, httpContext, ct);
+            return await _registerDirectlyAsync(dto, passwordHash, ct);
         }
 
         // ── Live (Production): send verification email ──
@@ -78,7 +78,7 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    private async Task<Result<AuthResponseDto>> _registerDirectlyAsync(RegisterDto dto, string passwordHash, HttpContext httpContext, CancellationToken ct)
+    private async Task<Result<AuthResponseDto>> _registerDirectlyAsync(RegisterDto dto, string passwordHash, CancellationToken ct)
     {
         var user = new User
         {
@@ -138,11 +138,11 @@ public class AuthenticationService : IAuthenticationService
 
         await _db.SaveChangesAsync(ct);
 
-        await _activityLog.LogAsync(
-            userId: user.Id, userName: user.Name, userEmail: user.Email,
-            userRole: "User", evt: "Registered", description: $"User {user.Email} registered (local auto-verified)",
-            subjectType: "User", subjectId: user.Id, subjectName: user.Name,
-            httpContext: httpContext, ct: ct);
+await _activityLog.LogAsync(
+             userId: user.Id, userName: user.Name, userEmail: user.Email,
+             userRole: "User", evt: "Registered", description: $"User {user.Email} registered (local auto-verified)",
+             subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+             ct: ct);
 
         var adminUserIds = await _db.UserHasRoles
             .Include(ur => ur.Role)
@@ -178,7 +178,7 @@ public class AuthenticationService : IAuthenticationService
         return Result.Success(authResponse, "Registration successful");
     }
 
-    public async Task<Result<AuthResponseDto>> LoginAsync(LoginDto dto, HttpContext httpContext, CancellationToken ct = default)
+    public async Task<Result<AuthResponseDto>> LoginAsync(LoginDto dto, CancellationToken ct = default)
     {
         if (!string.IsNullOrEmpty(dto.Email))
         {
@@ -205,21 +205,21 @@ public class AuthenticationService : IAuthenticationService
                 Name = user.Name,
                 Email = user.Email,
                 Phone = user.Phone,
-                Status = StatusHelper.UserStatusToString(user.Status),
-                EmailVerifiedAt = user.EmailVerifiedAt,
-                Roles = roleNames
-            };
+Status = StatusHelper.UserStatusToString(user.Status),
+                 EmailVerifiedAt = user.EmailVerifiedAt,
+                 Roles = roleNames
+             };
 
-            await _activityLog.LogAsync(
-                userId: user.Id, userName: user.Name, userEmail: user.Email,
-                userRole: string.Join(",", roleNames), evt: "LoggedIn", description: $"User {user.Email} logged in",
-                subjectType: "User", subjectId: user.Id, subjectName: user.Name,
-                httpContext: httpContext, ct: ct);
+             await _activityLog.LogAsync(
+                 userId: user.Id, userName: user.Name, userEmail: user.Email,
+                 userRole: string.Join(",", roleNames), evt: "LoggedIn", description: $"User {user.Email} logged in",
+                 subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+                 ct: ct);
 
-            return Result.Success(authResponse, "Login successful");
-        }
+             return Result.Success(authResponse, "Login successful");
+         }
 
-        if (!string.IsNullOrEmpty(dto.Phone))
+         if (!string.IsNullOrEmpty(dto.Phone))
         {
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Phone == dto.Phone, ct);
             if (user == null)
@@ -245,20 +245,20 @@ public class AuthenticationService : IAuthenticationService
                 Email = user.Email,
                 Phone = user.Phone,
                 Status = StatusHelper.UserStatusToString(user.Status),
-                EmailVerifiedAt = user.EmailVerifiedAt,
-                Roles = roleNames
-            };
+EmailVerifiedAt = user.EmailVerifiedAt,
+                 Roles = roleNames
+             };
 
-            await _activityLog.LogAsync(
-                userId: user.Id, userName: user.Name, userEmail: user.Email,
-                userRole: string.Join(",", roleNames), evt: "LoggedIn", description: $"User {user.Email} logged in",
-                subjectType: "User", subjectId: user.Id, subjectName: user.Name,
-                httpContext: httpContext, ct: ct);
+             await _activityLog.LogAsync(
+                 userId: user.Id, userName: user.Name, userEmail: user.Email,
+                 userRole: string.Join(",", roleNames), evt: "LoggedIn", description: $"User {user.Email} logged in",
+                 subjectType: "User", subjectId: user.Id, subjectName: user.Name,
+                 ct: ct);
 
-            return Result.Success(authResponse, "Login successful");
-        }
+             return Result.Success(authResponse, "Login successful");
+         }
 
-        return Result.Failure<AuthResponseDto>("Email or phone is required", "INVALID_INPUT");
+         return Result.Failure<AuthResponseDto>("Email or phone is required", "INVALID_INPUT");
     }
 
     public async Task<Result> LogoutAsync(int userId, string? sessionId = null, CancellationToken ct = default)
@@ -541,7 +541,7 @@ public class AuthenticationService : IAuthenticationService
         return Result.Success(dto);
     }
 
-    public async Task<Result> UpdateProfileAsync(int userId, UpdateProfileDto dto, HttpContext httpContext, CancellationToken ct = default)
+    public async Task<Result> UpdateProfileAsync(int userId, UpdateProfileDto dto, CancellationToken ct = default)
     {
         var user = await _db.Users.FindAsync(new object[] { userId }, ct);
         if (user == null)
@@ -568,9 +568,9 @@ public class AuthenticationService : IAuthenticationService
             userId: user.Id, userName: user.Name, userEmail: user.Email,
             userRole: "User", evt: "ProfileUpdated", description: $"Profile updated for {user.Email}",
             subjectType: "User", subjectId: user.Id, subjectName: user.Name,
-            oldValues: JsonSerializer.Serialize(new { Name = oldName, Email = oldEmail, Phone = oldPhone }),
-            newValues: JsonSerializer.Serialize(new { Name = dto.Name, Email = dto.Email, Phone = dto.Phone }),
-            httpContext: httpContext, ct: ct);
+oldValues: JsonSerializer.Serialize(new { Name = oldName, Email = oldEmail, Phone = oldPhone }),
+             newValues: JsonSerializer.Serialize(new { Name = dto.Name, Email = dto.Email, Phone = dto.Phone }),
+             ct: ct);
         
         return Result.Success("Profile updated successfully");
     }

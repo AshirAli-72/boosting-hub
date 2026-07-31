@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(Result.Failure("Validation failed", errors: validation.Errors.Select(e => e.ErrorMessage).ToArray()));
 
-        var result = await _auth.RegisterAsync(dto, HttpContext);
+        var result = await _auth.RegisterAsync(dto);
         return result.IsSuccess ? Ok(result) : BadRequest(result);
     }
 
@@ -40,7 +40,7 @@ public class AuthController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(Result.Failure("Validation failed", errors: validation.Errors.Select(e => e.ErrorMessage).ToArray()));
 
-        var result = await _auth.LoginAsync(dto, HttpContext);
+        var result = await _auth.LoginAsync(dto);
         return result.IsSuccess ? Ok(result) : Unauthorized(result);
     }
 

@@ -98,12 +98,11 @@ public class OrdersController : ControllerBase
 
         _logger.LogInformation("New order #{OrderId} submitted (pending).", order.Id);
 
-        await _activityLog.LogAsync(
-            userId: null, userName: fullName, userEmail: email,
-            userRole: "Public", evt: "OrderSubmitted", description: $"New order #{order.Id} submitted by {fullName} ({email}) for {platform} - {service}. Awaiting admin review.",
-            subjectType: "Order", subjectId: order.Id, subjectName: $"{platform} - {service}",
-            newValues: JsonSerializer.Serialize(new { Platform = platform, Service = service, TotalAmount = totalAmount, Currency = orderCurrency }),
-            httpContext: HttpContext);
+await _activityLog.LogAsync(
+             userId: null, userName: fullName, userEmail: email,
+             userRole: "Public", evt: "OrderSubmitted", description: $"New order #{order.Id} submitted by {fullName} ({email}) for {platform} - {service}. Awaiting admin review.",
+             subjectType: "Order", subjectId: order.Id, subjectName: $"{platform} - {service}",
+             newValues: JsonSerializer.Serialize(new { Platform = platform, Service = service, TotalAmount = totalAmount, Currency = orderCurrency }));
 
         try
         {
@@ -341,13 +340,12 @@ public class OrdersController : ControllerBase
 
         _logger.LogInformation("Order #{OrderId} approved. Generated {Count} tasks.", id, tasksGenerated);
 
-        await _activityLog.LogAsync(
-            userId: null, userName: null, userEmail: null,
-            userRole: "Admin", evt: "OrderApproved", description: $"Order #{id} approved by admin. {tasksGenerated} tasks generated for {order.Platform} - {order.Service}.",
-            subjectType: "Order", subjectId: id, subjectName: $"{order.Platform} - {order.Service}",
-            oldValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderPending) }),
-            newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderApproved), TasksGenerated = tasksGenerated }),
-            httpContext: HttpContext);
+await _activityLog.LogAsync(
+             userId: null, userName: null, userEmail: null,
+             userRole: "Admin", evt: "OrderApproved", description: $"Order #{id} approved by admin. {tasksGenerated} tasks generated for {order.Platform} - {order.Service}.",
+             subjectType: "Order", subjectId: id, subjectName: $"{order.Platform} - {order.Service}",
+             oldValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderPending) }),
+             newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderApproved), TasksGenerated = tasksGenerated }));
 
         try
         {
@@ -395,13 +393,12 @@ public class OrdersController : ControllerBase
 
         _logger.LogInformation("Order #{OrderId} rejected. Reason: {Reason}", id, dto.Reason);
 
-        await _activityLog.LogAsync(
-            userId: null, userName: null, userEmail: null,
-            userRole: "Admin", evt: "OrderRejected", description: $"Order #{id} rejected. Reason: {dto.Reason}",
-            subjectType: "Order", subjectId: id, subjectName: $"{order.Platform} - {order.Service}",
-            oldValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderPending) }),
-            newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderRejected), RejectReason = dto.Reason }),
-            httpContext: HttpContext);
+await _activityLog.LogAsync(
+             userId: null, userName: null, userEmail: null,
+             userRole: "Admin", evt: "OrderRejected", description: $"Order #{id} rejected. Reason: {dto.Reason}",
+             subjectType: "Order", subjectId: id, subjectName: $"{order.Platform} - {order.Service}",
+             oldValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderPending) }),
+             newValues: JsonSerializer.Serialize(new { Status = StatusHelper.OrderStatusToString(StatusHelper.OrderRejected), RejectReason = dto.Reason }));
 
         return Ok(new { message = "Order has been rejected." });
     }

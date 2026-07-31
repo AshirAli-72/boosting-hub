@@ -62,7 +62,7 @@ public class SecurityModel : PageModel
             return Page();
         }
 
-        var result = await _authService.UpdateProfileAsync(userId, UpdateProfile, HttpContext);
+        var result = await _authService.UpdateProfileAsync(userId, UpdateProfile);
         if (result.IsSuccess)
         {
             TempData["Success"] = result.Message;
