@@ -1,4 +1,4 @@
-@page "/admin/activity-logs"
+﻿@page "/admin/activity-logs"
 @model BoostingHub.frontend.Pages.Admin.ActivityLogs.IndexModel
 @using System.Text.Json
 @{
@@ -84,9 +84,9 @@
         <div class="user-profile-dropdown" id="profileDropdown">
             <span class="admin-user-badge" onclick="toggleProfileMenu()">
                 <i class="bi bi-person-circle"></i> Admin
-                <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                <i class="bi bi-chevron-down profile-dropdown-caret"></i>
             </span>
-            <div class="profile-menu" id="profileMenu" style="display:none;">
+            <div class="profile-menu hidden" id="profileMenu">
                 <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
             </div>
         </div>
@@ -95,7 +95,7 @@
 
 <div class="admin-content">
 
-    <!-- ── Activity Feed ── -->
+    <!-- —— Activity Feed —— -->
     <div class="activity-log-card mt-2">
         <div class="activity-log-header">
             <h5 class="activity-log-title">
@@ -103,7 +103,7 @@
                 User Activity
                 <span class="activity-log-badge">@Model.ActivityLogs.TotalCount total</span>
             </h5>
-            <div style="font-size:0.8rem;color:var(--text-muted);">
+            <div class="activity-log-footer">
                 Showing @((Model.ActivityLogs.Page - 1) * Model.ActivityLogs.PageSize + 1)–@(Math.Min(Model.ActivityLogs.Page * Model.ActivityLogs.PageSize, Model.ActivityLogs.TotalCount)) of @Model.ActivityLogs.TotalCount
             </div>
         </div>
@@ -292,7 +292,7 @@
     <script>
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');

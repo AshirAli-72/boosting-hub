@@ -1,4 +1,4 @@
-@page "/admin/in-progress"
+﻿@page "/admin/in-progress"
 @model BoostingHub.frontend.Pages.Admin.Tasks.InProgressModel
 @{
     ViewData["Title"] = "In Progress Tasks";
@@ -14,9 +14,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> Admin
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                                             <td>@task.Service</td>
                                             <td>@(task.Quantity - task.CompletedCount)</td>
                                             <td>@task.CompletedCount</td>
-                                             <td><span data-pkr="@task.Reward" class="fw-bold" style="color:var(--success);">@Model.GetCurrencySymbol(task.Currency)@task.Reward.ToString("N2") @task.Currency</span></td>
+                                             <td><span data-pkr="@task.Reward" class="fw-bold task-reward">@Model.GetCurrencySymbol(task.Currency)@task.Reward.ToString("N2") @task.Currency</span></td>
                                             <td>@task.CreatedAt.ToString("yyyy-MM-dd")</td>
                                         </tr>
                                     }
@@ -95,7 +95,7 @@
     <script>
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');

@@ -1,4 +1,4 @@
-@page "/admin-panel"
+﻿@page "/admin-panel"
 @model BoostingHub.frontend.Pages.Admin.DashboardModel
 @using System.Text.Json
 @{
@@ -15,9 +15,9 @@
             <div class="user-profile-dropdown" id="profileDropdown">
                 <span class="admin-user-badge" onclick="toggleProfileMenu()">
                     <i class="bi bi-person-circle"></i> Admin
-                    <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                    <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                 </span>
-                <div class="profile-menu" id="profileMenu" style="display:none;">
+                <div class="profile-menu hidden" id="profileMenu">
                     <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                 </div>
             </div>
@@ -27,53 +27,53 @@
     <div class="admin-content">
         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
         {
-            <div class="alert alert-danger mb-4" style="word-break:break-all;">@Model.ErrorMessage</div>
+            <div class="alert alert-danger mb-4 alert-break">@Model.ErrorMessage</div>
         }
 
-        <!-- ── Stat Cards Row ── -->
+        <!-- â”€â”€ Stat Cards Row â”€â”€ -->
         <div class="row g-3 mb-4">
             <div class="col-md-3">
-                <div class="stat-card" style="background:linear-gradient(135deg,#6366F1 0%,#4F46E5 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-people"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-indigo">
+                    <div class="stat-icon"><i class="bi bi-people"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Users</span>
-                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalUsers</span>
+                        <span class="stat-label">Total Users</span>
+                        <span class="stat-value">@Model.Dashboard.TotalUsers</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stat-card" style="background:linear-gradient(135deg,#14B8A6 0%,#0F766E 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-cart-check"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-teal">
+                    <div class="stat-icon"><i class="bi bi-cart-check"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Orders</span>
-                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalOrders</span>
+                        <span class="stat-label">Total Orders</span>
+                        <span class="stat-value">@Model.Dashboard.TotalOrders</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-currency-dollar"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-green">
+                    <div class="stat-icon"><i class="bi bi-currency-dollar"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Revenue</span>
-                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalRevenue.ToString("N2")</span>
+                        <span class="stat-label">Revenue</span>
+                        <span class="stat-value">₨ @Model.Dashboard.TotalRevenue.ToString("N2")</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check2-all"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-blue">
+                    <div class="stat-icon"><i class="bi bi-check2-all"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Completed Tasks</span>
-                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.CompletedTasks</span>
+                        <span class="stat-label">Completed Tasks</span>
+                        <span class="stat-value">@Model.Dashboard.CompletedTasks</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-arrow-up-circle"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-amber">
+                    <div class="stat-icon"><i class="bi bi-arrow-up-circle"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">In Progress</span>
-                        <span class="stat-value" style="color:#fff;">@Model.Dashboard.InProgressTasks</span>
+                        <span class="stat-label">In Progress</span>
+                        <span class="stat-value">@Model.Dashboard.InProgressTasks</span>
                     </div>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                 <div class="card shadow-sm border-0 chart-card chart-line">
                     <div class="card-body">
                         <h5 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Daily Orders (7 days)</h5>
-                        <canvas id="lineChart" style="width:100%!important;height:280px!important;"></canvas>
+                        <canvas id="lineChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -92,7 +92,7 @@
                 <div class="card shadow-sm border-0 chart-card chart-pie">
                     <div class="card-body">
                         <h5 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Orders by Status</h5>
-                        <canvas id="pieChart" style="width:100%!important;max-width:360px!important;height:300px!important;margin:0 auto;"></canvas>
+                        <canvas id="pieChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -163,7 +163,7 @@
 
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');

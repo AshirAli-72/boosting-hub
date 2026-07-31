@@ -1,4 +1,4 @@
-@page "/dashboard"
+﻿@page "/dashboard"
 @model BoostingHub.frontend.Pages.Users.DashboardModel
 @using System.Text.Json
 @{
@@ -19,9 +19,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> @Model.Dashboard.UserName
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -30,38 +30,38 @@
         <div class="admin-content">
             <div class="row g-4 mb-4">
                 <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#7C3AED 0%,#5B21B6 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-list-task"></i></div>
+                    <div class="stat-card stat-card-grad stat-card-grad-purple">
+                        <div class="stat-icon"><i class="bi bi-list-task"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Available</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.TotalTasks</span>
+                            <span class="stat-label">Available</span>
+                            <span class="stat-value">@Model.Dashboard.TotalTasks</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#0D9488 0%,#0F766E 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle"></i></div>
+                    <div class="stat-card stat-card-grad stat-card-grad-teal-dark">
+                        <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Completed</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.CompletedTasks</span>
+                            <span class="stat-label">Completed</span>
+                            <span class="stat-value">@Model.Dashboard.CompletedTasks</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass"></i></div>
+                    <div class="stat-card stat-card-grad stat-card-grad-amber">
+                        <div class="stat-icon"><i class="bi bi-hourglass"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">In Progress</span>
-                            <span class="stat-value" style="color:#fff;">@Model.Dashboard.PendingTasks</span>
+                            <span class="stat-label">In Progress</span>
+                            <span class="stat-value">@Model.Dashboard.PendingTasks</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-wallet2"></i></div>
+                    <div class="stat-card stat-card-grad stat-card-grad-blue">
+                        <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Wallet Balance</span>
-                            <span class="stat-value" style="color:#fff;line-height:1.3;"><span class="iq-price" data-amount="@walletBalance" data-from-currency="@walletCurrency">loading...</span></span>
+                            <span class="stat-label">Wallet Balance</span>
+                            <span class="stat-value"><span class="iq-price" data-amount="@walletBalance" data-from-currency="@walletCurrency">loading...</span></span>
                         </div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                     <div class="card shadow-sm border-0 chart-card chart-line">
                         <div class="card-body">
                             <h5 class="card-title fw-semibold mb-3"><i class="bi bi-graph-up text-primary"></i> Weekly Tasks</h5>
-                            <canvas id="lineChart" style="width:100%!important;height:280px!important;"></canvas>
+                            <canvas id="lineChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -79,7 +79,7 @@
                     <div class="card shadow-sm border-0 chart-card chart-pie">
                         <div class="card-body">
                             <h5 class="card-title fw-semibold mb-3"><i class="bi bi-pie-chart text-primary"></i> Task Status</h5>
-                            <canvas id="pieChart" style="width:100%!important;max-width:360px!important;height:300px!important;margin:0 auto;"></canvas>
+                            <canvas id="pieChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -151,7 +151,7 @@
 
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');
@@ -212,9 +212,9 @@
     </script>
 }
 
-<!-- ── Success Toast ─────────────────────────────────────── -->
-<div id="successToast" style="display:none;position:fixed;top:24px;right:24px;z-index:99999;background:#10B981;color:#fff;padding:14px 24px;border-radius:12px;box-shadow:0 12px 40px rgba(16,185,129,0.35);font-weight:600;font-size:0.92rem;align-items:center;gap:10px;">
-    <i class="bi bi-check-circle-fill" style="font-size:1.1rem;"></i>
+<!-- â”€â”€ Success Toast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <div id="successToast">
+            <i class="bi bi-check-circle-fill"></i>
     <span id="toastMessage">Email updated successfully!</span>
 </div>
 

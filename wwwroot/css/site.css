@@ -75,15 +75,15 @@ body.landing-page {
 
 body.auth-page-body {
     background:
-        radial-gradient(circle at 25% 40%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
-        radial-gradient(circle at 75% 60%, rgba(244, 63, 94, 0.12) 0%, transparent 55%),
+        radial-gradient(circle at 25% 40%, rgba(59, 130, 246, 0.18) 0%, transparent 55%),
+        radial-gradient(circle at 75% 60%, rgba(59, 130, 246, 0.12) 0%, transparent 55%),
         #09090B;
     min-height: 100vh;
 }
 body.light-mode.auth-page-body {
     background:
-        radial-gradient(circle at 25% 40%, rgba(99, 102, 241, 0.08) 0%, transparent 55%),
-        radial-gradient(circle at 75% 60%, rgba(244, 63, 94, 0.05) 0%, transparent 55%),
+        radial-gradient(circle at 25% 40%, rgba(59, 130, 246, 0.08) 0%, transparent 55%),
+        radial-gradient(circle at 75% 60%, rgba(59, 130, 246, 0.05) 0%, transparent 55%),
         #FAFAFA;
 }
 
@@ -107,6 +107,69 @@ body.light-mode {
     --primary:       #4F46E5;
     --sidebar-active:rgba(79, 70, 229, 0.10);
 }
+
+body.light-mode.landing-page {
+    --primary:        #3B82F6;
+    --primary-dark:   #2563EB;
+    --primary-light:  #60A5FA;
+    --primary-glow:   rgba(59, 130, 246, 0.25);
+    --accent:         #3B82F6;
+    --accent-light:   #60A5FA;
+}
+
+/* ── Logo & Brand ────────────────────────────────────── */
+.logo-img-full { width: 100%; height: 100%; object-fit: contain; }
+.navbar-brand-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; flex-shrink: 0;
+}
+.navbar-brand-icon i { font-size: 0.9rem; color: #fff; }
+
+/* ── Utility ─────────────────────────────────────────── */
+.hidden { display: none; }
+
+/* ── Profile Dropdown ────────────────────────────────── */
+.profile-dropdown-caret { font-size: 0.65rem; margin-left: 2px; }
+.form-inline { display: inline; }
+
+/* ── Settings Cards ──────────────────────────────────── */
+.settings-card-clickable { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.settings-card-clickable:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+.settings-card-icon { font-size: 3rem; margin-bottom: 16px; }
+.icon-color-purple { color: #7C3AED; }
+.icon-color-blue { color: #3B82F6; }
+.icon-color-teal { color: #0D9488; }
+.icon-color-green { color: #10B981; }
+.icon-color-violet { color: #8B5CF6; }
+.icon-color-indigo { color: #6366F1; }
+.icon-color-amber { color: #F59E0B; }
+
+/* ── Social Platform Icons (auth + dashboard) ────────── */
+.social-icon-instagram { color: #E4405F; }
+.social-icon-facebook { color: #1877F2; }
+.social-icon-tiktok { color: var(--text-primary, #f8fafc); }
+.social-icon-youtube { color: #FF0000; }
+.social-icon-twitter { color: var(--text-primary, #f8fafc); }
+.social-icon-other { color: var(--primary, #6366f1); }
+.social-icon-instagram,
+.social-icon-facebook,
+.social-icon-tiktok,
+.social-icon-youtube,
+.social-icon-twitter,
+.social-icon-other { font-size: 1rem; }
+.social-icon-lg { font-size: 1.1rem; }
+.social-modal-content { background: var(--bg-card, #0f172a); color: var(--text-primary, #f8fafc); }
+.social-modal-hint { font-size: 0.82rem; color: var(--text-muted, rgba(250,250,250,0.50)); margin: 0 0 16px; }
+.auth-label-sm { font-size: 0.85rem; }
+.auth-input-sm { font-size: 0.85rem; }
+.auth-text-xs { font-size: 0.78rem; }
+.btn-radius-sm { border-radius: 8px; }
+.linked-check-icon { font-size: 0.7rem; }
+.social-profile-link { max-width: 200px; }
+.currency-select { width: auto; display: inline-block; }
 
 /* ── Platform Checkbox Grid ──────────────────────────── */
 .platform-checkbox-grid {

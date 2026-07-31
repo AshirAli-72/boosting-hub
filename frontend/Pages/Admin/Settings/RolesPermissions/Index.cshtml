@@ -1,4 +1,4 @@
-@page "/admin/roles"
+﻿@page "/admin/roles"
 @model BoostingHub.frontend.Pages.Admin.Settings.RolesPermissions.IndexModel
 @{
     ViewData["Title"] = "Roles & Permissions";
@@ -14,9 +14,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> Admin
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                                         </td>
                                         <td class="text-end">
                                             <a href="/admin/roles?edit=@role.Id" class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
-                                            <form method="post" asp-page-handler="Delete" asp-route-roleId="@role.Id" style="display:inline;" onsubmit="return confirm('Delete this role?');">
+                                            <form method="post" asp-page-handler="Delete" asp-route-roleId="@role.Id" class="form-inline" onsubmit="return confirm('Delete this role?');">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                                             </form>
                                         </td>
@@ -92,7 +92,7 @@
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label fw-medium text-secondary">Permissions</label>
-                                    <div class="permissions-list p-3 rounded border custom-modal-bg" style="max-height:320px;overflow-y:auto;">
+                                    <div class="permissions-list roles-scroll p-3 rounded border custom-modal-bg">
                                         @{
                                             var grouped2 = Model.AllPermissions.GroupBy(p => p.Slugs?.Split('.').FirstOrDefault() ?? "");
                                         }
@@ -100,13 +100,13 @@
                                             @foreach (var group in grouped2)
                                             {
                                                 <div class="col-md-6 mb-3">
-                                                    <strong style="font-size:0.85rem;color:#64748b;text-transform:uppercase;">@group.Key</strong>
+                                                    <strong class="roles-uppercase-label">@group.Key</strong>
                                                     <div class="mt-2">
                                                         @foreach (var perm in group)
                                                         {
                                                             <div class="form-check">
                                                                 <input type="checkbox" class="form-check-input" name="CreateInput.PermissionIds" value="@perm.Id" id="create_perm_@perm.Id" />
-                                                                <label class="form-check-label" for="create_perm_@perm.Id" style="font-size:0.9rem;">@perm.Names</label>
+                                                                <label class="form-check-label roles-text-sm" for="create_perm_@perm.Id">@perm.Names</label>
                                                             </div>
                                                         }
                                                     </div>
@@ -126,7 +126,7 @@
 
             @if (Model.IsEditing)
             {
-                <div class="modal fade show" id="editRoleModal" tabindex="-1" style="display:block; background:rgba(0,0,0,0.5);" aria-modal="true" role="dialog">
+                <div class="modal fade show role-overlay" id="editRoleModal" tabindex="-1" aria-modal="true" role="dialog">
                     <div class="modal-dialog modal-dialog-centered modal-lg">
                         <div class="modal-content border-0 shadow-lg">
                             <div class="modal-header border-bottom-0">
@@ -145,7 +145,7 @@
                                     </div>
                                     <div class="mb-4">
                                         <label class="form-label fw-medium text-secondary">Permissions</label>
-                                        <div class="permissions-list p-3 rounded border custom-modal-bg" style="max-height:320px;overflow-y:auto;">
+                                        <div class="permissions-list roles-scroll p-3 rounded border custom-modal-bg">
                                             @{
                                                 var assignedIds = Model.EditInput.PermissionIds ?? new List<int>();
                                                 var grouped = Model.AllPermissions.GroupBy(p => p.Slugs?.Split('.').FirstOrDefault() ?? "");
@@ -154,13 +154,13 @@
                                                 @foreach (var group in grouped)
                                                 {
                                                     <div class="col-md-6 mb-3">
-                                                        <strong style="font-size:0.85rem;color:#64748b;text-transform:uppercase;">@group.Key</strong>
+                                                        <strong class="roles-uppercase-label">@group.Key</strong>
                                                         <div class="mt-2">
                                                             @foreach (var perm in group)
                                                             {
                                                                 <div class="form-check">
                                                                     <input type="checkbox" class="form-check-input" name="EditInput.PermissionIds" value="@perm.Id" id="edit_perm_@perm.Id" checked="@assignedIds.Contains(perm.Id)" />
-                                                                    <label class="form-check-label" for="edit_perm_@perm.Id" style="font-size:0.9rem;">@perm.Names</label>
+                                                                    <label class="form-check-label roles-text-sm" for="edit_perm_@perm.Id">@perm.Names</label>
                                                                 </div>
                                                             }
                                                         </div>
@@ -194,7 +194,7 @@
         }
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');

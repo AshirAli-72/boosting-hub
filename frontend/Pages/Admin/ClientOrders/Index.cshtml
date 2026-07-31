@@ -1,4 +1,4 @@
-@page "/admin/orders"
+﻿@page "/admin/orders"
 @model BoostingHub.frontend.Pages.Admin.Inquiries.IndexModel
 @using BoostingHub.backend.Common
 @{
@@ -38,23 +38,23 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> Admin
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
             </div>
         </div>
         <div class="admin-content">
-            <div class="admin-card mb-4 border-0 shadow-sm" style="background:var(--bg-card); border-radius:16px;">
-                <div class="admin-card-header d-flex justify-content-between align-items-center" style="padding:20px 24px; border-bottom:1px solid var(--border-subtle);">
+            <div class="admin-card admin-card-orders mb-4 border-0 shadow-sm">
+                <div class="admin-card-header admin-card-header-orders d-flex justify-content-between align-items-center">
                     <h5 class="m-0"><i class="bi bi-list-check text-primary me-2"></i> All Orders</h5>
-                        <span class="badge" style="background:var(--primary); color:#fff; font-size:0.85rem; padding:6px 12px; border-radius:20px;">@Model.Orders.Count Total</span>
+                        <span class="badge orders-count-badge">@Model.Orders.Count Total</span>
                 </div>
                 <div class="admin-card-body p-0">
                     <div class="table-responsive">
-                        <table class="table admin-table mb-0 align-middle">
+                        <table class="table admin-table mb-0 align-middle" id="coTable">
                             <thead class="admin-thead">
                                 <tr>
                                     <th>ID</th>
@@ -83,13 +83,13 @@
                                             <td>
                                                 @foreach (var p in item.Platform.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                                                 {
-                                                    <span class="admin-badge me-1" style="background:rgba(124,58,237,0.15); color:var(--primary-light);">@p</span>
+                                                    <span class="admin-badge admin-badge-purple me-1">@p</span>
                                                 }
                                             </td>
                                             <td>
                                                 @foreach (var s in item.Service.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                                                 {
-                                                    <span class="admin-badge me-1" style="background:rgba(13,148,136,0.15); color:#0D9488;">@s</span>
+                                                    <span class="admin-badge admin-badge-teal me-1">@s</span>
                                                 }
                                             </td>
                                             <td><span class="fw-semibold">@item.Quantity</span></td>
@@ -97,7 +97,7 @@
                                             <td>
                                                 @if (!string.IsNullOrEmpty(item.SocialMediaUrl))
                                                 {
-                                                    <a href="@item.SocialMediaUrl" target="_blank" class="text-truncate d-inline-block text-primary" style="max-width:120px; text-decoration:none;" title="@item.SocialMediaUrl">
+                                                    <a href="@item.SocialMediaUrl" target="_blank" class="text-truncate d-inline-block text-primary admin-table-link" title="@item.SocialMediaUrl">
                                                         <i class="bi bi-link-45deg"></i> Link
                                                     </a>
                                                 }
@@ -128,28 +128,25 @@
                                                 <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
                                                     @if (item.Status == StatusHelper.OrderPending)
                                                     {
-                                                        <button class="btn btn-sm" onclick="approveOrder(@item.Id)"
-                                                                style="border-radius:8px; font-weight:600; padding:4px 12px; background:rgba(16,185,129,0.15); color:#10B981; border:1px solid rgba(16,185,129,0.3);"
+                                                        <button class="btn btn-sm btn-approve" onclick="approveOrder(@item.Id)"
                                                                 title="Approve Order">
                                                             <i class="bi bi-check-circle"></i> Approve
                                                         </button>
-                                                        <button class="btn btn-sm" onclick="openRejectModal(@item.Id)"
-                                                                style="border-radius:8px; font-weight:600; padding:4px 12px; background:rgba(239,68,68,0.15); color:#EF4444; border:1px solid rgba(239,68,68,0.3);"
+                                                        <button class="btn btn-sm btn-reject" onclick="openRejectModal(@item.Id)"
                                                                 title="Reject Order">
                                                             <i class="bi bi-x-circle"></i> Reject
                                                         </button>
                                                     }
-                                                    <button class="btn btn-sm btn-outline-primary" type="button"
-                                                            data-bs-toggle="collapse" data-bs-target="#collapse-@item.Id"
-                                                            style="border-radius:8px; font-weight:500; padding:4px 10px;">
+                                                    <button class="btn btn-sm btn-outline-primary btn-collapse-toggle" type="button"
+                                                            data-bs-toggle="collapse" data-bs-target="#collapse-@item.Id">
                                                         <i class="bi bi-chevron-down"></i>
                                                     </button>
                                                 </div>
                                             </td>
                                         </tr>
-                                        <tr class="collapse" id="collapse-@item.Id" style="border-bottom:1px solid var(--border-subtle);">
-                                            <td colspan="10" style="background:linear-gradient(180deg, rgba(99,102,241,0.03) 0%, rgba(0,0,0,0.02) 100%); padding: 0; border-top:none;">
-                                                <div style="padding:24px;">
+                                        <tr class="collapse admin-collapse-row" id="collapse-@item.Id">
+                                            <td colspan="10" class="admin-collapse-cell">
+                                                <div class="admin-collapse-body">
                                                     <div class="order-sum-3col-three">
                                                         <div class="order-sum-card order-sum-card-square">
                                                             <div class="order-sum-card-title"><i class="bi bi-paperclip"></i> Attachment</div>
@@ -201,29 +198,29 @@
 
                                                         <div class="order-sum-card order-sum-card-square">
                                                             <div class="order-sum-card-title"><i class="bi bi-info-circle-fill"></i> Summary</div>
-                                                            <div class="order-sum-card-body" style="flex-direction:column;align-items:flex-start;gap:4px;padding:10px;">
-                                                            <div class="order-sum-field" style="width:100%;">
+                                                            <div class="order-sum-card-body column">
+                                                            <div class="order-sum-field full">
                                                                 <span class="field-label">Platform</span>
-                                                                <span class="field-value" style="font-size:0.7rem;">@item.Platform</span>
+                                                                <span class="field-value small">@item.Platform</span>
                                                             </div>
-                                                                <div class="order-sum-field" style="width:100%;">
+                                                                <div class="order-sum-field full">
                                                                     <span class="field-label">Service</span>
                                                                     <span class="field-value">@item.Service</span>
                                                                 </div>
-                                                                <div class="order-sum-field" style="width:100%;">
+                                                                <div class="order-sum-field full">
                                                                     <span class="field-label">Amount</span>
-                                                                    <span class="field-value strong" style="color:#16a34a;">@CurrencySymbol(item.Currency)@item.Budget.ToString("N2")</span>
+                                                                    <span class="field-value strong green">@CurrencySymbol(item.Currency)@item.Budget.ToString("N2")</span>
                                                                 </div>
-                                                                <div class="order-sum-field" style="width:100%;">
+                                                                <div class="order-sum-field full">
                                                                     <span class="field-label">Qty</span>
                                                                     <span class="field-value">@item.Quantity</span>
                                                                 </div>
                                                                 @if (!string.IsNullOrEmpty(item.SocialMediaUrl))
                                                                 {
-                                                                    <div class="order-sum-field" style="width:100%;">
+                                                                    <div class="order-sum-field full">
                                                                         <span class="field-label">URL</span>
-                                                                        <span class="field-value" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                                                            <a href="@item.SocialMediaUrl" target="_blank" style="color:#6366f1;text-decoration:none;font-size:0.7rem;">@item.SocialMediaUrl</a>
+                                                                        <span class="field-value url">
+                                                                            <a href="@item.SocialMediaUrl" target="_blank" class="url-link">@item.SocialMediaUrl</a>
                                                                         </span>
                                                                     </div>
                                                                 }
@@ -240,7 +237,7 @@
                                     <tr>
                                         <td colspan="10" class="text-center py-5 text-muted">
                                             <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
-                                            <span style="font-size:1.1rem; font-weight:500;">No client orders found.</span>
+                                            <span class="orders-empty-text">No client orders found.</span>
                                         </td>
                                     </tr>
                                 }
@@ -253,18 +250,18 @@
 
         <!-- Reject Modal -->
         <div class="pkg-modal-overlay" id="rejectOverlay" onclick="closeRejectModal()"></div>
-        <div class="pkg-modal" id="rejectModal" style="max-width:480px;">
+        <div class="pkg-modal" id="rejectModal">
             <div class="pkg-modal-header">
-                <h5><i class="bi bi-x-circle" style="color:#EF4444;"></i> Reject Order</h5>
+                <h5><i class="bi bi-x-circle"></i> Reject Order</h5>
                 <button class="pkg-modal-close" onclick="closeRejectModal()">&times;</button>
             </div>
-            <div class="pkg-modal-body" style="padding:24px;">
-                <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:16px;">Please provide a reason for rejecting this order. This will be visible to the customer.</p>
+            <div class="pkg-modal-body reject-modal-body">
+                <p class="reject-modal-text">Please provide a reason for rejecting this order. This will be visible to the customer.</p>
                 <input type="hidden" id="reject-order-id" />
-                <textarea id="reject-reason" rows="4" placeholder="Enter rejection reason..." style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border-subtle); background:var(--bg-elevated); color:var(--text-primary); font-size:0.9rem; resize:vertical;"></textarea>
-                <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:20px;">
-                    <button class="btn btn-sm" onclick="closeRejectModal()" style="padding:8px 20px; border-radius:8px; background:var(--bg-elevated); border:1px solid var(--border-subtle); color:var(--text-secondary); font-weight:500;">Cancel</button>
-                    <button class="btn btn-sm" id="rejectConfirmBtn" onclick="confirmReject()" style="padding:8px 20px; border-radius:8px; background:#EF4444; color:#fff; font-weight:600;">Reject Order</button>
+                <textarea id="reject-reason" rows="4" placeholder="Enter rejection reason..." class="reject-reason-textarea"></textarea>
+                <div class="reject-modal-actions">
+                    <button class="btn btn-sm btn-modal-cancel" onclick="closeRejectModal()">Cancel</button>
+                    <button class="btn btn-sm btn-modal-reject" id="rejectConfirmBtn" onclick="confirmReject()">Reject Order</button>
                 </div>
             </div>
         </div>
@@ -311,10 +308,12 @@
 
 @section Scripts {
     <script src="~/js/site.js"></script>
+    <script src="~/js/table-pager.js"></script>
     <script>
+        initTablePager('coTable');
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');

@@ -1,4 +1,4 @@
-@page "/my-tasks"
+﻿@page "/my-tasks"
 @model BoostingHub.frontend.Pages.Users.Tasks.MyModel
 @{
     ViewData["Title"] = "My Tasks";
@@ -14,9 +14,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> @Model.UserName
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -39,7 +39,7 @@
             var pd = document.getElementById('profileDropdown');
             if (pd && pd.contains(e.target) && e.target.closest('.admin-user-badge')) {
                 var m = document.getElementById('profileMenu');
-                if (m) m.style.display = m.style.display === 'none' ? 'block' : 'none';
+                if (m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
                 return;
             }
             if (pd && !pd.contains(e.target)) {
@@ -48,21 +48,21 @@
             }
         });
 
-        /* ── Proof form modal ── */
+        /* â”€â”€ Proof form modal â”€â”€ */
         function showProofForm(taskId, taskUrl) {
             var overlay = document.createElement('div');
             overlay.id = 'proof-overlay';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+            overlay.className = 'proof-overlay';
             overlay.innerHTML = [
-                '<div style="background:var(--bg-card,#1e293b);border:1px solid var(--border-muted,rgba(255,255,255,0.1));border-radius:12px;width:440px;max-width:92vw;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.3);color:var(--text-primary,#f1f5f9);">',
-                '  <h5 style="margin:0 0 20px 0;"><i class="bi bi-upload text-primary me-2"></i>Submit Proof</h5>',
-                '  <div id="pf-error" style="display:none;color:var(--danger,#EF4444);padding:10px 14px;background:rgba(248,113,113,0.12);border-radius:6px;margin-bottom:16px;font-size:0.9rem;"></div>',
-                '  <div style="margin-bottom:16px;">',
-                '    <label style="display:block;margin-bottom:6px;font-weight:500;color:var(--text-secondary,#94a3b8);">Proof URL</label>',
-                '    <input type="url" id="pf-url" class="form-control" placeholder="https://imgur.com/screenshot.png" style="color:var(--text-primary,#f1f5f9);background:var(--bg-elevated,rgba(255,255,255,0.05));border:1px solid var(--border-muted,rgba(255,255,255,0.1));" />',
+                '<div class="task-modal-box">',
+                '  <h5 class="task-modal-title"><i class="bi bi-upload text-primary me-2"></i>Submit Proof</h5>',
+                '  <div id="pf-error" class="task-modal-error"></div>',
+                '  <div class="task-modal-field">',
+                '    <label class="task-modal-label">Proof URL</label>',
+                '    <input type="url" id="pf-url" class="form-control task-modal-input" placeholder="https://imgur.com/screenshot.png" />',
                 '  </div>',
-                '  <div style="margin-bottom:20px;">',
-                '    <label style="display:block;margin-bottom:6px;font-weight:500;color:var(--text-secondary,#94a3b8);">Screenshot <span style="color:var(--danger,#EF4444);">*</span></label>',
+                '  <div class="task-modal-footer">',
+                '    <label class="task-modal-label">Screenshot <span class="task-modal-danger-text">*</span></label>',
                 '    <div class="file-upload-wrapper" id="pf-wrapper">',
                 '      <input type="file" id="pf-file" accept="image/png,image/jpeg,image/jpg,image/webp" hidden onchange="updateProofFileName(this)" />',
                 '      <label for="pf-file" class="file-upload-label">',
@@ -72,18 +72,10 @@
                 '          <div class="file-upload-hint" id="pf-hint">PNG, JPG, WEBP up to 5MB</div>',
                 '        </div>',
                 '      </label>',
-                '      <div class="file-preview" id="pf-preview" style="display:none;">',
-                '        <img id="pf-img" src="" alt="Preview" />',
-                '        <div class="file-preview-info">',
-                '          <div class="file-preview-name" id="pf-name">—</div>',
-                '          <div class="file-preview-size" id="pf-size">—</div>',
-                '        </div>',
-                '        <button type="button" class="file-preview-remove" onclick="removeProofFile()" aria-label="Remove file"><i class="bi bi-x-lg"></i></button>',
-                '      </div>',
                 '    </div>',
                 '  </div>',
-                '  <div style="display:flex;justify-content:flex-end;gap:8px;">',
-                '    <button type="button" class="btn btn-secondary" onclick="closeProofForm()" style="background:var(--bg-elevated,rgba(255,255,255,0.08));color:var(--text-primary,#f1f5f9);border:1px solid var(--border-muted,rgba(255,255,255,0.1));">Cancel</button>',
+                '  <div class="task-modal-actions">',
+                '    <button type="button" class="btn btn-secondary task-modal-cancel" onclick="closeProofForm()">Cancel</button>',
                 '    <button type="button" class="btn btn-primary" id="pf-submit">Submit</button>',
                 '  </div>',
                 '</div>'
@@ -94,39 +86,15 @@
         }
 
         function updateProofFileName(input) {
-            var wrapper = document.getElementById('pf-wrapper');
-            var preview = document.getElementById('pf-preview');
-            var label = wrapper.querySelector('.file-upload-label');
-            var img = document.getElementById('pf-img');
-            var nameEl = document.getElementById('pf-name');
-            var sizeEl = document.getElementById('pf-size');
+            var hint = document.getElementById('pf-hint');
             if (input.files && input.files[0]) {
                 var file = input.files[0];
-                nameEl.textContent = file.name;
                 var kb = file.size / 1024;
-                sizeEl.textContent = kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : kb.toFixed(1) + ' KB';
-                var isImage = file.type && file.type.indexOf('image/') === 0;
-                if (isImage && img) {
-                    var reader = new FileReader();
-                    reader.onload = function (e) { img.src = e.target.result; };
-                    reader.readAsDataURL(file);
-                }
-                label.style.display = 'none';
-                preview.style.display = 'flex';
-                wrapper.classList.add('has-file');
+                var size = kb > 1024 ? (kb / 1024).toFixed(2) + ' MB' : kb.toFixed(1) + ' KB';
+                if (hint) hint.textContent = file.name + '  (' + size + ')';
+            } else if (hint) {
+                hint.textContent = 'PNG, JPG, WEBP up to 5MB';
             }
-        }
-        function removeProofFile() {
-            var input = document.getElementById('pf-file');
-            var wrapper = document.getElementById('pf-wrapper');
-            var preview = document.getElementById('pf-preview');
-            var label = wrapper.querySelector('.file-upload-label');
-            input.value = '';
-            preview.style.display = 'none';
-            label.style.display = 'flex';
-            wrapper.classList.remove('has-file');
-            var img = document.getElementById('pf-img');
-            if (img) img.src = '';
         }
 
         function wirePfDropZone() {
@@ -200,7 +168,7 @@
             }
         }
 
-        /* ── Event delegation: click on any submit-proof-btn ── */
+        /* â”€â”€ Event delegation: click on any submit-proof-btn â”€â”€ */
         document.addEventListener('click', function(e) {
             var btn = e.target.closest('.submit-proof-btn');
             if (btn) {

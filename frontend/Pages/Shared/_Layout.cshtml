@@ -55,7 +55,7 @@
                     <div class="header-logo-icon">
                         @if (!string.IsNullOrEmpty(ws?.LogoUrl))
                         {
-                            <img src="@ws.LogoUrl" alt="@ws.SiteName" style="width:100%;height:100%;object-fit:contain;" />
+                            <img src="@ws.LogoUrl" alt="@ws.SiteName" class="logo-img-full" />
                         }
                         else
                         {
@@ -96,7 +96,7 @@
                 <div class="hero-bg-glow"></div>
                 <div class="hero-bg-glow-2"></div>
                 <div class="hero-grid">
-                    <div>
+                    <div class="reveal reveal-left">
                         <div class="hero-badge"><i class="bi bi-lightning-fill"></i> Trusted by @((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+ creators</div>
                         <h1 class="hero-title">
                             @Html.Raw((ws?.HeroTitle ?? "Grow Your Social<br><span class=\"hero-title-gradient\">Engagement</span><br>Effortlessly").Replace("\n", "<br>"))
@@ -106,7 +106,7 @@
                         </p>
                         @if (!string.IsNullOrEmpty(ws?.HeroDescription))
                         {
-                            <p style="color:var(--text-secondary);font-size:1rem;line-height:1.7;margin-bottom:2rem;max-width:540px;">@ws.HeroDescription</p>
+                            <p class="hero-description">@ws.HeroDescription</p>
                         }
                         <div class="hero-actions">
                             <a href="#contact" class="btn-hero-primary">
@@ -118,7 +118,7 @@
                         </div>
 
                     </div>
-                    <div class="hero-visual">
+                    <div class="hero-visual reveal reveal-right">
                         <div class="hero-card-mockup">
                             <div class="hero-card-header">
                                 <div class="hero-card-dots"><span></span><span></span><span></span></div>
@@ -153,38 +153,38 @@
             </section>
 
             <section class="section" id="features">
-                <div class="section-header">
+                    <div class="section-header reveal">
                     <div class="section-label"><i class="bi bi-stars"></i> Features</div>
                     <h2 class="section-title section-title-light">Everything You Need to Grow</h2>
                     <p class="section-subtitle">Powerful tools and real engagement to supercharge your social media presence across all major platforms.</p>
                 </div>
                 <div class="features-grid">
-                    <div class="feature-card">
+                    <div class="feature-card reveal reveal-left">
                         <div class="feature-icon purple"><i class="bi bi-shield-check"></i></div>
                         <h3>Real &amp; Authentic</h3>
                         <p>All engagement comes from real accounts. No bots, no fake profiles, guaranteed authentic growth.</p>
                     </div>
-                    <div class="feature-card">
+                    <div class="feature-card reveal reveal-left">
                         <div class="feature-icon green"><i class="bi bi-lightning-charge"></i></div>
                         <h3>Lightning Fast</h3>
                         <p>Orders start within minutes of placement. Our automated system delivers results at unprecedented speed.</p>
                     </div>
-                    <div class="feature-card">
+                    <div class="feature-card reveal reveal-left">
                         <div class="feature-icon blue"><i class="bi bi-graph-up-arrow"></i></div>
                         <h3>Smart Analytics</h3>
                         <p>Track your growth with detailed analytics, real-time reporting, and performance insights dashboard.</p>
                     </div>
-                    <div class="feature-card">
+                    <div class="feature-card reveal reveal-right">
                         <div class="feature-icon orange"><i class="bi bi-globe2"></i></div>
                         <h3>Multi-Platform</h3>
                         <p>Supporting Instagram, YouTube, TikTok, X (Twitter), Facebook, LinkedIn, and more major platforms.</p>
                     </div>
-                    <div class="feature-card">
+                    <div class="feature-card reveal reveal-right">
                         <div class="feature-icon pink"><i class="bi bi-lock-fill"></i></div>
                         <h3>Secure &amp; Private</h3>
                         <p>Your data is encrypted end-to-end. We never share your information with third parties.</p>
                     </div>
-                    <div class="feature-card">
+                    <div class="feature-card reveal reveal-right">
                         <div class="feature-icon teal"><i class="bi bi-headset"></i></div>
                         <h3>24/7 Support</h3>
                         <p>Our dedicated support team is available around the clock to help you with any questions or issues.</p>
@@ -193,42 +193,42 @@
             </section>
 
             <section class="section-light" id="stats">
-                <div class="section-header">
+                    <div class="section-header reveal">
                     <div class="section-label"><i class="bi bi-bar-chart-fill"></i> Our Numbers</div>
                     <h2 class="section-title section-title-dark">Trusted by Creators Worldwide</h2>
                     <p class="section-subtitle section-subtitle-dark">Join thousands of satisfied content creators who trust @(ws?.SiteName ?? "Boosting Hub") for their social media growth.</p>
                 </div>
                 <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Users</div></div>
-                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Orders</div></div>
-                    <div class="stat-card"><div class="stat-number">@((ViewData["LandingCompletedTasks"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Completed Orders</div></div>
+                    <div class="stat-card reveal reveal-left"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Users</div></div>
+                    <div class="stat-card reveal"><div class="stat-number">@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Orders</div></div>
+                    <div class="stat-card reveal reveal-right"><div class="stat-number">@((ViewData["LandingCompletedTasks"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Completed Orders</div></div>
                 </div>
             </section>
 
             <!-- ── How It Works: Earners ── -->
             <section class="section" id="how-earners">
-                <div class="section-header">
+                    <div class="section-header reveal">
                     <div class="section-label"><i class="bi bi-cash-coin"></i> Earn Money</div>
                     <h2 class="section-title section-title-light">How Earners Work</h2>
                     <p class="section-subtitle">Complete simple social media tasks and earn real money. It's that easy.</p>
                 </div>
                 <div class="steps-grid">
-                    <div class="step-card">
+                    <div class="step-card reveal reveal-left">
                         <div class="step-number">1</div>
                         <div class="step-icon purple"><i class="bi bi-person-plus"></i></div>
                         <h3>Create Account</h3>
                         <p>Sign up for free in seconds. Link your social media accounts to get started.</p>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card reveal">
                         <div class="step-number">2</div>
                         <div class="step-icon green"><i class="bi bi-list-task"></i></div>
                         <h3>Browse Tasks</h3>
                         <p>Explore available tasks like follows, likes, views, and comments across platforms.</p>
                     </div>
-                    <div class="step-card">
+                    <div class="step-card reveal reveal-right">
                         <div class="step-number">3</div>
                         <div class="step-icon blue"><i class="bi bi-check2-all"></i></div>
-                        <h3>Complete & Earn</h3>
+                        <h3>Complete &amp; Earn</h3>
                         <p>Finish tasks, submit proof, and get paid instantly to your wallet. Withdraw anytime.</p>
                     </div>
                 </div>
@@ -236,25 +236,25 @@
 
             <!-- ── How It Works: Order Givers ── -->
             <section class="section-light" id="how-orderers">
-                <div class="section-header">
+                    <div class="section-header reveal">
                     <div class="section-label"><i class="bi bi-rocket-takeoff"></i> Grow Faster</div>
                     <h2 class="section-title section-title-dark">How Order Givers Work</h2>
                     <p class="section-subtitle section-subtitle-dark">Place orders for real social media engagement. Our community handles the rest.</p>
                 </div>
                 <div class="steps-grid">
-                    <div class="step-card light">
+                    <div class="step-card light reveal reveal-left">
                         <div class="step-number">1</div>
                         <div class="step-icon purple"><i class="bi bi-megaphone"></i></div>
                         <h3>Submit Requirements</h3>
                         <p>Choose your platform, service type, and package. Tell us what engagement you need.</p>
                     </div>
-                    <div class="step-card light">
+                    <div class="step-card light reveal">
                         <div class="step-number">2</div>
                         <div class="step-icon green"><i class="bi bi-clipboard-check"></i></div>
                         <h3>Instant Activation</h3>
                         <p>Payment is confirmed instantly and tasks are auto-generated for our community of earners to complete.</p>
                     </div>
-                    <div class="step-card light">
+                    <div class="step-card light reveal reveal-right">
                         <div class="step-number">3</div>
                         <div class="step-icon blue"><i class="bi bi-graph-up-arrow"></i></div>
                         <h3>Watch Growth</h3>
@@ -265,18 +265,18 @@
 
             <!-- ── Clients Section ── -->
             <section class="inquiry-section" id="place-order">
-                <div class="section-header">
+                    <div class="section-header reveal">
                     <div class="section-label"><i class="bi bi-cart-check-fill"></i> Place Your Order</div>
                     <h2 class="section-title section-title-light">Place Your Order</h2>
                     <p class="section-subtitle">Choose your Platform, Service, and Quantity — pay to confirm and tasks are auto-generated for our community to complete.</p>
-                    <div id="iq-currency-badge" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:6px 16px;border-radius:20px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:var(--primary);font-size:0.85rem;font-weight:700;" title="Prices displayed in your local currency"></div>
+                    <div id="iq-currency-badge" class="iq-currency-badge" title="Prices displayed in your local currency"></div>
                 </div>
 
-                <div class="inquiry-form-card">
-                    <div id="inquirySuccess" style="display:none;" class="inquiry-success">
+                <div class="inquiry-form-card reveal">
+                    <div id="inquirySuccess" class="inquiry-success hidden">
                         <i class="bi bi-check-circle-fill"></i>&nbsp; Order submitted! Awaiting admin approval.
                     </div>
-                    <div id="inquiryError" style="display:none;" class="alert alert-danger" style="border-radius:12px;">
+                    <div id="inquiryError" class="alert alert-danger inquiry-error hidden">
                         <i class="bi bi-exclamation-triangle-fill"></i>&nbsp; <span id="inquiryErrorText"></span>
                     </div>
                     <form id="inquiryForm" onsubmit="return false;">
@@ -313,7 +313,7 @@
                                         <div class="iq-svc-dropdown-menu" id="iq-svc-menu"></div>
                                     </div>
                                 </div>
-                                <div class="inquiry-field inquiry-field-full" id="iq-service-qty-container" style="display:none;">
+                                <div class="inquiry-field inquiry-field-full hidden" id="iq-service-qty-container">
                                     <label>Service Quantities <span>*</span></label>
                                     <div id="iq-service-qty-area"></div>
                                 </div>
@@ -332,7 +332,7 @@
                                                 <div class="file-upload-hint" id="iq-attachment-hint">PNG, JPG, WEBP, PDF up to 10MB</div>
                                             </div>
                                         </label>
-                                        <div class="file-preview" id="iq-attachment-preview" style="display:none;">
+                                        <div class="file-preview hidden" id="iq-attachment-preview">
                                             <img id="iq-attachment-img" src="" alt="Preview" />
                                             <div class="file-preview-info">
                                                 <div class="file-preview-name" id="iq-attachment-name">—</div>
@@ -353,16 +353,16 @@
 
                         <div id="iq-services-area"></div>
 
-                        <div id="iq-order-summary" style="display:none;" class="iq-order-summary">
-                            <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 0;">
+                        <div id="iq-order-summary" class="iq-order-summary hidden">
+                            <div class="iq-summary-row">
                                 <div>
-                                    <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;">Total Amount</div>
-                                    <div id="iq-total-price" style="font-size:1.8rem;font-weight:900;color:var(--text-primary);">0.00</div>
+                                    <div class="iq-summary-label">Total Amount</div>
+                                    <div id="iq-total-price" class="iq-total-price">0.00</div>
                                 </div>
                             </div>
                         </div>
 
-                        <button type="button" id="inquirySubmitBtn" class="btn-hero-primary w-100 mt-3" style="justify-content:center;" onclick="openPaymentModal()">
+                        <button type="button" id="inquirySubmitBtn" class="btn-hero-primary w-100 mt-3 justify-content-center" onclick="openPaymentModal()">
                             <i class="bi bi-credit-card"></i> Proceed to Payment
                         </button>
                     </form>
@@ -370,70 +370,70 @@
 
                 <!-- ── Voucher Lookup ── -->
                 <div id="voucherLookupCard">
-                    <div class="inquiry-form-card" style="margin-top:32px;">
-                        <div class="inquiry-section-group" style="border-bottom:none;">
-                            <div style="display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:24px;" onclick="toggleVoucherLookup()">
-                                <i class="bi bi-file-earmark-text" style="color:var(--primary);font-size:1.1rem;"></i>
-                                <span style="font-weight:800;color:var(--text-primary);font-size:1.05rem;text-transform:uppercase;letter-spacing:0.3px;">Already Have a Voucher?</span>
-                                <span style="margin-left:auto;color:var(--text-muted);" id="voucherLookupToggleIcon"><i class="bi bi-chevron-down"></i></span>
+                    <div class="inquiry-form-card reveal mt-32">
+                        <div class="inquiry-section-group border-bottom-0">
+                            <div class="voucher-toggle-header" onclick="toggleVoucherLookup()">
+                                <i class="bi bi-file-earmark-text"></i>
+                                <span class="voucher-toggle-title">Already Have a Voucher?</span>
+                                <span id="voucherLookupToggleIcon" class="voucher-toggle-arrow"><i class="bi bi-chevron-down"></i></span>
                             </div>
-                            <div id="voucherLookupBody" style="display:none;">
-                                <div id="voucherLookupSuccess" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:14px 18px;margin-bottom:20px;align-items:center;gap:8px;color:#166534;font-size:0.85rem;font-weight:500;"></div>
-                                <div id="voucherLookupError" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:14px 18px;margin-bottom:20px;align-items:center;gap:8px;color:#b91c1c;font-size:0.85rem;font-weight:500;"><span id="voucherLookupErrorText"></span></div>
+                            <div id="voucherLookupBody" class="hidden">
+                                <div id="voucherLookupSuccess" class="voucher-msg voucher-msg-success hidden"></div>
+                                <div id="voucherLookupError" class="voucher-msg voucher-msg-error hidden"><span id="voucherLookupErrorText"></span></div>
 
                                 <div id="voucherLookupStep1">
-                                    <div class="inquiry-section-group" style="padding:0;border:none;margin-bottom:0;">
+                                    <div class="inquiry-section-group iq-group-flush">
                                         <div class="inquiry-group-title"><i class="bi bi-upc-scan"></i> Enter Voucher Number</div>
                                         <div class="inquiry-grid">
-                                            <div class="inquiry-field" style="flex:1;">
+                                            <div class="inquiry-field flex-grow-1">
                                                 <label>Voucher Number <span>*</span></label>
                                                 <input type="text" id="voucherInput" placeholder="VCH-2026-00001" required />
                                             </div>
-                                            <div class="inquiry-field" style="flex:0 0 auto;align-self:flex-end;">
-                                                <button type="button" class="btn-hero-primary" onclick="lookupVoucher()" id="voucherLookupBtn" style="padding:13px 28px;white-space:nowrap;">
+                                            <div class="inquiry-field flex-none align-self-end">
+                                                <button type="button" class="btn-hero-primary voucher-lookup-btn" onclick="lookupVoucher()" id="voucherLookupBtn">
                                                     <i class="bi bi-search"></i> Look Up
                                                 </button>
                                             </div>
                                         </div>
-                                        <p style="font-size:0.82rem;color:var(--text-muted);margin-top:8px;">Enter the voucher number you received when downloading the payment voucher. We'll load your order details.</p>
+                                        <p class="voucher-help-text">Enter the voucher number you received when downloading the payment voucher. We'll load your order details.</p>
                                     </div>
                                 </div>
 
-                                <div id="voucherLookupStep2" style="display:none;">
-                                    <div class="inquiry-section-group" style="padding:0;border:none;">
+                                <div id="voucherLookupStep2" class="hidden">
+                                    <div class="inquiry-section-group iq-group-flush">
                                         <div class="inquiry-group-title"><i class="bi bi-receipt"></i> Order Details</div>
-                                        <div style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:16px;padding:20px;">
-                                            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
-                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Voucher No.</span>
-                                                <strong id="vl-voucher" style="font-size:0.9rem;color:var(--text-primary);font-weight:700;">-</strong>
+                                        <div class="vl-details-card">
+                                            <div class="vl-row">
+                                                <span class="vl-label">Voucher No.</span>
+                                                <strong id="vl-voucher" class="vl-value vl-value-strong">-</strong>
                                             </div>
-                                            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
-                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Client</span>
-                                                <strong id="vl-name" style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">-</strong>
+                                            <div class="vl-row">
+                                                <span class="vl-label">Client</span>
+                                                <strong id="vl-name" class="vl-value">-</strong>
                                             </div>
-                                            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
-                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Platform</span>
-                                                <strong id="vl-platform" style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">-</strong>
+                                            <div class="vl-row">
+                                                <span class="vl-label">Platform</span>
+                                                <strong id="vl-platform" class="vl-value">-</strong>
                                             </div>
-                                            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-subtle);">
-                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Services</span>
-                                                <strong id="vl-services" style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">-</strong>
+                                            <div class="vl-row">
+                                                <span class="vl-label">Services</span>
+                                                <strong id="vl-services" class="vl-value">-</strong>
                                             </div>
-                                            <div style="display:flex;justify-content:space-between;padding:10px 0;">
-                                                <span style="color:var(--text-secondary);font-size:0.85rem;">Quantity</span>
-                                                <strong id="vl-qty" style="font-size:0.9rem;color:var(--text-primary);font-weight:600;">-</strong>
+                                            <div class="vl-row no-border">
+                                                <span class="vl-label">Quantity</span>
+                                                <strong id="vl-qty" class="vl-value">-</strong>
                                             </div>
-                                            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0 0;border-top:2px solid var(--border-subtle);margin-top:4px;">
-                                                <span style="color:var(--text-primary);font-weight:800;font-size:0.92rem;">Total Amount</span>
-                                                <strong id="vl-total" style="font-size:1.3rem;color:var(--primary);font-weight:900;">-</strong>
+                                            <div class="vl-total-row">
+                                                <span class="vl-total-label">Total Amount</span>
+                                                <strong id="vl-total" class="vl-total">-</strong>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="inquiry-section-group voucher-submit-card" style="padding:0;border:none;margin-top:24px;">
+                                    <div class="inquiry-section-group voucher-submit-card iq-group-flush mt-24">
                                         <div class="inquiry-group-title"><i class="bi bi-cloud-arrow-up-fill"></i> Submit Paid Voucher</div>
-                                        <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:16px;">After making the bank transfer, upload your payment receipt or screenshot here. Once submitted, our admin team will verify and approve your order.</p>
-                                        <div class="inquiry-field" style="margin-bottom:16px;">
+                                        <p class="vl-help-text">After making the bank transfer, upload your payment receipt or screenshot here. Once submitted, our admin team will verify and approve your order.</p>
+                                        <div class="inquiry-field mb-16">
                                             <label>Payment Receipt / Screenshot <span>*</span></label>
                                             <div class="file-upload-wrapper" id="vl-paidVoucher-wrapper">
                                                 <input type="file" id="vl-paidVoucherFile" accept="image/*,.pdf,.doc,.docx" hidden onchange="updateFileName(this, 'vl-paidVoucherFile')" />
@@ -444,7 +444,7 @@
                                                         <div class="file-upload-hint" id="vl-paidVoucher-hint">PNG, JPG, PDF up to 10MB</div>
                                                     </div>
                                                 </label>
-                                                <div class="file-preview" id="vl-paidVoucher-preview" style="display:none;">
+                                                <div class="file-preview hidden" id="vl-paidVoucher-preview">
                                                     <img id="vl-paidVoucher-img" src="" alt="Preview" />
                                                     <div class="file-preview-info">
                                                         <div class="file-preview-name" id="vl-paidVoucher-name">—</div>
@@ -456,8 +456,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div style="min-height:56px;">
-                                            <button type="button" id="vl-submitBtn" class="btn-hero-primary w-100" onclick="submitPaidVoucherFromLanding()" style="justify-content:center;padding:16px;font-size:1rem;height:56px;">
+                                        <div class="vl-btn-wrap">
+                                            <button type="button" id="vl-submitBtn" class="btn-hero-primary w-100 vl-submit-btn" onclick="submitPaidVoucherFromLanding()">
                                                 <i class="bi bi-send-check"></i> Submit Paid Voucher
                                             </button>
                                         </div>
@@ -471,35 +471,35 @@
 
 <!-- ── Payment Modal ── -->
 <div class="pkg-modal-overlay" id="paymentOverlay"></div>
-<div class="pkg-modal" id="paymentModal" style="max-width:520px;max-height:90vh;flex-direction:column;">
-                <div class="pkg-modal-header" style="flex-shrink:0;">
-                    <h5><i class="bi bi-shield-lock" style="color:var(--primary);"></i> Secure Checkout</h5>
+<div class="pkg-modal" id="paymentModal">
+                <div class="pkg-modal-header">
+                    <h5><i class="bi bi-shield-lock"></i> Secure Checkout</h5>
                     <button class="pkg-modal-close" onclick="closePaymentModal()">&times;</button>
                 </div>
-                <div class="pkg-modal-body" style="padding:0;overflow-y:auto;flex:1;min-height:0;">
-                    <div style="padding:24px 24px 0;">
-                        <div class="payment-summary" style="background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:16px;padding:20px;margin-bottom:24px;">
-                            <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
-                                <span style="color:var(--text-secondary);font-size:0.88rem;display:flex;align-items:center;gap:6px;"><i class="bi bi-grid-3x3-gap" style="color:var(--primary);font-size:0.85rem;"></i> Platform</span>
-                                <strong id="pay-platform" style="color:var(--text-primary);font-size:0.92rem;">-</strong>
+                <div class="pkg-modal-body">
+                    <div class="pm-section-top">
+                        <div class="payment-summary">
+                            <div class="pm-row mb-14">
+                                <span class="pm-label"><i class="bi bi-grid-3x3-gap"></i> Platform</span>
+                                <strong id="pay-platform">-</strong>
                             </div>
-                            <div id="pay-items" style="margin-bottom:14px;"></div>
-                            <div style="height:1px;background:var(--border-subtle);margin:14px 0;"></div>
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                                <span style="color:var(--text-secondary);font-size:0.85rem;"><i class="bi bi-cash-stack" style="margin-right:4px;"></i> Currency</span>
-                                <span id="pay-currency-badge" style="padding:4px 12px;border-radius:8px;background:rgba(16,185,129,0.12);color:#10B981;font-size:0.85rem;font-weight:700;">USD ($)</span>
+                            <div id="pay-items" class="mb-14"></div>
+                            <div class="pm-divider"></div>
+                            <div class="pm-row mb-12">
+                                <span class="pm-label"><i class="bi bi-cash-stack"></i> Currency</span>
+                                <span id="pay-currency-badge" class="pm-currency-badge">USD ($)</span>
                             </div>
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
-                                <span style="color:var(--text-primary);font-weight:800;font-size:0.95rem;">Total</span>
-                                <strong id="pay-total" style="font-size:1.5rem;color:var(--primary);font-weight:900;">0.00</strong>
+                            <div class="pm-row">
+                                <span class="pm-total-label">Total</span>
+                                <strong id="pay-total">0.00</strong>
                             </div>
                         </div>
 
-                        <div style="margin-bottom:20px;">
-                            <div style="font-size:0.82rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">Choose Payment Method</div>
+                        <div class="mb-20">
+                            <div class="pm-section-label">Choose Payment Method</div>
                             <div class="pay-methods-grid">
                                 <button type="button" class="pay-method-card" id="payMethodEasyPaisa" onclick="selectPayMethod('easypaisa')">
-                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#00A651,#008C44);">
+                                    <div class="pay-method-icon pay-method-easypaisa">
                                         <i class="bi bi-wallet2"></i>
                                     </div>
                                     <div class="pay-method-info">
@@ -509,7 +509,7 @@
                                     <i class="bi bi-chevron-right pay-method-arrow"></i>
                                 </button>
                                 <button type="button" class="pay-method-card" id="payMethodStripe" onclick="selectPayMethod('stripe')">
-                                    <div class="pay-method-icon" style="background:linear-gradient(135deg,#635BFF,#7A73FF);">
+                                    <div class="pay-method-icon pay-method-stripe">
                                         <i class="bi bi-credit-card-2-front"></i>
                                     </div>
                                     <div class="pay-method-info">
@@ -521,62 +521,62 @@
                             </div>
                         </div>
 
-                        <div id="pay-secure-badge" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:12px;margin-bottom:20px;">
-                            <i class="bi bi-shield-lock-fill" style="color:#10B981;font-size:0.9rem;"></i>
-                            <span style="color:#10B981;font-size:0.82rem;font-weight:600;">256-bit SSL Encrypted &middot; Your data is secure</span>
+                        <div id="pay-secure-badge">
+                            <i class="bi bi-shield-lock-fill"></i>
+                            <span>256-bit SSL Encrypted &middot; Your data is secure</span>
                         </div>
                     </div>
 
-                    <div style="padding:16px 24px 24px;border-top:1px solid var(--border-subtle);">
-                        <div id="payEasyPaisaInfo" style="display:none;background:rgba(0,166,81,0.08);border:1px solid rgba(0,166,81,0.2);border-radius:12px;padding:16px;margin-bottom:16px;">
-                            <div style="font-size:0.82rem;font-weight:700;color:#00A651;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;"><i class="bi bi-wallet2"></i> EasyPaisa Payment</div>
-                            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">Send payment to the EasyPaisa account below, then click "Confirm & Pay" to submit your order.</p>
+                    <div class="pm-section-bottom">
+                        <div id="payEasyPaisaInfo" class="pm-pay-info pm-pay-info-easypaisa">
+                            <div class="pm-pay-title pm-pay-title-easypaisa"><i class="bi bi-wallet2"></i> EasyPaisa Payment</div>
+                            <p class="pm-pay-text mb-10">Send payment to the EasyPaisa account below, then click "Confirm &amp; Pay" to submit your order.</p>
                             <div id="payEasyPaisaDetails"></div>
                         </div>
-                        <div id="payStripeInfo" style="display:none;background:rgba(99,91,255,0.08);border:1px solid rgba(99,91,255,0.2);border-radius:12px;padding:16px;margin-bottom:16px;">
-                            <div style="font-size:0.82rem;font-weight:700;color:#635BFF;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;"><i class="bi bi-credit-card-2-front"></i> Card Payment</div>
-                            <p style="font-size:0.85rem;color:var(--text-secondary);">You will be redirected to Stripe's secure checkout to complete your card payment.</p>
+                        <div id="payStripeInfo" class="pm-pay-info pm-pay-info-stripe">
+                            <div class="pm-pay-title pm-pay-title-stripe"><i class="bi bi-credit-card-2-front"></i> Card Payment</div>
+                            <p class="pm-pay-text">You will be redirected to Stripe's secure checkout to complete your card payment.</p>
                         </div>
-                        <button type="button" id="payDownloadVoucherBtn" class="btn btn-outline-primary w-100 mb-2" style="border-radius:12px;padding:10px;" onclick="downloadVoucherFromPayment()">
+                        <button type="button" id="payDownloadVoucherBtn" class="btn btn-outline-primary w-100 mb-2" onclick="downloadVoucherFromPayment()">
                             <i class="bi bi-download"></i> Download Payment Voucher
                         </button>
-                        <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin-bottom:8px;">
+                        <div class="pm-hint">
                             After downloading, use the <strong>"Already Have a Voucher?"</strong> section below the form to submit your paid voucher.
                         </div>
-                        <button type="button" id="payConfirmBtn" class="pay-confirm-btn" onclick="confirmPayment()" style="margin-top:8px;">
+                        <button type="button" id="payConfirmBtn" class="pay-confirm-btn" onclick="confirmPayment()">
                             <i class="bi bi-lock-fill"></i> Confirm & Pay
                         </button>
-                        <p style="color:var(--text-muted);font-size:0.75rem;margin-top:10px;text-align:center;">Your order will be reviewed by our admin team after payment.</p>
+                        <p class="pm-note">Your order will be reviewed by our admin team after payment.</p>
                     </div>
                 </div>
             </div>
 
             <!-- ── Contact Us Section ── -->
             <section class="section" id="contact">
-                <div class="section-header">
+                    <div class="section-header reveal">
                     <div class="section-label"><i class="bi bi-envelope-fill"></i> Contact Us</div>
                     <h2 class="section-title section-title-light">Get In Touch</h2>
                     <p class="section-subtitle">Have questions or need custom engagement packages? We're here to help.</p>
                 </div>
                 @if (!string.IsNullOrEmpty(ws?.SupportEmail) || !string.IsNullOrEmpty(ws?.SupportPhone))
                 {
-                    <div style="display:flex;gap:1rem;justify-content:center;margin-bottom:1.5rem;flex-wrap:wrap;">
+                    <div class="contact-chips">
                         @if (!string.IsNullOrEmpty(ws.SupportEmail))
                         {
-                            <div style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:10px;font-size:0.85rem;color:var(--text-secondary);">
-                                <i class="bi bi-envelope-fill" style="color:var(--primary);"></i> @ws.SupportEmail
+                            <div class="contact-chip">
+                                <i class="bi bi-envelope-fill"></i> @ws.SupportEmail
                             </div>
                         }
                         @if (!string.IsNullOrEmpty(ws.SupportPhone))
                         {
-                            <div style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:10px;font-size:0.85rem;color:var(--text-secondary);">
-                                <i class="bi bi-telephone-fill" style="color:var(--primary);"></i> @ws.SupportPhone
+                            <div class="contact-chip">
+                                <i class="bi bi-telephone-fill"></i> @ws.SupportPhone
                             </div>
                         }
                     </div>
                 }
-                <div class="inquiry-form-card">
-                    <div id="contactSuccess" style="display:none;" class="inquiry-success">
+                <div class="inquiry-form-card reveal">
+                    <div id="contactSuccess" class="inquiry-success hidden">
                         <i class="bi bi-check-circle-fill"></i>&nbsp; Message sent! We'll get back to you within 24 hours.
                     </div>
                     <form id="contactForm" onsubmit="submitContact(event)">
@@ -604,7 +604,7 @@
                                 <textarea id="ct-message" rows="4" placeholder="Tell us how we can help you..." required></textarea>
                             </div>
                         </div>
-                        <button type="submit" id="contactSubmitBtn" class="btn-hero-primary w-100 mt-3" style="justify-content:center;">
+                        <button type="submit" id="contactSubmitBtn" class="btn-hero-primary w-100 mt-3 justify-content-center">
                             <i class="bi bi-send"></i> Send Message
                         </button>
                     </form>
@@ -612,9 +612,9 @@
             </section>
 
             <section class="cta-section">
-                <div class="cta-inner">
-                    <h2>Ready to Boost Your Growth?</h2>
-                    <p>Join thousands of creators who trust @(ws?.SiteName ?? "Boosting Hub") for their social media engagement. Start growing your audience today.</p>
+                <div class="cta-inner reveal reveal-zoom">
+                    <h2>@Html.Raw((ws?.AboutTitle ?? "Ready to Boost Your Growth?").Replace("\n", "<br>"))</h2>
+                    <p>@Html.Raw((ws?.AboutDescription ?? "Join thousands of creators who trust " + (ws?.SiteName ?? "Boosting Hub") + " for their social media engagement. Start growing your audience today.").Replace("\n", "<br>"))</p>
                     <a href="/register" class="btn-cta">
                         <i class="bi bi-rocket-takeoff"></i> Create Free Account
                     </a>
@@ -629,7 +629,7 @@
                     <div class="header-logo-icon">
                         @if (!string.IsNullOrEmpty(ws?.LogoUrl))
                         {
-                            <img src="@ws.LogoUrl" alt="@ws.SiteName" style="width:100%;height:100%;object-fit:contain;" />
+                            <img src="@ws.LogoUrl" alt="@ws.SiteName" class="logo-img-full" />
                         }
                         else
                         {
@@ -651,7 +651,7 @@
                     <h4>Contact</h4>
                     @if (!string.IsNullOrEmpty(ws?.SupportEmail)) { <a href="mailto:@ws.SupportEmail"><i class="bi bi-envelope-fill"></i> @ws.SupportEmail</a> }
                     @if (!string.IsNullOrEmpty(ws?.SupportPhone)) { <a href="tel:@ws.SupportPhone"><i class="bi bi-telephone-fill"></i> @ws.SupportPhone</a> }
-                    @if (!string.IsNullOrEmpty(ws?.Address)) { <span style="font-size:0.82rem;color:var(--text-muted);display:block;margin-top:4px;">@ws.Address</span> }
+                    @if (!string.IsNullOrEmpty(ws?.Address)) { <span class="footer-address">@ws.Address</span> }
                 </div>
                 <div class="footer-col">
                     <h4>Legal</h4>
@@ -682,14 +682,14 @@
             <header>
                 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                     <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
-                        <div style="width:28px;height:28px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:7px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                        <div class="navbar-brand-icon">
                             @if (!string.IsNullOrEmpty(ws?.LogoUrl))
                             {
-                                <img src="@ws.LogoUrl" alt="@ws.SiteName" style="width:100%;height:100%;object-fit:contain;" />
+                                <img src="@ws.LogoUrl" alt="@ws.SiteName" class="logo-img-full" />
                             }
                             else
                             {
-                                <i class="bi bi-rocket-takeoff" style="font-size:0.9rem;color:#fff;"></i>
+                                <i class="bi bi-rocket-takeoff"></i>
                             }
                         </div>
                         @(ws?.SiteName ?? "Boosting Hub")
@@ -728,7 +728,7 @@
                             <div class="sidebar-brand-icon">
                                 @if (!string.IsNullOrEmpty(ws?.LogoUrl))
                                 {
-                                    <img src="@ws.LogoUrl" alt="@ws.SiteName" style="width:100%;height:100%;object-fit:contain;" />
+                                    <img src="@ws.LogoUrl" alt="@ws.SiteName" class="logo-img-full" />
                                 }
                                 else
                                 {
@@ -758,7 +758,7 @@
                             <div class="sidebar-brand-icon">
                                 @if (!string.IsNullOrEmpty(ws?.LogoUrl))
                                 {
-                                    <img src="@ws.LogoUrl" alt="@ws.SiteName" style="width:100%;height:100%;object-fit:contain;" />
+                                    <img src="@ws.LogoUrl" alt="@ws.SiteName" class="logo-img-full" />
                                 }
                                 else
                                 {
@@ -880,6 +880,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             updateThemeIcons(savedTheme === 'light');
+
+            function initScrollReveal() {
+                var els = document.querySelectorAll('.reveal');
+                if (!els.length) return;
+                if (!('IntersectionObserver' in window)) {
+                    els.forEach(function (el) { el.classList.add('visible'); });
+                    return;
+                }
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            io.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+                els.forEach(function (el) { io.observe(el); });
+            }
+            initScrollReveal();
 
             function wireDropZone(wrapperId, inputId, updateVariant) {
                 const wrapper = document.getElementById(wrapperId);
@@ -1034,7 +1053,7 @@
 
         function onIqPlatformChange() {
             var menu = document.getElementById('iq-svc-menu');
-            menu.innerHTML = '<p style="padding:12px 16px;color:var(--text-muted);font-size:0.85rem;">Loading services...</p>';
+            menu.innerHTML = '<p class="iq-menu-msg">Loading services...</p>';
             menu.classList.remove('open');
             document.querySelectorAll('#iq-svc-menu input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
             updateSvcLabel();
@@ -1048,12 +1067,12 @@
             fetch('/api/packages/services/' + encodeURIComponent(platform))
                 .then(function(r) { return r.ok ? r.json() : []; })
                 .then(function(services) {
-                    if (!services.length) { menu.innerHTML = '<p style="padding:12px 16px;color:var(--text-muted);font-size:0.85rem;">No services available.</p>'; return; }
+                    if (!services.length) { menu.innerHTML = '<p class="iq-menu-msg">No services available.</p>'; return; }
                     menu.innerHTML = services.map(function(s) {
                         return '<label class="iq-svc-option"><input type="checkbox" value="' + s + '" onchange="onServiceToggle(this)" /> <i class="bi ' + getIcon(s) + '"></i> ' + s + '</label>';
                     }).join('');
                 })
-                .catch(function() { menu.innerHTML = '<p style="padding:12px 16px;color:var(--danger);font-size:0.85rem;">Failed to load services.</p>'; });
+                .catch(function() { menu.innerHTML = '<p class="iq-menu-msg iq-menu-msg-error">Failed to load services.</p>'; });
         }
 
         function toggleSvcDropdown() {
@@ -1132,7 +1151,7 @@
                             '<i class="bi ' + iconClass + '"></i>' +
                         '</div>' +
                         '<span class="iq-svc-qty-title">' + service + '</span>' +
-                        '<span class="iq-svc-qty-unit-price" id="iq-unit-' + service + '" style="display:none;"></span>' +
+                        '<span class="iq-svc-qty-unit-price" id="iq-unit-' + service + '"></span>' +
                     '</div>' +
                     '<div class="iq-svc-qty-right">' +
                         '<div class="iq-svc-qty-input-box">' +
@@ -1248,12 +1267,12 @@
                     totalPkr += pkrTotal;
                     itemCount++;
                     var unitConverted = convertCurrency(d.unitPrice, pkgCurrency, cur);
-                    itemsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;' + (itemCount > 1 ? 'border-top:1px solid var(--border-subtle);' : '') + '">' +
-                        '<div style="flex:1;min-width:0;">' +
-                            '<div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);margin-bottom:3px;">' + s + '</div>' +
-                            '<div style="font-size:0.78rem;color:var(--text-muted);">' + d.qty.toLocaleString() + ' \u00d7 ' + sym + parseFloat(unitConverted).toFixed(2) + '/unit</div>' +
+                    itemsHtml += '<div class="pm-item-row">' +
+                        '<div class="pm-item-main">' +
+                            '<div class="pm-item-title">' + s + '</div>' +
+                            '<div class="pm-item-sub">' + d.qty.toLocaleString() + ' \u00d7 ' + sym + parseFloat(unitConverted).toFixed(2) + '/unit</div>' +
                         '</div>' +
-                        '<div style="font-size:0.95rem;font-weight:800;color:var(--primary);white-space:nowrap;margin-left:16px;">' + sym + parseFloat(converted).toFixed(2) + '</div>' +
+                        '<div class="pm-item-price">' + sym + parseFloat(converted).toFixed(2) + '</div>' +
                     '</div>';
                 }
             }
@@ -1323,12 +1342,12 @@
                     totalPkr += pkrTotal;
                     itemCount++;
                     var unitConverted = convertCurrency(d.unitPrice, pkgCurrency, cur);
-                    itemsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;' + (itemCount > 1 ? 'border-top:1px solid var(--border-subtle);' : '') + '">' +
-                        '<div style="flex:1;min-width:0;">' +
-                            '<div style="font-size:0.88rem;font-weight:700;color:var(--text-primary);margin-bottom:3px;">' + s + '</div>' +
-                            '<div style="font-size:0.78rem;color:var(--text-muted);">' + d.qty.toLocaleString() + ' \u00d7 ' + sym + parseFloat(unitConverted).toFixed(2) + '/unit</div>' +
+                    itemsHtml += '<div class="pm-item-row">' +
+                        '<div class="pm-item-main">' +
+                            '<div class="pm-item-title">' + s + '</div>' +
+                            '<div class="pm-item-sub">' + d.qty.toLocaleString() + ' \u00d7 ' + sym + parseFloat(unitConverted).toFixed(2) + '/unit</div>' +
                         '</div>' +
-                        '<div style="font-size:0.95rem;font-weight:800;color:var(--primary);white-space:nowrap;margin-left:16px;">' + sym + parseFloat(converted).toFixed(2) + '</div>' +
+                        '<div class="pm-item-price">' + sym + parseFloat(converted).toFixed(2) + '</div>' +
                     '</div>';
                 }
             }
@@ -1568,7 +1587,7 @@
                 document.getElementById('voucherLookupBody').style.display = 'block';
                 document.getElementById('voucherInput').value = voucherNo;
                 document.getElementById('voucherLookupSuccess').style.display = 'flex';
-                document.getElementById('voucherLookupSuccess').innerHTML = '<i class="bi bi-check-circle-fill" style="font-size:1rem;"></i> Voucher <strong>' + voucherNo + '</strong> generated! Make the bank transfer, then use the form below to submit your paid voucher.';
+                document.getElementById('voucherLookupSuccess').innerHTML = '<i class="bi bi-check-circle-fill"></i> Voucher <strong>' + voucherNo + '</strong> generated! Make the bank transfer, then use the form below to submit your paid voucher.';
 
             } catch(err) {
                 alert(err.message || 'Failed to save order and generate voucher.');
@@ -1994,7 +2013,7 @@
             var bellHtml = '<div class="notification-bell-wrapper" id="notifBellWrapper">' +
                 '<button class="notification-bell-btn" id="notifBellBtn" onclick="toggleNotifDropdown()">' +
                     '<i class="bi bi-bell"></i>' +
-                    '<span class="notif-badge" id="notifBadge" style="display:none;">0</span>' +
+                    '<span class="notif-badge" id="notifBadge">0</span>' +
                 '</button>' +
                 '<div class="notif-dropdown" id="notifDropdown">' +
                     '<div class="notif-dropdown-header">' +

@@ -21,7 +21,7 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(
         string? search, string? @event, string? role,
-        string? dateFrom, string? dateTo, int page = 1)
+        string? dateFrom, string? dateTo, [FromQuery] int page = 1)
     {
         var sessionRole = HttpContext.Session.GetString("UserRole");
         if (sessionRole != "Admin")
@@ -32,7 +32,7 @@ public class IndexModel : PageModel
         Filter = new ActivityLogFilterDto
         {
             Page     = page,
-            PageSize = 25,
+            PageSize = 10,
             Search   = search,
             Event    = @event,
             Role     = role,

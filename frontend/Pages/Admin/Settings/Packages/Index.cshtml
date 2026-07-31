@@ -1,4 +1,4 @@
-@page "/admin/settings/packages"
+﻿@page "/admin/settings/packages"
 @model BoostingHub.frontend.Pages.Admin.Settings.Packages.IndexModel
 @{
     ViewData["Title"] = "Manage Packages";
@@ -14,9 +14,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> Admin
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -32,13 +32,13 @@
                 </button>
             </div>
             <div id="pkgCardsContainer" class="pkg-cards-grid">
-                <div class="text-center py-4" style="color:var(--text-muted);grid-column:1/-1;">
+                <div class="text-center py-4 pkg-hint">
                     <span class="spinner-border spinner-border-sm me-2"></span> Loading packages...
                 </div>
             </div>
         </div>
 
-        <!-- ── Package Modal ── -->
+        <!-- â”€â”€ Package Modal â”€â”€ -->
         <div class="pkg-modal-overlay" id="pkgModalOverlay" onclick="closePkgModal()"></div>
         <div class="pkg-modal" id="pkgModal">
             <div class="pkg-modal-header">
@@ -73,9 +73,9 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Price per Unit <span class="text-danger">*</span></label>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <input type="number" id="pm-price" class="pkg-form-input" step="0.01" min="0" required placeholder="e.g. 5 (price per unit)" style="flex:1;" />
-                            <span id="pm-currency-badge" style="padding:8px 14px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-subtle);font-weight:700;font-size:0.9rem;white-space:nowrap;">USD</span>
+                <div class="pkg-inline-row">
+                    <input type="number" id="pm-price" class="pkg-form-input flex-1" step="0.01" min="0" required placeholder="e.g. 5 (price per unit)" />
+                    <span id="pm-currency-badge" class="pkg-name-btn">USD</span>
                         </div>
                         <input type="hidden" id="pm-currency" />
                     </div>
@@ -100,7 +100,7 @@
     <script>
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');
@@ -146,14 +146,14 @@
                 renderCards();
             } catch(e) {
                 document.getElementById('pkgCardsContainer').innerHTML =
-                    '<div class="text-center py-4" style="color:var(--danger);grid-column:1/-1;">Failed to load packages.</div>';
+                    '<div class="text-center py-4 pkg-danger-hint">Failed to load packages.</div>';
             }
         }
 
         function renderCards() {
             const container = document.getElementById('pkgCardsContainer');
             if (!allPackages.length) {
-                container.innerHTML = '<div class="text-center py-4" style="color:var(--text-muted);grid-column:1/-1;">No packages yet. Click "Add Package" to create one.</div>';
+                container.innerHTML = '<div class="text-center py-4 pkg-hint">No packages yet. Click "Add Package" to create one.</div>';
                 return;
             }
 

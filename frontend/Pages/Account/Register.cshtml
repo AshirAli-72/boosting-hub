@@ -64,12 +64,12 @@
                     <div class="auth-logo-icon text-primary"><i class="bi bi-envelope-check-fill"></i></div>
                     <h3 class="auth-form-title">Check Your Email</h3>
                     <p class="auth-form-subtitle">@Model.Message</p>
-                    <div style="background:var(--bg-elevated);border:1px solid var(--border-muted);border-radius:12px;padding:20px;margin:12px 0;text-align:center;">
-                        <i class="bi bi-envelope-open" style="font-size:2.2rem;color:var(--text-muted);display:block;margin-bottom:10px;"></i>
-                        <p style="font-size:0.9rem;color:var(--text-primary);margin:0 0 6px;font-weight:600;">We've sent a verification link to your email</p>
-                        <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Click the link in the email to verify your account. The link expires in 24 hours.</p>
+                    <div class="reg-success-box">
+                        <i class="bi bi-envelope-open reg-success-icon"></i>
+                        <p class="reg-success-title">We've sent a verification link to your email</p>
+                        <p class="reg-success-text">Click the link in the email to verify your account. The link expires in 24 hours.</p>
                     </div>
-                    <a href="/login" class="btn btn-auth w-100" style="margin-top:12px;"><i class="bi bi-box-arrow-in-right"></i> Go to Sign In</a>
+                    <a href="/login" class="btn btn-auth w-100 mt-12"><i class="bi bi-box-arrow-in-right"></i> Go to Sign In</a>
                 }
                 else
                 {
@@ -114,7 +114,7 @@
                                 <i class="input-icon bi bi-lock"></i>
                             </div>
                             <span asp-validation-for="Input.Password" class="text-danger"></span>
-                            <div class="form-text auth-muted-text" style="font-size:0.75rem;margin-top:4px;">
+                            <div class="form-text auth-muted-text auth-hint">
                                 Min 6 characters
                             </div>
                         </div>
@@ -129,19 +129,19 @@
                         </div>
 
                         <!-- Social Accounts Section -->
-                        <div id="socialAccountsSection" style="background:var(--bg-elevated);border:1px solid var(--border-muted);border-radius:12px;padding:16px;margin:16px 0;">
+                        <div id="socialAccountsSection" class="social-accounts-section">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <p style="font-size:0.82rem;color:var(--text-muted);margin:0;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">
+                                <p class="social-accounts-title">
                                     <i class="bi bi-globe2 me-1"></i> Social Media Accounts
                                 </p>
                             </div>
-                            <p style="font-size:0.75rem;color:var(--text-muted);margin:0 0 12px;">
+                            <p class="social-accounts-hint">
                                 Optional. Add your social accounts to accept platform-specific tasks.
                             </p>
-                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="openSocialModal()" style="border-radius:8px;">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100 btn-radius-sm" onclick="openSocialModal()">
                                 <i class="bi bi-plus-circle me-1"></i> Add Social Accounts
                             </button>
-                            <div id="selectedPlatformsPreview" class="mt-2" style="display:none;"></div>
+                            <div id="selectedPlatformsPreview" class="mt-2 hidden"></div>
                             <div id="socialAccountsHiddenInputs"></div>
                         </div>
 
@@ -163,54 +163,54 @@
 <!-- Social Accounts Modal -->
 <div class="modal fade" id="socialAccountsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="background:var(--bg-card);color:var(--text-primary);">
+        <div class="modal-content border-0 shadow-lg social-modal-content">
             <div class="modal-header border-bottom-0 pb-0">
                 <h5 class="modal-title fw-semibold"><i class="bi bi-globe2 text-primary me-2"></i>Add Social Media Accounts</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 16px;">
+                <p class="social-modal-hint">
                     Select the platforms you want to add, then paste your profile URL for each.
                 </p>
 
                 <!-- Platform Multi-Select -->
                 <div class="mb-4">
-                    <label class="form-label fw-medium text-secondary" style="font-size:0.85rem;">Select Platforms</label>
+                    <label class="form-label fw-medium text-secondary auth-label-sm">Select Platforms</label>
                     <div class="platform-checkbox-grid">
                         <label class="platform-checkbox-item" data-platform="Instagram">
                             <input type="checkbox" class="platform-check" value="Instagram" onchange="handlePlatformToggle(this)">
                             <span class="platform-checkbox-box">
-                                <i class="bi bi-instagram" style="color:#E4405F;"></i> Instagram
+                                <i class="bi bi-instagram social-icon-instagram"></i> Instagram
                             </span>
                         </label>
                         <label class="platform-checkbox-item" data-platform="Facebook">
                             <input type="checkbox" class="platform-check" value="Facebook" onchange="handlePlatformToggle(this)">
                             <span class="platform-checkbox-box">
-                                <i class="bi bi-facebook" style="color:#1877F2;"></i> Facebook
+                                <i class="bi bi-facebook social-icon-facebook"></i> Facebook
                             </span>
                         </label>
                         <label class="platform-checkbox-item" data-platform="TikTok">
                             <input type="checkbox" class="platform-check" value="TikTok" onchange="handlePlatformToggle(this)">
                             <span class="platform-checkbox-box">
-                                <i class="bi bi-tiktok" style="color:var(--text-primary);"></i> TikTok
+                                <i class="bi bi-tiktok social-icon-tiktok"></i> TikTok
                             </span>
                         </label>
                         <label class="platform-checkbox-item" data-platform="YouTube">
                             <input type="checkbox" class="platform-check" value="YouTube" onchange="handlePlatformToggle(this)">
                             <span class="platform-checkbox-box">
-                                <i class="bi bi-youtube" style="color:#FF0000;"></i> YouTube
+                                <i class="bi bi-youtube social-icon-youtube"></i> YouTube
                             </span>
                         </label>
                         <label class="platform-checkbox-item" data-platform="Twitter">
                             <input type="checkbox" class="platform-check" value="Twitter" onchange="handlePlatformToggle(this)">
                             <span class="platform-checkbox-box">
-                                <i class="bi bi-twitter-x" style="color:var(--text-primary);"></i> Twitter / X
+                                <i class="bi bi-twitter-x social-icon-twitter"></i> Twitter / X
                             </span>
                         </label>
                         <label class="platform-checkbox-item" data-platform="Other">
                             <input type="checkbox" class="platform-check" value="Other" onchange="handlePlatformToggle(this)">
                             <span class="platform-checkbox-box">
-                                <i class="bi bi-globe2" style="color:var(--primary);"></i> Other
+                                <i class="bi bi-globe2 social-icon-other"></i> Other
                             </span>
                         </label>
                     </div>
@@ -221,8 +221,8 @@
 
                 <!-- Action Buttons -->
                 <div class="d-flex gap-2 mt-4">
-                    <button type="button" class="btn btn-outline-secondary flex-fill py-2" data-bs-dismiss="modal" style="border-radius:8px;">Cancel</button>
-                    <button type="button" class="btn btn-primary flex-fill py-2" onclick="saveSocialAccounts()" style="border-radius:8px;">
+                    <button type="button" class="btn btn-outline-secondary flex-fill py-2 btn-radius-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary flex-fill py-2 btn-radius-sm" onclick="saveSocialAccounts()">
                         <i class="bi bi-check-circle me-1"></i> Save Accounts
                     </button>
                 </div>
@@ -239,12 +239,12 @@
         var savedAccounts = [];
 
         var platformPatterns = {
-            'Instagram': { regex: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://instagram.com/username', icon: 'bi-instagram', color: '#E4405F' },
-            'Facebook': { regex: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://facebook.com/username', icon: 'bi-facebook', color: '#1877F2' },
-            'TikTok': { regex: /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@@([a-zA-Z0-9._]+)\/?/, placeholder: 'https://tiktok.com/@@username', icon: 'bi-tiktok', color: '#000' },
-            'YouTube': { regex: /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(c\/|channel\/|@@)([a-zA-Z0-9._-]+)\/?/, placeholder: 'https://youtube.com/@@channel', icon: 'bi-youtube', color: '#FF0000' },
-            'Twitter': { regex: /(?:https?:\/\/)?(?:www\.)?(twitter|x)\.com\/([a-zA-Z0-9_]+)\/?/, placeholder: 'https://x.com/username', icon: 'bi-twitter-x', color: '#000' },
-            'Other': { regex: /.+/, placeholder: 'https://your-profile-url.com', icon: 'bi-globe2', color: 'var(--primary)' }
+            'Instagram': { regex: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://instagram.com/username', icon: 'bi-instagram', color: '#E4405F', cls: 'social-icon-instagram' },
+            'Facebook': { regex: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://facebook.com/username', icon: 'bi-facebook', color: '#1877F2', cls: 'social-icon-facebook' },
+            'TikTok': { regex: /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@@([a-zA-Z0-9._]+)\/?/, placeholder: 'https://tiktok.com/@@username', icon: 'bi-tiktok', color: '#000', cls: 'social-icon-tiktok' },
+            'YouTube': { regex: /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(c\/|channel\/|@@)([a-zA-Z0-9._-]+)\/?/, placeholder: 'https://youtube.com/@@channel', icon: 'bi-youtube', color: '#FF0000', cls: 'social-icon-youtube' },
+            'Twitter': { regex: /(?:https?:\/\/)?(?:www\.)?(twitter|x)\.com\/([a-zA-Z0-9_]+)\/?/, placeholder: 'https://x.com/username', icon: 'bi-twitter-x', color: '#000', cls: 'social-icon-twitter' },
+            'Other': { regex: /.+/, placeholder: 'https://your-profile-url.com', icon: 'bi-globe2', color: 'var(--primary)', cls: 'social-icon-other' }
         };
 
         document.querySelectorAll('[data-val-equalto-other]').forEach(function(el) {
@@ -281,14 +281,13 @@
                 var pattern = platformPatterns[platform];
                 var fieldHtml = '<div class="platform-url-field mb-3" id="' + fieldId + '">' +
                     '<div class="d-flex align-items-center gap-2 mb-1">' +
-                    '<i class="bi ' + pattern.icon + '" style="color:' + pattern.color + ';font-size:1rem;"></i>' +
-                    '<label class="form-label fw-medium text-secondary mb-0" style="font-size:0.85rem;">' + platform + ' Profile URL</label>' +
+                    '<i class="bi ' + pattern.icon + ' ' + pattern.cls + '"></i>' +
+                    '<label class="form-label fw-medium text-secondary mb-0 auth-label-sm">' + platform + ' Profile URL</label>' +
                     '</div>' +
-                    '<input type="url" class="form-control platform-url-input" data-platform="' + platform + '" ' +
+                    '<input type="url" class="form-control platform-url-input auth-input-sm" data-platform="' + platform + '" ' +
                     'placeholder="' + pattern.placeholder + '" ' +
-                    'oninput="extractUsername(this, \'' + platform + '\')" ' +
-                    'style="font-size:0.85rem;" />' +
-                    '<div class="d-flex align-items-center gap-2 mt-1" style="font-size:0.78rem;">' +
+                    'oninput="extractUsername(this, \'' + platform + '\')" />' +
+                    '<div class="d-flex align-items-center gap-2 mt-1 auth-text-xs">' +
                     '<span class="text-muted extracted-username" id="username_' + fieldId + '"></span>' +
                     '</div>' +
                     '</div>';
@@ -419,9 +418,9 @@
             var html = '';
             savedAccounts.forEach(function(acc, i) {
                 var pattern = platformPatterns[acc.platform];
-                html += '<span class="badge bg-primary bg-opacity-10 text-primary me-1 mb-1" style="font-size:0.75rem;padding:4px 8px;border-radius:6px;">' +
+                html += '<span class="badge bg-primary bg-opacity-10 text-primary me-1 mb-1 social-badge">' +
                     '<i class="bi ' + pattern.icon + ' me-1"></i>' + acc.platform + ': @@' + acc.username +
-                    ' <button type="button" class="btn-close btn-close-sm ms-1" onclick="removeAccount(' + i + ')" style="font-size:0.5rem;"></button>' +
+                    ' <button type="button" class="btn-close btn-close-sm ms-1 social-badge-close" onclick="removeAccount(' + i + ')"></button>' +
                     '</span>';
             });
             preview.innerHTML = html;

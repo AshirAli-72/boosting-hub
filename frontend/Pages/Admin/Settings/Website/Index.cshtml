@@ -1,4 +1,4 @@
-@page "/admin/settings/website"
+﻿@page "/admin/settings/website"
 @model BoostingHub.frontend.Pages.Admin.Settings.Website.IndexModel
 @{
     ViewData["Title"] = "Website Settings";
@@ -8,7 +8,7 @@
 <style>
 .settings-page { max-width: 1360px; margin: 0 auto; }
 
-/* ── Section card ── */
+/* â”€â”€ Section card â”€â”€ */
 .st-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-card); margin-bottom: 1.25rem; overflow: hidden; transition: box-shadow 0.2s; }
 .st-card:hover { box-shadow: var(--shadow-card); }
 .st-card-head { display: flex; align-items: center; gap: 12px; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-subtle); background: var(--bg-elevated); }
@@ -29,7 +29,7 @@ body.light-mode .st-card-head .icon.social { background: #e0e7ff; color: #4338ca
 .st-card-head p { font-size: 0.78rem; color: var(--text-muted); margin: 1px 0 0; }
 .st-card-body { padding: 1.5rem; }
 
-/* ── Form controls ── */
+/* â”€â”€ Form controls â”€â”€ */
 .fg { margin-bottom: 1.25rem; }
 .fg:last-child { margin-bottom: 0; }
 .fg-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.35rem; letter-spacing: 0.01em; }
@@ -38,7 +38,7 @@ body.light-mode .st-card-head .icon.social { background: #e0e7ff; color: #4338ca
 .fg-input::placeholder { color: var(--text-muted); opacity: 0.6; }
 textarea.fg-input { resize: vertical; min-height: 76px; line-height: 1.5; }
 
-/* ── File upload ── */
+/* â”€â”€ File upload â”€â”€ */
 .upload-zone { position: relative; border: 2px dashed var(--border-muted); border-radius: var(--radius-card); padding: 1.25rem; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg-surface); }
 .upload-zone:hover { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 5%, transparent); }
 body.light-mode .upload-zone:hover { background: #f5f3ff; }
@@ -52,7 +52,7 @@ body.light-mode .upload-zone.dragover { background: #ede9fe; }
 .upload-zone .hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; }
 .upload-zone.favicon .thumb { width: 48px; height: 48px; border-radius: 8px; }
 
-/* ── Social pills ── */
+/* â”€â”€ Social pills â”€â”€ */
 .social-row { display: flex; flex-direction: column; gap: 0.85rem; }
 .social-item { display: flex; align-items: center; gap: 12px; }
 .social-item .brand-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; }
@@ -66,7 +66,7 @@ body.light-mode .social-item .brand-icon.linkedin { background: #e8f4fd; color: 
 .social-item .si-input input::placeholder { color: var(--text-muted); opacity: 0.6; }
 .social-item .si-input .domain { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted); pointer-events: none; }
 
-/* ── Save bar ── */
+/* â”€â”€ Save bar â”€â”€ */
 .save-bar { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-card); padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; }
 .save-bar .status { font-size: 0.82rem; color: var(--text-muted); }
 .save-bar .status i { margin-right: 6px; }
@@ -77,7 +77,7 @@ body.light-mode .social-item .brand-icon.linkedin { background: #e8f4fd; color: 
 .btn-save .spinner { display: none; }
 .btn-save.loading .spinner { display: inline-block; }
 
-/* ── Device mockup ── */
+/* â”€â”€ Device mockup â”€â”€ */
 .mockup { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 20px; box-shadow: var(--shadow-card); overflow: hidden; }
 .mockup-bar { display: flex; align-items: center; gap: 8px; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-subtle); }
 .mockup-bar .dots { display: flex; gap: 5px; }
@@ -111,9 +111,9 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
         <div class="user-profile-dropdown" id="profileDropdown">
             <span class="admin-user-badge" onclick="toggleProfileMenu()">
                 <i class="bi bi-person-circle"></i> Admin
-                <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                <i class="bi bi-chevron-down profile-dropdown-caret"></i>
             </span>
-            <div class="profile-menu" id="profileMenu" style="display:none;">
+            <div class="profile-menu hidden" id="profileMenu">
                 <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
             </div>
         </div>
@@ -122,15 +122,15 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
 
 <div class="admin-content settings-page">
     <div class="mb-3">
-        <a href="/admin/settings" class="btn btn-outline-secondary btn-sm" style="border-radius:8px;"><i class="bi bi-arrow-left"></i> Back to Settings</a>
+        <a href="/admin/settings" class="btn btn-outline-secondary btn-sm website-back-btn"><i class="bi bi-arrow-left"></i> Back to Settings</a>
     </div>
 
     <form method="post" enctype="multipart/form-data" id="settingsForm">
         <div class="row g-4">
-            @* ── Left: Form ── *@
+            @* â”€â”€ Left: Form â”€â”€ *@
             <div class="col-lg-7">
 
-                @* ── Branding ── *@
+                @* â”€â”€ Branding â”€â”€ *@
                 <div class="st-card">
                     <div class="st-card-head">
                         <div class="icon brand"><i class="bi bi-brush"></i></div>
@@ -182,7 +182,7 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                     </div>
                 </div>
 
-                @* ── Hero ── *@
+                @* â”€â”€ Hero â”€â”€ *@
                 <div class="st-card">
                     <div class="st-card-head">
                         <div class="icon hero"><i class="bi bi-layers"></i></div>
@@ -204,7 +204,7 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                     </div>
                 </div>
 
-                @* ── About ── *@
+                @* â”€â”€ About â”€â”€ *@
                 <div class="st-card">
                     <div class="st-card-head">
                         <div class="icon about"><i class="bi bi-info-lg"></i></div>
@@ -222,7 +222,7 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                     </div>
                 </div>
 
-                @* ── Contact ── *@
+                @* â”€â”€ Contact â”€â”€ *@
                 <div class="st-card">
                     <div class="st-card-head">
                         <div class="icon contact"><i class="bi bi-envelope"></i></div>
@@ -252,7 +252,7 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                     </div>
                 </div>
 
-                @* ── Footer ── *@
+                @* â”€â”€ Footer â”€â”€ *@
                 <div class="st-card">
                     <div class="st-card-head">
                         <div class="icon footer"><i class="bi bi-layout-three-columns"></i></div>
@@ -270,7 +270,7 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                     </div>
                 </div>
 
-                @* ── Social ── *@
+                @* â”€â”€ Social â”€â”€ *@
                 <div class="st-card">
                     <div class="st-card-head">
                         <div class="icon social"><i class="bi bi-share"></i></div>
@@ -294,7 +294,7 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                     </div>
                 </div>
 
-                @* ── Save bar ── *@
+                @* â”€â”€ Save bar â”€â”€ *@
                 <div class="save-bar">
                     <div class="status"><i class="bi bi-clock-history"></i> Changes are saved on submit</div>
                     <button type="submit" class="btn-save" id="saveBtn">
@@ -304,9 +304,9 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                 </div>
             </div>
 
-            @* ── Right: Preview ── *@
+            @* â”€â”€ Right: Preview â”€â”€ *@
             <div class="col-lg-5">
-                <div style="position:sticky;top:1rem;">
+                <div class="website-preview-sticky">
                     <div class="mockup" id="mockup">
                         <div class="mockup-bar">
                             <div class="dots">
@@ -338,17 +338,17 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
                                 <div class="m-social">
                                     @if (!string.IsNullOrEmpty(Model.Input.TwitterUrl))
                                     {
-                                        <span style="color:var(--text-muted);"><i class="bi bi-twitter-x"></i></span>
+                                        <span class="website-muted-text"><i class="bi bi-twitter-x"></i></span>
                                     }
                                     @if (!string.IsNullOrEmpty(Model.Input.LinkedInUrl))
                                     {
-                                        <span style="color:#0a66c2;"><i class="bi bi-linkedin"></i></span>
+                                        <span class="website-linkedin-color"><i class="bi bi-linkedin"></i></span>
                                     }
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div style="margin-top:1rem;padding:0.85rem 1rem;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:12px;font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;">
+                    <div class="website-tip-box">
                         <i class="bi bi-info-circle"></i> Preview updates on save. Uploaded images may take a moment to appear.
                     </div>
                 </div>
@@ -396,7 +396,7 @@ body.light-mode .mockup-hero { background: linear-gradient(135deg, #f5f3ff, #fdf
 
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');

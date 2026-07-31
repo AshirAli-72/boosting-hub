@@ -1,4 +1,4 @@
-@page "/admin/settings"
+﻿@page "/admin/settings"
 @model BoostingHub.frontend.Pages.Admin.Settings.IndexModel
 @{
     ViewData["Title"] = "Settings";
@@ -14,9 +14,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> Admin
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -24,13 +24,13 @@
         </div>
         <div class="admin-content">
             <div class="row g-4">
-                @* ── Roles & Permissions (coming soon) ── *@
+                @* â”€â”€ Roles & Permissions (coming soon) â”€â”€ *@
                 @*
                 <div class="col-md-4">
                     <a href="/admin/roles" class="text-decoration-none">
-                        <div class="card shadow-sm border-0 h-100" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                        <div class="card shadow-sm border-0 h-100 settings-card-clickable">
                             <div class="card-body text-center py-5">
-                                <div style="font-size:3rem;color:#7C3AED;margin-bottom:16px;"><i class="bi bi-shield-lock"></i></div>
+                                <div class="settings-card-icon icon-color-purple"><i class="bi bi-shield-lock"></i></div>
                                 <h5 class="fw-semibold">Roles & Permissions</h5>
                                 <p class="text-muted mb-0">Create and manage roles, assign permissions to control access</p>
                             </div>
@@ -38,13 +38,13 @@
                     </a>
                 </div>
                 *@
-                @* ── User Management (coming soon) ── *@
+                @* â”€â”€ User Management (coming soon) â”€â”€ *@
                 @*
                 <div class="col-md-4">
                     <a href="/admin/users" class="text-decoration-none">
-                        <div class="card shadow-sm border-0 h-100" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                        <div class="card shadow-sm border-0 h-100 settings-card-clickable">
                             <div class="card-body text-center py-5">
-                                <div style="font-size:3rem;color:#0D9488;margin-bottom:16px;"><i class="bi bi-people"></i></div>
+                                <div class="settings-card-icon icon-color-teal"><i class="bi bi-people"></i></div>
                                 <h5 class="fw-semibold">User Management</h5>
                                 <p class="text-muted mb-0">Create users, assign roles, and manage user accounts</p>
                             </div>
@@ -54,9 +54,9 @@
                 *@
                 <div class="col-md-4">
                     <a href="/admin/settings/accounts" class="text-decoration-none">
-                        <div class="card shadow-sm border-0 h-100" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                        <div class="card shadow-sm border-0 h-100 settings-card-clickable">
                             <div class="card-body text-center py-5">
-                                <div style="font-size:3rem;color:#10B981;margin-bottom:16px;"><i class="bi bi-credit-card"></i></div>
+                                <div class="settings-card-icon icon-color-green"><i class="bi bi-credit-card"></i></div>
                                 <h5 class="fw-semibold">Payment Accounts</h5>
                                 <p class="text-muted mb-0">Manage EasyPaisa and Bank accounts for payments</p>
                             </div>
@@ -65,9 +65,9 @@
                 </div>
                 <div class="col-md-4">
                     <a href="/admin/settings/website" class="text-decoration-none">
-                        <div class="card shadow-sm border-0 h-100" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                        <div class="card shadow-sm border-0 h-100 settings-card-clickable">
                             <div class="card-body text-center py-5">
-                                <div style="font-size:3rem;color:#8B5CF6;margin-bottom:16px;"><i class="bi bi-globe"></i></div>
+                                <div class="settings-card-icon icon-color-violet"><i class="bi bi-globe"></i></div>
                                 <h5 class="fw-semibold">Website Settings</h5>
                                 <p class="text-muted mb-0">Manage site name, branding, contact info and social links</p>
                             </div>
@@ -76,9 +76,9 @@
                 </div>
                 <div class="col-md-4">
                     <a href="/admin/settings/packages" class="text-decoration-none">
-                        <div class="card shadow-sm border-0 h-100" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                        <div class="card shadow-sm border-0 h-100 settings-card-clickable">
                             <div class="card-body text-center py-5">
-                                <div style="font-size:3rem;color:#6366F1;margin-bottom:16px;"><i class="bi bi-box-seam"></i></div>
+                                <div class="settings-card-icon icon-color-indigo"><i class="bi bi-box-seam"></i></div>
                                 <h5 class="fw-semibold">Packages</h5>
                                 <p class="text-muted mb-0">Manage platform service packages and pricing</p>
                             </div>
@@ -87,9 +87,9 @@
                 </div>
                 <div class="col-md-4">
                     <a href="/settings" class="text-decoration-none">
-                        <div class="card shadow-sm border-0 h-100" style="cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='';this.style.boxShadow='';">
+                        <div class="card shadow-sm border-0 h-100 settings-card-clickable">
                             <div class="card-body text-center py-5">
-                                <div style="font-size:3rem;color:#F59E0B;margin-bottom:16px;"><i class="bi bi-person-gear"></i></div>
+                                <div class="settings-card-icon icon-color-amber"><i class="bi bi-person-gear"></i></div>
                                 <h5 class="fw-semibold">Account Settings</h5>
                                 <p class="text-muted mb-0">Security, password, and profile preferences</p>
                             </div>
@@ -103,7 +103,7 @@
     <script>
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');

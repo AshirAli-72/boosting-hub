@@ -53,7 +53,14 @@
                         {
                             <div class="task-meta-item mb-2">
                                 <i class="bi bi-link-45deg me-1"></i>
-                                <a href="@task.Url" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width:220px;">@task.Url</a>
+                                @if (task.Status == "Completed" || task.VerificationStatus == "Approved")
+                                {
+                                    <span class="text-truncate d-inline-block text-muted" style="max-width:220px;" title="@task.Url">@task.Url</span>
+                                }
+                                else
+                                {
+                                    <a href="@task.Url" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width:220px;">@task.Url</a>
+                                }
                             </div>
                         }
                         <div class="task-meta">

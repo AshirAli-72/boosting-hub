@@ -45,7 +45,7 @@
                                 <tr>
                                     <td class="fw-bold fs-5" id="displayBalance">@Model.WalletData.Currency @Model.WalletData.TotalBalance.ToString("N2")</td>
                                      <td>
-                                        <select class="form-select form-select-sm" style="width:auto;display:inline-block;" id="currencySelect" onchange="changeCurrency(this.value)">
+                                        <select class="form-select form-select-sm currency-select" id="currencySelect" onchange="changeCurrency(this.value)">
                                             <option value="USD" selected="@(Model.WalletData.Currency == "USD")">$ USD</option>
                                             <option value="EUR" selected="@(Model.WalletData.Currency == "EUR")">€ EUR</option>
                                             <option value="GBP" selected="@(Model.WalletData.Currency == "GBP")">£ GBP</option>
@@ -56,7 +56,7 @@
                                             <option value="AED" selected="@(Model.WalletData.Currency == "AED")">د.إ AED</option>
                                             <option value="TRY" selected="@(Model.WalletData.Currency == "TRY")">₺ TRY</option>
                                             <option value="NGN" selected="@(Model.WalletData.Currency == "NGN")">₦ NGN</option>
-                                            <option value="JPY" selected="@(Model.WalletData.Currency == "JPR")">¥ JPY</option>
+                                            <option value="JPY" selected="@(Model.WalletData.Currency == "JPY")">¥ JPY</option>
                                             <option value="CNY" selected="@(Model.WalletData.Currency == "CNY")">¥ CNY</option>
                                             <option value="KRW" selected="@(Model.WalletData.Currency == "KRW")">₩ KRW</option>
                                             <option value="PHP" selected="@(Model.WalletData.Currency == "PHP")">₱ PHP</option>

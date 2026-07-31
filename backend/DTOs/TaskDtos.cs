@@ -77,7 +77,7 @@ public class TaskFilterDto
     public decimal? MaxReward { get; set; }
     public string SortBy { get; set; } = "newest";
     public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 12;
+    public int PageSize { get; set; } = 8;
 }
 
 public class AcceptTaskRequest

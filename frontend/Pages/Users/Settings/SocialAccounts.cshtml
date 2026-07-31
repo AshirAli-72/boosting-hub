@@ -1,4 +1,4 @@
-@page "/user/social-accounts"
+﻿@page "/user/social-accounts"
 @model BoostingHub.frontend.Pages.Users.Settings.SocialAccountsModel
 @{
     ViewData["Title"] = "Social Media Accounts";
@@ -17,9 +17,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> User
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -57,22 +57,22 @@
                                                             @switch (acc.Platform.ToLower())
                                                             {
                                                                 case "instagram":
-                                                                    <i class="bi bi-instagram" style="color:#E4405F;font-size:1.1rem;"></i>
+                                                                    <i class="bi bi-instagram social-icon-instagram social-icon-lg"></i>
                                                                     break;
                                                                 case "facebook":
-                                                                    <i class="bi bi-facebook" style="color:#1877F2;font-size:1.1rem;"></i>
+                                                                    <i class="bi bi-facebook social-icon-facebook social-icon-lg"></i>
                                                                     break;
                                                                 case "tiktok":
-                                                                    <i class="bi bi-tiktok" style="color:var(--text-primary);font-size:1.1rem;"></i>
+                                                                    <i class="bi bi-tiktok social-icon-tiktok social-icon-lg"></i>
                                                                     break;
                                                                 case "youtube":
-                                                                    <i class="bi bi-youtube" style="color:#FF0000;font-size:1.1rem;"></i>
+                                                                    <i class="bi bi-youtube social-icon-youtube social-icon-lg"></i>
                                                                     break;
                                                                 case "twitter":
-                                                                    <i class="bi bi-twitter-x" style="color:var(--text-primary);font-size:1.1rem;"></i>
+                                                                    <i class="bi bi-twitter-x social-icon-twitter social-icon-lg"></i>
                                                                     break;
                                                                 default:
-                                                                    <i class="bi bi-globe2" style="color:var(--primary);font-size:1.1rem;"></i>
+                                                                    <i class="bi bi-globe2 social-icon-other social-icon-lg"></i>
                                                                     break;
                                                             }
                                                             <span class="fw-medium">@acc.Platform</span>
@@ -82,7 +82,7 @@
                                                     <td>
                                                         @if (!string.IsNullOrEmpty(acc.ProfileUrl))
                                                         {
-                                                            <a href="@acc.ProfileUrl" target="_blank" class="text-primary text-truncate d-inline-block" style="max-width:200px;">
+                                                            <a href="@acc.ProfileUrl" target="_blank" class="text-primary text-truncate d-inline-block social-profile-link">
                                                                 <i class="bi bi-box-arrow-up-right me-1"></i>View
                                                             </a>
                                                         }
@@ -92,7 +92,7 @@
                                                         }
                                                     </td>
                                                     <td class="text-end">
-                                                        <form method="post" asp-page-handler="Delete" asp-route-id="@acc.Id" style="display:inline;" onsubmit="return confirm('Remove this @acc.Platform account?');">
+                                                        <form method="post" asp-page-handler="Delete" asp-route-id="@acc.Id" class="form-inline" onsubmit="return confirm('Remove this @acc.Platform account?');">
                                                             <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                                                         </form>
                                                     </td>
@@ -125,13 +125,13 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-4">
-                            <p style="font-size:0.82rem;color:var(--text-muted);margin:0 0 16px;">
+                            <p class="social-modal-hint">
                                 Select the platforms you want to add, then paste your profile URL for each.
                             </p>
 
                             <!-- Platform Multi-Select -->
                             <div class="mb-4">
-                                <label class="form-label fw-medium text-secondary" style="font-size:0.85rem;">Select Platforms</label>
+                                <label class="form-label fw-medium text-secondary auth-label-sm">Select Platforms</label>
                                 <div class="platform-checkbox-grid">
                                     @{
                                         var platforms = new[] {
@@ -151,10 +151,10 @@
                                                    onchange="handlePlatformToggle(this)"
                                                    @(alreadyLinked ? "disabled checked" : "")>
                                             <span class="platform-checkbox-box">
-                                                <i class="bi @p.Icon" style="color:@p.Color;"></i> @p.Name
+                                                <i class="bi @p.Icon social-icon-@(p.Name.ToLower())"></i> @p.Name
                                                 @if (alreadyLinked)
                                                 {
-                                                    <i class="bi bi-check-circle-fill text-success ms-1" style="font-size:0.7rem;"></i>
+                                                    <i class="bi bi-check-circle-fill text-success ms-1 linked-check-icon"></i>
                                                 }
                                             </span>
                                         </label>
@@ -178,7 +178,7 @@
             </div>
 
             <!-- Hidden form for batch submission -->
-            <form method="post" id="accountsForm" asp-page-handler="AddBatch" style="display:none;">
+            <form method="post" id="accountsForm" asp-page-handler="AddBatch" class="hidden">
                 <div id="hiddenInputs"></div>
             </form>
         </div>
@@ -188,12 +188,12 @@
     <script src="~/js/site.js"></script>
     <script>
         var platformPatterns = {
-            'Instagram': { regex: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://instagram.com/username', icon: 'bi-instagram', color: '#E4405F' },
-            'Facebook': { regex: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://facebook.com/username', icon: 'bi-facebook', color: '#1877F2' },
-            'TikTok': { regex: /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@@([a-zA-Z0-9._]+)\/?/, placeholder: 'https://tiktok.com/@@username', icon: 'bi-tiktok', color: '#000' },
-            'YouTube': { regex: /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(c\/|channel\/|@@)([a-zA-Z0-9._-]+)\/?/, placeholder: 'https://youtube.com/@@channel', icon: 'bi-youtube', color: '#FF0000' },
-            'Twitter': { regex: /(?:https?:\/\/)?(?:www\.)?(twitter|x)\.com\/([a-zA-Z0-9_]+)\/?/, placeholder: 'https://x.com/username', icon: 'bi-twitter-x', color: '#000' },
-            'Other': { regex: /.+/, placeholder: 'https://your-profile-url.com', icon: 'bi-globe2', color: '#6366f1' }
+            'Instagram': { regex: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://instagram.com/username', icon: 'bi-instagram', cls: 'social-icon-instagram' },
+            'Facebook': { regex: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/([a-zA-Z0-9._]+)\/?/, placeholder: 'https://facebook.com/username', icon: 'bi-facebook', cls: 'social-icon-facebook' },
+            'TikTok': { regex: /(?:https?:\/\/)?(?:www\.)?tiktok\.com\/@@([a-zA-Z0-9._]+)\/?/, placeholder: 'https://tiktok.com/@@username', icon: 'bi-tiktok', cls: 'social-icon-tiktok' },
+            'YouTube': { regex: /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(c\/|channel\/|@@)([a-zA-Z0-9._-]+)\/?/, placeholder: 'https://youtube.com/@@channel', icon: 'bi-youtube', cls: 'social-icon-youtube' },
+            'Twitter': { regex: /(?:https?:\/\/)?(?:www\.)?(twitter|x)\.com\/([a-zA-Z0-9_]+)\/?/, placeholder: 'https://x.com/username', icon: 'bi-twitter-x', cls: 'social-icon-twitter' },
+            'Other': { regex: /.+/, placeholder: 'https://your-profile-url.com', icon: 'bi-globe2', cls: 'social-icon-other' }
         };
 
         @if (!string.IsNullOrEmpty(Model.SuccessMessage))
@@ -207,7 +207,7 @@
 
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');
@@ -231,14 +231,13 @@
                 var pattern = platformPatterns[platform];
                 var fieldHtml = '<div class="platform-url-field mb-3" id="' + fieldId + '">' +
                     '<div class="d-flex align-items-center gap-2 mb-1">' +
-                    '<i class="bi ' + pattern.icon + '" style="color:' + pattern.color + ';font-size:1rem;"></i>' +
-                    '<label class="form-label fw-medium text-secondary mb-0" style="font-size:0.85rem;">' + platform + ' Profile URL</label>' +
+                    '<i class="bi ' + pattern.icon + ' ' + pattern.cls + '"></i>' +
+                    '<label class="form-label fw-medium text-secondary mb-0 auth-label-sm">' + platform + ' Profile URL</label>' +
                     '</div>' +
-                    '<input type="url" class="form-control platform-url-input" data-platform="' + platform + '" ' +
+                    '<input type="url" class="form-control platform-url-input auth-input-sm" data-platform="' + platform + '" ' +
                     'placeholder="' + pattern.placeholder + '" ' +
-                    'oninput="extractUsername(this, \'' + platform + '\')" ' +
-                    'style="font-size:0.85rem;" />' +
-                    '<div class="d-flex align-items-center gap-2 mt-1" style="font-size:0.78rem;">' +
+                    'oninput="extractUsername(this, \'' + platform + '\')" />' +
+                    '<div class="d-flex align-items-center gap-2 mt-1 auth-text-xs">' +
                     '<span class="text-muted extracted-username" id="username_' + fieldId + '"></span>' +
                     '</div>' +
                     '</div>';

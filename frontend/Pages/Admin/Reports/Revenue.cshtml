@@ -1,9 +1,35 @@
-@page "/admin/reports/revenue"
+﻿@page "/admin/reports/revenue"
 @model BoostingHub.frontend.Pages.Admin.Reports.RevenueModel
 @using System.Text.Json
 @{
     ViewData["Title"] = "Revenue Report";
     ViewData["BodyClass"] = "admin-page";
+}
+
+@functions {
+    static string GetCurrencySymbol(string? currency) => (currency?.ToUpper() ?? "PKR") switch
+    {
+        "PKR" => "₨",
+        "EUR" => "€",
+        "GBP" => "£",
+        "INR" => "₹",
+        "BDT" => "৳",
+        "SAR" => "﷼",
+        "AED" => "د.إ ",
+        "TRY" => "₺",
+        "NGN" => "₦",
+        "JPY" => "¥",
+        "CNY" => "¥",
+        "KRW" => "₩",
+        "PHP" => "₱",
+        "IDR" => "Rp",
+        "MYR" => "RM",
+        "THB" => "฿",
+        "EGP" => "E£",
+        "ZAR" => "R",
+        "MXN" => "Mex$",
+        _ => "$"
+    };
 }
 
         <div class="admin-header">
@@ -17,9 +43,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> Admin
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -44,32 +70,32 @@
 
             <!-- Stats -->
             <div class="rev-stats-grid mb-4 print-stats-row" id="printStats">
-                <div class="stat-card" style="background:linear-gradient(135deg,#3B82F6 0%,#1D4ED8 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-currency-dollar"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-blue">
+                    <div class="stat-icon"><i class="bi bi-currency-dollar"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Revenue</span>
-                        <span class="stat-value" style="color:#fff;">@Model.TotalRevenue.ToString("N2")</span>
+                        <span class="stat-label">Total Revenue</span>
+                        <span class="stat-value">₨ @Model.TotalRevenue.ToString("N2")</span>
                     </div>
                 </div>
-                <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-green">
+                    <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Approved Orders</span>
-                        <span class="stat-value" style="color:#fff;">@Model.OrdersCompleted</span>
+                        <span class="stat-label">Approved Orders</span>
+                        <span class="stat-value">@Model.OrdersCompleted</span>
                     </div>
                 </div>
-                <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass-split"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-amber">
+                    <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Pending Orders</span>
-                        <span class="stat-value" style="color:#fff;">@Model.OrdersPending</span>
+                        <span class="stat-label">Pending Orders</span>
+                        <span class="stat-value">@Model.OrdersPending</span>
                     </div>
                 </div>
-                <div class="stat-card" style="background:linear-gradient(135deg,#8B5CF6 0%,#6D28D9 100%);border:none;">
-                    <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-calculator"></i></div>
+                <div class="stat-card stat-card-grad stat-card-grad-violet">
+                    <div class="stat-icon"><i class="bi bi-calculator"></i></div>
                     <div class="stat-info">
-                        <span class="stat-label" style="color:rgba(255,255,255,0.75);">Avg Order Value</span>
-                        <span class="stat-value" style="color:#fff;">@Model.AvgOrderValue.ToString("N2")</span>
+                        <span class="stat-label">Avg Order Value</span>
+                        <span class="stat-value">₨ @Model.AvgOrderValue.ToString("N2")</span>
                     </div>
                 </div>
             </div>
@@ -127,7 +153,7 @@
             <!-- Detail Table -->
             <div class="card shadow-sm border-0" id="reportTable">
                 <div class="card-body p-0">
-                    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom no-print" style="border-color:var(--border-subtle)!important;">
+                    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom no-print report-header-row">
                         <h6 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>Approved Orders — Detail</h6>
                         <span class="badge bg-success">@Model.OrdersCompleted records</span>
                     </div>
@@ -147,14 +173,14 @@
                                         <td>@(o.FullName ?? o.Email ?? "—")</td>
                                         <td>@o.Platform</td>
                                         <td>@o.Service</td>
-                                        <td class="fw-semibold">@o.Budget.ToString("N2")</td>
+                                        <td class="fw-semibold">@GetCurrencySymbol(o.Currency)@o.Budget.ToString("N2")</td>
                                         <td><span class="report-badge report-badge-success">@o.Status</span></td>
                                         <td>@o.CreatedAt.ToString("MMM dd, yyyy")</td>
                                     </tr>
                                 }
                                 @if (!Model.RevenueTableData.Any())
                                 {
-                                    <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted);">No approved orders found</td></tr>
+                                    <tr><td colspan="7" class="text-center py-4 report-empty-row">No approved orders found</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -171,6 +197,7 @@
 
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="~/js/table-pager.js"></script>
 <style>
 .report-filter-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 .report-badge {
@@ -199,9 +226,9 @@
 /* Print elements hidden on screen */
 .print-report-header, .print-footer, .print-table-title { display: none; }
 
-/* ═══════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    CLEAN BORDERED PRINT DESIGN
-   ═══════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @@media print {
     @@page { margin: 12mm 15mm; size: A4 portrait; }
     *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -296,6 +323,8 @@
         }
     });
 
+    initTablePager('revTable');
+
     function applyFilter() {
         var from   = document.getElementById('rev-from').value;
         var to     = document.getElementById('rev-to').value;
@@ -310,8 +339,9 @@
             var toDate = to ? new Date(to + 'T23:59:59') : null;
             var matchDate = (!fromDate || (rowDate && rowDate >= fromDate)) && (!toDate || (rowDate && rowDate <= toDate));
             var matchStatus = status === 'all' || statusCell === status;
-            row.style.display = (matchDate && matchStatus) ? '' : 'none';
+            row.classList.toggle('filtered-out', !(matchDate && matchStatus));
         });
+        tablePagerRerender('revTable');
     }
 
     function printReport() {
@@ -323,7 +353,7 @@
 
     function toggleProfileMenu() {
         var menu = document.getElementById('profileMenu');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
     }
     document.addEventListener('click', function(e) {
         var pd = document.getElementById('profileDropdown');

@@ -1,4 +1,4 @@
-@page "/admin/reports/manual-payment-proofs"
+﻿@page "/admin/reports/manual-payment-proofs"
 @model BoostingHub.frontend.Pages.Admin.Reports.ManualPaymentProofsReportModel
 @using System.Text.Json
 @using BoostingHub.backend.Common
@@ -18,9 +18,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> Admin
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -45,38 +45,38 @@
             <!-- Stats -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-receipt-cutoff"></i></div>
+                    <div class="stat-card stat-card-grad stat-card-grad-amber">
+                        <div class="stat-icon"><i class="bi bi-receipt-cutoff"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Total Proofs</span>
-                            <span class="stat-value" style="color:#fff;">@Model.TotalProofs</span>
+                            <span class="stat-label">Total Proofs</span>
+                            <span class="stat-value">@Model.TotalProofs</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#10B981 0%,#059669 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-check-circle"></i></div>
+                    <div class="stat-card stat-card-grad stat-card-grad-green">
+                        <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Paid</span>
-                            <span class="stat-value" style="color:#fff;">@Model.PaidProofs</span>
+                            <span class="stat-label">Paid</span>
+                            <span class="stat-value">@Model.PaidProofs</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#F59E0B 0%,#D97706 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="stat-card stat-card-grad stat-card-grad-amber">
+                        <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Pending</span>
-                            <span class="stat-value" style="color:#fff;">@Model.PendingProofs</span>
+                            <span class="stat-label">Pending</span>
+                            <span class="stat-value">@Model.PendingProofs</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="stat-card" style="background:linear-gradient(135deg,#EF4444 0%,#B91C1C 100%);border:none;">
-                        <div class="stat-icon" style="background:rgba(255,255,255,0.18);color:#fff;"><i class="bi bi-x-circle"></i></div>
+                    <div class="stat-card stat-card-grad stat-card-grad-red">
+                        <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
                         <div class="stat-info">
-                            <span class="stat-label" style="color:rgba(255,255,255,0.75);">Rejected</span>
-                            <span class="stat-value" style="color:#fff;">@Model.RejectedProofs</span>
+                            <span class="stat-label">Rejected</span>
+                            <span class="stat-value">@Model.RejectedProofs</span>
                         </div>
                     </div>
                 </div>
@@ -135,7 +135,7 @@
             <!-- Detail Table -->
             <div class="card shadow-sm border-0">
                 <div class="card-body p-0">
-                    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom no-print" style="border-color:var(--border-subtle)!important;">
+                    <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom no-print report-header-row">
                         <h6 class="fw-bold mb-0"><i class="bi bi-table text-primary me-2"></i>All Payment Proofs — Detail</h6>
                         <span class="badge bg-warning text-dark">@Model.TotalProofs records</span>
                     </div>
@@ -153,9 +153,9 @@
                                     <tr>
                                         <td>@p.Id</td>
                                         <td>@p.OrderId</td>
-                                        <td>@(p.Order?.FullName ?? p.Order?.Email ?? "—")</td>
+                                         <td>@(p.Order?.FullName ?? p.Order?.Email ?? "—")</td>
                                         <td><i class="bi @(p.PaymentMethod == "easypaisa" ? "bi-wallet2" : "bi-credit-card") me-1"></i> @(p.PaymentMethod == "easypaisa" ? "EasyPaisa" : "Stripe")</td>
-                                        <td class="fw-semibold">₨@p.PaidAmount.ToString("N2")</td>
+                                         <td class="fw-semibold">₨@p.PaidAmount.ToString("N2")</td>
                                         <td>
                                             @{
                                                 var pBadgeClass = p.Status == StatusHelper.ManualPaymentPaid ? "report-badge-success"
@@ -170,7 +170,7 @@
                                 }
                                 @if (!Model.ProofsTableData.Any())
                                 {
-                                    <tr><td colspan="7" class="text-center py-4" style="color:var(--text-muted);">No payment proofs found</td></tr>
+                                    <tr><td colspan="7" class="text-center py-4 report-empty-row">No payment proofs found</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -186,6 +186,7 @@
 
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="~/js/table-pager.js"></script>
 <style>
 .report-filter-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 .report-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
@@ -235,6 +236,8 @@
         options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: isLight() ? '#334155' : 'rgba(241,245,249,0.65)', padding: 14 } } } }
     });
 
+    initTablePager('mpTable');
+
     function applyMpFilter() {
         var from   = document.getElementById('mp-from').value;
         var to     = document.getElementById('mp-to').value;
@@ -248,8 +251,9 @@
             var toDate     = to ? new Date(to + 'T23:59:59') : null;
             var matchDate  = (!fromDate || (rowDate && rowDate >= fromDate)) && (!toDate || (rowDate && rowDate <= toDate));
             var matchStatus = status === 'all' || statusCell === status;
-            row.style.display = (matchDate && matchStatus) ? '' : 'none';
+            row.classList.toggle('filtered-out', !(matchDate && matchStatus));
         });
+        tablePagerRerender('mpTable');
     }
 
     function printReport() {
@@ -261,7 +265,7 @@
 
     function toggleProfileMenu() {
         var menu = document.getElementById('profileMenu');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
     }
     document.addEventListener('click', function(e) {
         var pd = document.getElementById('profileDropdown');

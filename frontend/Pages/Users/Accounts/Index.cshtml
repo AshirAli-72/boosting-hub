@@ -1,4 +1,4 @@
-@page "/user/accounts"
+﻿@page "/user/accounts"
 @model BoostingHub.frontend.Pages.Users.Accounts.IndexModel
 @{
     ViewData["Title"] = "My Accounts";
@@ -14,9 +14,9 @@
                 <div class="user-profile-dropdown" id="profileDropdown">
                     <span class="admin-user-badge" onclick="toggleProfileMenu()">
                         <i class="bi bi-person-circle"></i> User
-                        <i class="bi bi-chevron-down" style="font-size:0.65rem;margin-left:2px;"></i>
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
                     </span>
-                    <div class="profile-menu" id="profileMenu" style="display:none;">
+                    <div class="profile-menu hidden" id="profileMenu">
                         <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </div>
                 </div>
@@ -35,7 +35,7 @@
                         }
                         else
                         {
-                            <span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-check-circle text-success"></i> EasyPaisa account exists</span>
+                            <span class="text-muted settings-account-hint"><i class="bi bi-check-circle text-success"></i> EasyPaisa account exists</span>
                         }
                         <a href="/user/settings" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
                     </div>
@@ -74,7 +74,7 @@
                                         </td>
                                         <td class="text-muted">@acc.CreatedAt.ToString("MMM dd, yyyy")</td>
                                         <td class="text-end">
-                                            <form method="post" asp-page-handler="Delete" asp-route-id="@acc.Id" style="display:inline;" onsubmit="return confirm('Delete this account?');">
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@acc.Id" class="form-inline" onsubmit="return confirm('Delete this account?');">
                                                 <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                                             </form>
                                         </td>
@@ -139,7 +139,7 @@
 
         function toggleProfileMenu() {
             var menu = document.getElementById('profileMenu');
-            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
         document.addEventListener('click', function(e) {
             var pd = document.getElementById('profileDropdown');
