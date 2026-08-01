@@ -75,6 +75,7 @@ builder.Services.AddRazorPages(options =>
 builder.Services.AddHttpContextAccessor();
 
 // Session
+builder.Services.AddMemoryCache();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {

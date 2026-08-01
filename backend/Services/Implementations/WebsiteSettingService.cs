@@ -6,6 +6,7 @@ using BoostingHub.backend.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BoostingHub.backend.Services.Implementations;
 
@@ -13,27 +14,45 @@ public class WebsiteSettingService : IWebsiteSettingService
 {
     private readonly ApplicationDbContext _db;
     private readonly IWebHostEnvironment _env;
+    private readonly IMemoryCache _cache;
+
+    private const string CacheKey = "website_settings";
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
 
     private const string LogoDir = "uploads\\site\\logo";
     private const string FaviconDir = "uploads\\site\\favicon";
 
-    public WebsiteSettingService(ApplicationDbContext db, IWebHostEnvironment env)
+    public WebsiteSettingService(ApplicationDbContext db, IWebHostEnvironment env, IMemoryCache cache)
     {
         _db = db;
         _env = env;
+        _cache = cache;
     }
 
     public async Task<Result<WebsiteSettingDto>> GetAsync()
     {
-        var setting = await _db.WebsiteSettings.AsNoTracking().FirstOrDefaultAsync();
-        if (setting == null)
-        {
-            setting = new WebsiteSetting();
-            _db.WebsiteSettings.Add(setting);
-            await _db.SaveChangesAsync();
-        }
+        if (_cache.TryGetValue(CacheKey, out WebsiteSettingDto? cached) && cached != null)
+            return Result<WebsiteSettingDto>.Success(cached);
 
-        return Result<WebsiteSettingDto>.Success(MapToDto(setting));
+        try
+        {
+            var setting = await _db.WebsiteSettings.AsNoTracking().FirstOrDefaultAsync();
+            if (setting == null)
+            {
+                setting = new WebsiteSetting();
+                _db.WebsiteSettings.Add(setting);
+                await _db.SaveChangesAsync();
+            }
+
+            var dto = MapToDto(setting);
+            _cache.Set(CacheKey, dto, CacheDuration);
+            return Result<WebsiteSettingDto>.Success(dto);
+        }
+        catch (Exception)
+        {
+            var fallback = new WebsiteSettingDto();
+            return Result<WebsiteSettingDto>.Success(fallback);
+        }
     }
 
     public async Task<Result> UpdateAsync(WebsiteSettingDto dto)
@@ -63,6 +82,7 @@ public class WebsiteSettingService : IWebsiteSettingService
         setting.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
+        _cache.Remove(CacheKey);
         return Result.Success("Website settings saved successfully.");
     }
 
