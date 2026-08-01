@@ -53,13 +53,17 @@
     box-sizing: border-box;
 }
 
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    overflow-x: clip;
+}
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     color: var(--text-primary);
     min-height: 100vh;
     background: var(--bg-base);
+    overflow-x: clip;
 }
 
 body.landing-page {
@@ -130,6 +134,61 @@ body.light-mode.landing-page {
 
 /* ── Utility ─────────────────────────────────────────── */
 .hidden { display: none; }
+
+/* ── Theme Toggle (pill) ─────────────────────────────── */
+.theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+.theme-toggle-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--primary-glow);
+    border-color: var(--primary);
+}
+.theme-toggle-icons {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.theme-toggle-icons i {
+    position: absolute;
+    font-size: 1.05rem;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-toggle-icons .light-icon { opacity: 0; transform: translateY(12px) rotate(-30deg); }
+.theme-toggle-icons .dark-icon  { opacity: 1; transform: translateY(0) rotate(0deg); }
+.theme-toggle-btn.is-light .theme-toggle-icons .light-icon { opacity: 1; transform: translateY(0) rotate(0deg); }
+.theme-toggle-btn.is-light .theme-toggle-icons .dark-icon  { opacity: 0; transform: translateY(-12px) rotate(30deg); }
+.theme-toggle-text { transition: color 0.3s; }
+@media (max-width: 480px) {
+    .theme-toggle-text { display: none; }
+    .theme-toggle-btn { padding: 10px 12px; }
+}
+body:not(.landing-page) .theme-toggle-btn { display: none; }
 
 /* ── Profile Dropdown ────────────────────────────────── */
 .profile-dropdown-caret { font-size: 0.65rem; margin-left: 2px; }

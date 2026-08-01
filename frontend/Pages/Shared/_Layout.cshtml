@@ -49,7 +49,18 @@
     </script>
     @if (ViewData["PageType"]?.ToString() == "landing")
     {
+        <div class="page-loader" id="pageLoader" aria-hidden="true">
+            <div class="page-loader-logo-wrap">
+                <div class="page-loader-ring"></div>
+                <div class="page-loader-logo"><i class="bi bi-rocket-takeoff"></i></div>
+            </div>
+            <div class="page-loader-brand">@(ws?.SiteName ?? "Boosting Hub")</div>
+            <div class="page-loader-tag">Social Engagement Marketplace</div>
+            <div class="page-loader-loading">Loading <span class="page-loader-dots"><span></span><span></span><span></span></span></div>
+        </div>
+        <noscript><style>.page-loader{display:none}</style></noscript>
         <header class="landing-header" id="landingHeader">
+            <div class="scroll-progress" id="scrollProgress"></div>
             <div class="header-inner">
                 <a href="/" class="header-logo">
                     <div class="header-logo-icon">
@@ -64,29 +75,42 @@
                     </div>
                     <span class="header-logo-text">@(ws?.SiteName ?? "Boosting Hub")</span>
                 </a>
-                <nav class="header-nav" id="headerNav">
-                    <a href="#features">Features</a>
-                    <a href="#stats">Stats</a>
-                    <a href="#how-earners">How It Works</a>
-                    <a href="#contact">Contact Us</a>
+                <nav class="header-nav" id="headerNav" aria-label="Main navigation">
+                    <a href="#features"><i class="bi bi-stars"></i><span>Features</span></a>
+                    <a href="#stats"><i class="bi bi-bar-chart-fill"></i><span>Stats</span></a>
+                    <a href="#how-earners"><i class="bi bi-people-fill"></i><span>How It Works</span></a>
+                    <a href="#contact"><i class="bi bi-envelope-fill"></i><span>Contact Us</span></a>
                     <div class="mobile-nav-cta">
+                        <span class="mobile-nav-label">Account</span>
                         <button class="theme-toggle-btn mobile-theme-toggle" onclick="toggleTheme()" aria-label="Toggle Theme">
-                            <i class="bi bi-moon-fill dark-icon"></i><i class="bi bi-sun-fill light-icon"></i> <span class="theme-text">Theme</span>
+                            <span class="theme-toggle-icons">
+                                <i class="bi bi-moon-fill dark-icon"></i>
+                                <i class="bi bi-sun-fill light-icon"></i>
+                            </span>
+                            <span class="theme-toggle-text">Theme</span>
                         </button>
-                        <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Login</a>
-                        <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus-fill"></i> Sign Up</a>
+                        <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i><span>Login</span></a>
+                        <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus-fill"></i><span>Sign Up</span></a>
                     </div>
                 </nav>
                 <div class="header-cta" id="headerCta">
                     <button class="theme-toggle-btn" id="landingThemeToggle" onclick="toggleTheme()" aria-label="Toggle Theme">
-                        <i class="bi bi-moon-fill dark-icon"></i>
-                        <i class="bi bi-sun-fill light-icon"></i>
+                        <span class="theme-toggle-icons">
+                            <i class="bi bi-moon-fill dark-icon"></i>
+                            <i class="bi bi-sun-fill light-icon"></i>
+                        </span>
+                        <span class="theme-toggle-text">Theme</span>
                     </button>
-                    <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Login</a>
-                    <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus-fill"></i> Sign Up</a>
+                    <a href="/login" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i><span>Login</span></a>
+                    <a href="/register" class="btn-primary-solid"><i class="bi bi-person-plus-fill"></i><span>Sign Up</span></a>
                 </div>
-                <button class="mobile-toggle" id="mobileToggle" onclick="toggleMobileNav()">&#9776;</button>
+                <button class="mobile-toggle" id="mobileToggle" onclick="toggleMobileNav()" aria-label="Toggle menu" aria-expanded="false">
+                    <span class="bar bar-1"></span>
+                    <span class="bar bar-2"></span>
+                    <span class="bar bar-3"></span>
+                </button>
             </div>
+            <div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="toggleMobileNav()"></div>
         </header>
 
         <main>
@@ -95,9 +119,12 @@
             <section class="hero" id="hero">
                 <div class="hero-bg-glow"></div>
                 <div class="hero-bg-glow-2"></div>
+                <div class="hero-orb hero-orb-1"></div>
+                <div class="hero-orb hero-orb-2"></div>
+                <div class="hero-orb hero-orb-3"></div>
                 <div class="hero-grid">
                     <div class="reveal reveal-left">
-                        <div class="hero-badge"><i class="bi bi-lightning-fill"></i> Trusted by @((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+ creators</div>
+                        <div class="hero-badge"><i class="bi bi-lightning-fill"></i> Trusted by @((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+ creators <span class="badge-dot"></span></div>
                         <h1 class="hero-title">
                             @Html.Raw((ws?.HeroTitle ?? "Grow Your Social<br><span class=\"hero-title-gradient\">Engagement</span><br>Effortlessly").Replace("\n", "<br>"))
                         </h1>
@@ -199,9 +226,9 @@
                     <p class="section-subtitle section-subtitle-dark">Join thousands of satisfied content creators who trust @(ws?.SiteName ?? "Boosting Hub") for their social media growth.</p>
                 </div>
                 <div class="stats-grid">
-                    <div class="stat-card reveal reveal-left"><div class="stat-number">@((ViewData["LandingTotalUsers"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Users</div></div>
-                    <div class="stat-card reveal"><div class="stat-number">@((ViewData["LandingTotalOrders"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Orders</div></div>
-                    <div class="stat-card reveal reveal-right"><div class="stat-number">@((ViewData["LandingCompletedTasks"] as int? ?? 0).ToString("N0"))+</div><div class="stat-label">Completed Orders</div></div>
+                    <div class="stat-card reveal reveal-left"><div class="stat-number" data-target="@(ViewData["LandingTotalUsers"] as int? ?? 0)" data-suffix="+">0+</div><div class="stat-label">Users</div></div>
+                    <div class="stat-card reveal"><div class="stat-number" data-target="@(ViewData["LandingTotalOrders"] as int? ?? 0)" data-suffix="+">0+</div><div class="stat-label">Orders</div></div>
+                    <div class="stat-card reveal reveal-right"><div class="stat-number" data-target="@(ViewData["LandingCompletedTasks"] as int? ?? 0)" data-suffix="+">0+</div><div class="stat-label">Completed Orders</div></div>
                 </div>
             </section>
 
@@ -214,19 +241,16 @@
                 </div>
                 <div class="steps-grid">
                     <div class="step-card reveal reveal-left">
-                        <div class="step-number">1</div>
                         <div class="step-icon purple"><i class="bi bi-person-plus"></i></div>
                         <h3>Create Account</h3>
                         <p>Sign up for free in seconds. Link your social media accounts to get started.</p>
                     </div>
                     <div class="step-card reveal">
-                        <div class="step-number">2</div>
                         <div class="step-icon green"><i class="bi bi-list-task"></i></div>
                         <h3>Browse Tasks</h3>
                         <p>Explore available tasks like follows, likes, views, and comments across platforms.</p>
                     </div>
                     <div class="step-card reveal reveal-right">
-                        <div class="step-number">3</div>
                         <div class="step-icon blue"><i class="bi bi-check2-all"></i></div>
                         <h3>Complete &amp; Earn</h3>
                         <p>Finish tasks, submit proof, and get paid instantly to your wallet. Withdraw anytime.</p>
@@ -243,19 +267,16 @@
                 </div>
                 <div class="steps-grid">
                     <div class="step-card light reveal reveal-left">
-                        <div class="step-number">1</div>
                         <div class="step-icon purple"><i class="bi bi-megaphone"></i></div>
                         <h3>Submit Requirements</h3>
                         <p>Choose your platform, service type, and package. Tell us what engagement you need.</p>
                     </div>
                     <div class="step-card light reveal">
-                        <div class="step-number">2</div>
                         <div class="step-icon green"><i class="bi bi-clipboard-check"></i></div>
                         <h3>Instant Activation</h3>
                         <p>Payment is confirmed instantly and tasks are auto-generated for our community of earners to complete.</p>
                     </div>
                     <div class="step-card light reveal reveal-right">
-                        <div class="step-number">3</div>
                         <div class="step-icon blue"><i class="bi bi-graph-up-arrow"></i></div>
                         <h3>Watch Growth</h3>
                         <p>Real users complete your tasks. Track progress on your dashboard and see real results.</p>
@@ -801,12 +822,65 @@
     <script src="/_framework/blazor.server.js"></script>
     <script>
         function toggleMobileNav() {
-            document.getElementById('headerNav').classList.toggle('open');
+            var nav = document.getElementById('headerNav');
+            var overlay = document.getElementById('mobileNavOverlay');
+            var btn = document.getElementById('mobileToggle');
+            var open = nav.classList.toggle('open');
+            if (overlay) overlay.classList.toggle('open', open);
+            if (btn) {
+                btn.classList.toggle('open', open);
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+            document.body.classList.toggle('nav-open', open);
         }
+        document.addEventListener('click', function (e) {
+            var nav = document.getElementById('headerNav');
+            if (nav && nav.classList.contains('open') && nav.contains(e.target) && e.target.closest('a')) {
+                toggleMobileNav();
+            }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                var nav = document.getElementById('headerNav');
+                if (nav && nav.classList.contains('open')) toggleMobileNav();
+            }
+        });
+        document.querySelectorAll('.header-nav > a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                document.querySelectorAll('.header-nav > a').forEach(function (l) { l.classList.remove('active'); });
+                link.classList.add('active');
+            });
+        });
+        (function () {
+            var loader = document.getElementById('pageLoader');
+            if (!loader) return;
+            var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduced) { loader.style.display = 'none'; return; }
+            var started = Date.now();
+            var done = false;
+            function hide() {
+                if (done) return;
+                done = true;
+                loader.classList.add('done');
+                setTimeout(function () { loader.style.display = 'none'; }, 600);
+            }
+            function finishAfterMin() {
+                var remaining = Math.max(0, 2200 - (Date.now() - started));
+                setTimeout(hide, remaining);
+            }
+            window.addEventListener('load', finishAfterMin);
+            setTimeout(hide, 3200);
+        })();
         window.addEventListener('scroll', function () {
             var h = document.getElementById('landingHeader');
-            if (h) h.classList.toggle('scrolled', window.scrollY > 50);
-        });
+            if (h) h.classList.toggle('scrolled', window.scrollY > 40);
+            var prog = document.getElementById('scrollProgress');
+            if (prog) {
+                var doc = document.documentElement;
+                var max = doc.scrollHeight - window.innerHeight;
+                prog.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
+            }
+        }, { passive: true });
 
         function toggleTheme() {
             const isLight = document.body.classList.toggle('light-mode');
@@ -927,6 +1001,37 @@
 
             wireDropZone('iq-attachment-wrapper', 'iq-attachment', undefined);
             wireDropZone('vl-paidVoucher-wrapper', 'vl-paidVoucherFile', 'vl-paidVoucherFile');
+
+            var counters = document.querySelectorAll('.stat-number[data-target]');
+            if (counters.length) {
+                function animateCounter(el) {
+                    var target = parseFloat(el.getAttribute('data-target')) || 0;
+                    var suffix = el.getAttribute('data-suffix') || '';
+                    var duration = 1800;
+                    var start = null;
+                    function step(ts) {
+                        if (!start) start = ts;
+                        var p = Math.min((ts - start) / duration, 1);
+                        var eased = 1 - Math.pow(1 - p, 3);
+                        el.textContent = Math.round(target * eased).toLocaleString('en-US') + suffix;
+                        if (p < 1) requestAnimationFrame(step);
+                    }
+                    requestAnimationFrame(step);
+                }
+                if ('IntersectionObserver' in window) {
+                    var counterIO = new IntersectionObserver(function (entries) {
+                        entries.forEach(function (entry) {
+                            if (entry.isIntersecting) {
+                                animateCounter(entry.target);
+                                counterIO.unobserve(entry.target);
+                            }
+                        });
+                    }, { threshold: 0.4 });
+                    counters.forEach(function (c) { counterIO.observe(c); });
+                } else {
+                    counters.forEach(animateCounter);
+                }
+            }
         });
 
         var iqServiceData = {};
