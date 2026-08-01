@@ -1240,7 +1240,6 @@ body.light-mode .hero-card-mockup {
         font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
         color: var(--text-muted); padding: 0 4px 4px;
     }
-    .mobile-nav-cta .theme-toggle-btn,
     .mobile-nav-cta .btn-ghost,
     .mobile-nav-cta .btn-primary-solid {
         min-height: 48px;
@@ -1252,28 +1251,6 @@ body.light-mode .hero-card-mockup {
         width: 100%;
         touch-action: manipulation;
     }
-    .mobile-nav-cta .theme-toggle-btn {
-        background: var(--bg-elevated);
-        color: var(--text-primary);
-        border: 1px solid var(--border-subtle);
-    }
-    .mobile-nav-cta .theme-toggle-btn .theme-toggle-icons {
-        width: 40px; height: 40px; flex-shrink: 0;
-        border-radius: 10px;
-        background: rgba(59,130,246,0.1);
-        border: 1px solid rgba(59,130,246,0.12);
-    }
-    .mobile-nav-cta .theme-toggle-btn .theme-toggle-icons i {
-        font-size: 1.05rem;
-        color: var(--primary);
-        left: 50%; top: 50%;
-        transform: translate(-50%, -50%);
-        transition: opacity 0.3s, transform 0.3s;
-    }
-    .mobile-nav-cta .theme-toggle-btn .theme-toggle-icons .light-icon { opacity: 0; transform: translate(-50%, -50%) translateY(8px) rotate(-30deg); }
-    .mobile-nav-cta .theme-toggle-btn .theme-toggle-icons .dark-icon  { opacity: 1; transform: translate(-50%, -50%) translateY(0) rotate(0deg); }
-    .mobile-nav-cta .theme-toggle-btn.is-light .theme-toggle-icons .light-icon { opacity: 1; transform: translate(-50%, -50%) translateY(0) rotate(0deg); }
-    .mobile-nav-cta .theme-toggle-btn.is-light .theme-toggle-icons .dark-icon  { opacity: 0; transform: translate(-50%, -50%) translateY(8px) rotate(30deg); }
     .mobile-nav-cta .btn-ghost {
         background: var(--bg-elevated);
         color: var(--text-primary);
@@ -1297,8 +1274,7 @@ body.light-mode .hero-card-mockup {
         border: 1px solid rgba(255,255,255,0.2);
     }
     .mobile-nav-cta .btn-primary-solid:active,
-    .mobile-nav-cta .btn-ghost:active,
-    .mobile-nav-cta .theme-toggle-btn:active { transform: scale(0.98); }
+    .mobile-nav-cta .btn-ghost:active { transform: scale(0.98); }
     .mobile-nav-cta .btn-ghost:hover {
         background: var(--border-subtle);
         border-color: var(--border-muted);
