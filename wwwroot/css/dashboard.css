@@ -491,30 +491,215 @@ body:not(.light-mode) #otpSection small {
     display: block;
 }
 
-/* Sidebar mobile toggle button */
+/* ── Mobile Sidebar Hamburger Button ── */
 .sidebar-mobile-toggle {
     display: none;
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    top: 16px;
+    left: 16px;
     z-index: 200;
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    color: #fff;
-    border: none;
-    font-size: 1.4rem;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    font-size: 1.3rem;
     cursor: pointer;
-    box-shadow: 0 6px 20px var(--primary-glow);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s;
+    transition: all 0.2s ease;
 }
-.sidebar-mobile-toggle:hover { transform: scale(1.08); }
+.sidebar-mobile-toggle:hover {
+    background: var(--bg-elevated);
+    border-color: var(--primary);
+    color: var(--primary);
+    box-shadow: 0 6px 20px var(--primary-glow);
+}
 
+/* ── Mobile Sidebar Redesign ── */
 @media (max-width: 768px) {
     .sidebar-mobile-toggle { display: flex; }
+
+    .admin-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 150;
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 280px !important;
+        /* Use card bg so it works in both themes */
+        background: var(--bg-card) !important;
+        border-right: 1px solid var(--border-subtle) !important;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .admin-sidebar.sidebar-open {
+        transform: translateX(0);
+        box-shadow: 8px 0 40px rgba(0,0,0,0.35);
+    }
+
+    /* Sidebar heading row — always shown on mobile */
+    .sidebar-heading-row {
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        padding: 16px 14px 14px;
+        border-bottom: 1px solid var(--border-subtle);
+        flex-shrink: 0;
+    }
+    /* Hide the duplicate desktop brand when heading-row shows */
+    .admin-sidebar.sidebar-open .sidebar-brand {
+        display: none !important;
+    }
+    /* But keep brand visible on desktop */
+    .sidebar-heading-row + .sidebar-brand {
+        /* hidden by above rule on mobile */
+    }
+
+    /* Nav links — match image: icon in rounded box + text */
+    .admin-sidebar .sidebar-nav {
+        padding: 12px 10px;
+        gap: 4px;
+        flex: 1;
+        overflow-y: auto;
+    }
+    .admin-sidebar .sidebar-link {
+        display: flex !important;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px !important;
+        border-radius: 12px !important;
+        font-size: 0.98rem !important;
+        font-weight: 600 !important;
+        color: var(--text-primary) !important;
+        text-decoration: none;
+        min-height: 50px;
+        transition: background 0.18s ease, color 0.18s ease;
+    }
+    .admin-sidebar .sidebar-link i {
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 10px !important;
+        background: rgba(124,58,237,0.1);
+        border: 1px solid rgba(124,58,237,0.15);
+        color: var(--primary) !important;
+        font-size: 1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0;
+        transition: background 0.18s ease;
+    }
+    .admin-sidebar .sidebar-link:hover {
+        background: var(--bg-elevated) !important;
+        padding-left: 14px !important;
+    }
+    .admin-sidebar .sidebar-link:hover i {
+        background: rgba(124,58,237,0.18) !important;
+    }
+    .admin-sidebar .sidebar-link.active {
+        background: rgba(124,58,237,0.1) !important;
+        color: var(--primary) !important;
+        box-shadow: none !important;
+    }
+    .admin-sidebar .sidebar-link.active i {
+        background: rgba(124,58,237,0.2) !important;
+        color: var(--primary) !important;
+    }
+    .admin-sidebar .sidebar-logout i {
+        background: rgba(239,68,68,0.1) !important;
+        border-color: rgba(239,68,68,0.15) !important;
+        color: var(--danger) !important;
+    }
+    .admin-sidebar .sidebar-logout:hover {
+        background: rgba(239,68,68,0.07) !important;
+    }
+    .admin-sidebar .sidebar-divider {
+        margin: 6px 4px;
+    }
+
+    /* Close/theme buttons in heading */
+    .sidebar-heading-close,
+    .sidebar-theme-btn {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--border-subtle);
+        background: var(--bg-elevated);
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+        transition: all 0.2s;
+    }
+    .sidebar-heading-close:hover,
+    .sidebar-theme-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(124,58,237,0.08);
+    }
+
+    .admin-main {
+        margin-left: 0;
+    }
+    .admin-content { padding: 20px 16px; }
+    .admin-header { padding: 14px 16px 14px 68px; }
+}
+
+/* Sidebar heading row hidden on desktop */
+.sidebar-heading-row {
+    display: none;
+}
+
+/* Light mode: sidebar on mobile looks like the image (white with blue icons) */
+body.light-mode .admin-sidebar {
+    background: #ffffff !important;
+    border-right-color: rgba(0,0,0,0.08) !important;
+}
+body.light-mode .admin-sidebar .sidebar-heading-row {
+    border-bottom-color: rgba(0,0,0,0.08) !important;
+}
+body.light-mode .admin-sidebar .sidebar-link {
+    color: #1e293b !important;
+}
+body.light-mode .admin-sidebar .sidebar-link i {
+    background: rgba(59,130,246,0.1) !important;
+    border-color: rgba(59,130,246,0.12) !important;
+    color: #3B82F6 !important;
+}
+body.light-mode .admin-sidebar .sidebar-link:hover {
+    background: #f1f5f9 !important;
+}
+body.light-mode .admin-sidebar .sidebar-link:hover i {
+    background: rgba(59,130,246,0.18) !important;
+}
+body.light-mode .admin-sidebar .sidebar-link.active {
+    background: rgba(59,130,246,0.08) !important;
+    color: #3B82F6 !important;
+}
+body.light-mode .admin-sidebar .sidebar-link.active i {
+    background: rgba(59,130,246,0.15) !important;
+    color: #3B82F6 !important;
+}
+body.light-mode .admin-sidebar .sidebar-logout i {
+    background: rgba(239,68,68,0.08) !important;
+    border-color: rgba(239,68,68,0.12) !important;
+    color: #EF4444 !important;
+}
+body.light-mode .sidebar-heading-close,
+body.light-mode .sidebar-theme-btn {
+    background: #f1f5f9 !important;
+    border-color: rgba(0,0,0,0.08) !important;
+    color: #475569 !important;
+}
+body.light-mode .sidebar-heading-close:hover,
+body.light-mode .sidebar-theme-btn:hover {
+    background: rgba(59,130,246,0.08) !important;
+    border-color: rgba(59,130,246,0.3) !important;
+    color: #3B82F6 !important;
 }
 
 /* ── Custom Tabs for Settings ── */

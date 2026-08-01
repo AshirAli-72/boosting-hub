@@ -1,4 +1,54 @@
-﻿function showToast(message, type) {
+﻿// ── Dashboard Sidebar Toggle (mobile) ────────────────────────────────────────
+function toggleSidebar() {
+    var sidebar  = document.querySelector('.admin-sidebar');
+    var overlay  = document.getElementById('sidebarOverlay');
+    var toggleBtn = document.getElementById('sidebarToggle');
+    if (!sidebar) return;
+    var isOpen = sidebar.classList.toggle('sidebar-open');
+    if (overlay) overlay.classList.toggle('open', isOpen);
+    if (toggleBtn) toggleBtn.innerHTML = isOpen ? '<i class="bi bi-x-lg"></i>' : '<i class="bi bi-list"></i>';
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+// Close sidebar on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var sidebar = document.querySelector('.admin-sidebar');
+        if (sidebar && sidebar.classList.contains('sidebar-open')) toggleSidebar();
+    }
+});
+// Close sidebar when a nav link is clicked on mobile
+document.addEventListener('click', function(e) {
+    var link = e.target.closest('.admin-sidebar .sidebar-link');
+    if (link) {
+        var sidebar = document.querySelector('.admin-sidebar');
+        if (sidebar && sidebar.classList.contains('sidebar-open')) toggleSidebar();
+    }
+});
+
+// ── Sidebar Theme Toggle (inside mobile sidebar) ─────────────────────────────
+function sidebarToggleTheme() {
+    var isLight = document.body.classList.toggle('light-mode');
+    document.documentElement.classList.toggle('light-mode', isLight);
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    // Sync all theme-icon elements
+    document.querySelectorAll('[data-theme-icon]').forEach(function(el) {
+        el.className = isLight ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
+    });
+    // Sync header theme toggle buttons
+    document.querySelectorAll('#themeToggle i').forEach(function(el) {
+        el.className = isLight ? 'bi bi-sun-fill fs-5' : 'bi bi-moon-stars fs-5';
+    });
+}
+
+// ── Sync sidebar theme icon on load ──────────────────────────────────────────
+(function syncSidebarThemeIcon() {
+    var isLight = document.body.classList.contains('light-mode');
+    document.querySelectorAll('[data-theme-icon]').forEach(function(el) {
+        el.className = isLight ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
+    });
+})();
+
+
     type = type || 'success';
     var existing = document.querySelector('.bh-toast-container');
     if (!existing) {

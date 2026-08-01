@@ -78,9 +78,15 @@
                 <nav class="header-nav" id="headerNav" aria-label="Main navigation">
                     <div class="mobile-nav-header">
                         <span class="mobile-nav-title">@(ws?.SiteName ?? "Boosting Hub")</span>
-                        <button type="button" class="mobile-nav-close" onclick="toggleMobileNav()" aria-label="Close menu">
-                            <i class="bi bi-x-lg"></i>
-                        </button>
+                        <div class="mobile-nav-header-actions">
+                            <button type="button" class="mobile-nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+                                <i class="bi bi-moon-fill mobile-theme-dark-icon"></i>
+                                <i class="bi bi-sun-fill mobile-theme-light-icon"></i>
+                            </button>
+                            <button type="button" class="mobile-nav-close" onclick="toggleMobileNav()" aria-label="Close menu">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="mobile-nav-links">
                         <a href="#features"><i class="bi bi-stars"></i><span>Features</span></a>
@@ -745,6 +751,28 @@
                 @if (isAdm)
                 {
                     <aside class="admin-sidebar">
+                        <!-- Mobile-only heading row with theme toggle & close -->
+                        <div class="sidebar-heading-row">
+                            <div class="sidebar-brand" style="border-bottom:none;padding:0;flex:1;">
+                                <div class="sidebar-brand-icon">
+                                    @if (!string.IsNullOrEmpty(ws?.LogoUrl))
+                                    {
+                                        <img src="@ws.LogoUrl" alt="@ws.SiteName" class="logo-img-full" />
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-rocket-takeoff"></i>
+                                    }
+                                </div>
+                                <span>@(ws?.SiteName ?? "Boosting Hub")</span>
+                            </div>
+                            <button class="sidebar-theme-btn" onclick="sidebarToggleTheme()" aria-label="Toggle theme">
+                                <i class="bi bi-moon-stars" data-theme-icon></i>
+                            </button>
+                            <button class="sidebar-heading-close" onclick="toggleSidebar()" aria-label="Close menu">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                         <div class="sidebar-brand">
                             <div class="sidebar-brand-icon">
                                 @if (!string.IsNullOrEmpty(ws?.LogoUrl))
@@ -775,6 +803,28 @@
                 else if (isUsr)
                 {
                     <aside class="admin-sidebar user-sidebar">
+                        <!-- Mobile-only heading row with theme toggle & close -->
+                        <div class="sidebar-heading-row">
+                            <div class="sidebar-brand" style="border-bottom:none;padding:0;flex:1;">
+                                <div class="sidebar-brand-icon">
+                                    @if (!string.IsNullOrEmpty(ws?.LogoUrl))
+                                    {
+                                        <img src="@ws.LogoUrl" alt="@ws.SiteName" class="logo-img-full" />
+                                    }
+                                    else
+                                    {
+                                        <i class="bi bi-rocket-takeoff"></i>
+                                    }
+                                </div>
+                                <span>@(ws?.SiteName ?? "Boosting Hub")</span>
+                            </div>
+                            <button class="sidebar-theme-btn" onclick="sidebarToggleTheme()" aria-label="Toggle theme">
+                                <i class="bi bi-moon-stars" data-theme-icon></i>
+                            </button>
+                            <button class="sidebar-heading-close" onclick="toggleSidebar()" aria-label="Close menu">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                         <div class="sidebar-brand">
                             <div class="sidebar-brand-icon">
                                 @if (!string.IsNullOrEmpty(ws?.LogoUrl))
@@ -969,6 +1019,17 @@
             wrapper.classList.remove('has-file');
             var img = document.getElementById('vl-paidVoucher-img');
             if (img) { img.style.display = ''; img.src = ''; }
+        }
+
+        function updateThemeSwitches(isLight) {
+            // sync theme-toggle-btn active state
+            document.querySelectorAll('.theme-toggle-btn').forEach(function(btn) {
+                btn.classList.toggle('is-light', isLight);
+            });
+            // sync sidebar data-theme-icon
+            document.querySelectorAll('[data-theme-icon]').forEach(function(el) {
+                el.className = isLight ? 'bi bi-sun-fill' : 'bi bi-moon-stars';
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -2001,14 +2062,7 @@
         });
     </script>
     <script>
-        function toggleSidebar() {
-            var sidebar = document.querySelector('.admin-sidebar');
-            var overlay = document.getElementById('sidebarOverlay');
-            if (sidebar && overlay) {
-                sidebar.classList.toggle('open');
-                overlay.classList.toggle('open');
-            }
-        }
+        // toggleSidebar is defined in site.js
     </script>
     <script>
         function toggleNotifDropdown() {
