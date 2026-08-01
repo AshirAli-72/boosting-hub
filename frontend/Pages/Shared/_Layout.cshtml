@@ -11,7 +11,7 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@(ws?.SiteName ?? "Boosting Hub") - @ViewData["Title"]</title>
-    <link rel="icon" type="image/@(!string.IsNullOrEmpty(ws?.FaviconUrl) ? "x-icon" : "png")" href="@(!string.IsNullOrEmpty(ws?.FaviconUrl) ? ws.FaviconUrl : "~/img/icon.png")" />
+    <link rel="icon" type="image/@(!string.IsNullOrEmpty(ws?.FaviconUrl) ? "x-icon" : "x-icon")" href="@(!string.IsNullOrEmpty(ws?.FaviconUrl) ? ws.FaviconUrl : "~/favicon.ico")" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -869,6 +869,37 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/html2pdf.bundle.min.js"></script>
     <script src="/js/site.js"></script>
+    <script>
+        // Suppress Blazor verbose console output
+        window.Blazor = window.Blazor || {};
+        if (typeof window.__blazorLogLevel === 'undefined') {
+            // Silence Blazor information/warning logs shown in console
+            var _origInfo = console.info;
+            var _origWarn = console.warn;
+            console.info = function() {
+                var msg = arguments[0];
+                if (typeof msg === 'string' && (
+                    msg.indexOf('Normalizing') !== -1 ||
+                    msg.indexOf('WebSockets transport') !== -1 ||
+                    msg.indexOf('Long Polling') !== -1 ||
+                    msg.indexOf('_blazor') !== -1
+                )) return;
+                _origInfo.apply(console, arguments);
+            };
+            console.warn = function() {
+                var msg = arguments[0];
+                if (typeof msg === 'string' && (
+                    msg.indexOf('WebSocket') !== -1 ||
+                    msg.indexOf('Long Polling') !== -1 ||
+                    msg.indexOf('_blazor') !== -1 ||
+                    msg.indexOf('SignalR') !== -1 ||
+                    msg.indexOf('transport') !== -1
+                )) return;
+                _origWarn.apply(console, arguments);
+            };
+            window.__blazorLogLevel = true;
+        }
+    </script>
     <script src="/_framework/blazor.server.js"></script>
     <script>
         function toggleMobileNav() {
@@ -2042,21 +2073,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const themeToggleBtn = document.getElementById('themeToggle');
             if (themeToggleBtn) {
-                const icon = themeToggleBtn.querySelector('i');
-                if (document.body.classList.contains('light-mode')) {
-                    icon.classList.replace('bi-moon-stars', 'bi-sun');
-                }
                 themeToggleBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    document.body.classList.toggle('light-mode');
-                    document.documentElement.classList.toggle('light-mode');
-                    if (document.body.classList.contains('light-mode')) {
-                        localStorage.setItem('theme', 'light');
-                        icon.classList.replace('bi-moon-stars', 'bi-sun');
-                    } else {
-                        localStorage.setItem('theme', 'dark');
-                        icon.classList.replace('bi-sun', 'bi-moon-stars');
-                    }
+                    toggleTheme();
                 });
             }
         });
@@ -2143,14 +2162,8 @@
         async function loadNotifications() {
             try {
                 var resp = await fetch('/api/notifications?pageSize=15');
-                console.log('[Notif] API status:', resp.status);
-                if (!resp.ok) {
-                    var errText = await resp.text();
-                    console.warn('[Notif] API error:', resp.status, errText);
-                    return;
-                }
+                if (!resp.ok) return;
                 var data = await resp.json();
-                console.log('[Notif] data:', data);
                 var list = document.getElementById('notifList');
                 if (!list) return;
 
@@ -2163,7 +2176,7 @@
 
                 list.innerHTML = data.notifications.map(renderNotifItem).join('');
             } catch (e) {
-                console.warn('Failed to load notifications', e);
+                // silent
             }
         }
 
