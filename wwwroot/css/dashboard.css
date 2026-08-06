@@ -524,7 +524,8 @@ body:not(.light-mode) #otpSection small {
 
     .admin-sidebar {
         transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        visibility: hidden;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
         z-index: 150;
         position: fixed;
         top: 0; left: 0; bottom: 0;
@@ -538,6 +539,7 @@ body:not(.light-mode) #otpSection small {
     }
     .admin-sidebar.sidebar-open {
         transform: translateX(0);
+        visibility: visible;
         box-shadow: 8px 0 40px rgba(0,0,0,0.35);
     }
 
@@ -753,7 +755,7 @@ body.light-mode .admin-card:hover {
     padding-left: 14px; /* keep active as-is, no shift */
 }
 .admin-sidebar {
-    transition: width 0.3s ease, background 0.3s ease;
+    transition: width 0.3s ease, background 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
 }
 
 /* ── Smooth theme / body transitions ── */
