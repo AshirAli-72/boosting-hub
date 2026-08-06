@@ -160,8 +160,8 @@ catch (Exception ex)
         ? "LOCAL (SQL Express)" : "PRODUCTION (Somee)";
     Console.WriteLine($"[Startup] Environment: {env} | Database: {dbLabel}");
 
-    app.UseDeveloperExceptionPage();
-    app.UseHttpsRedirection();
+app.UseDeveloperExceptionPage();
+app.UseHttpsRedirection();
 app.UseResponseCompression();
 app.UseStaticFiles();
 app.UseRouting();

@@ -48,7 +48,8 @@ function sidebarToggleTheme() {
     });
 })();
 
-
+// ── Toast Notifications ─────────────────────────────────────────────────────
+function showToast(message, type) {
     type = type || 'success';
     var existing = document.querySelector('.bh-toast-container');
     if (!existing) {

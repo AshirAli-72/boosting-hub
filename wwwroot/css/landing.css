@@ -70,6 +70,7 @@ body.light-mode .theme-toggle-btn:hover {
         radial-gradient(circle at 50% 60%, rgba(59,130,246,0.06) 0%, transparent 60%),
         var(--bg-base);
     transition: opacity 0.5s ease, visibility 0.5s ease;
+    animation: page-loader-auto-hide 0.6s ease 3.6s forwards;
 }
 .page-loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
 body.light-mode .page-loader {
@@ -144,6 +145,9 @@ body.light-mode .page-loader-brand {
 @keyframes loader-breathe {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.08); }
+}
+@keyframes page-loader-auto-hide {
+    to { opacity: 0; visibility: hidden; pointer-events: none; }
 }
 @media (prefers-reduced-motion: reduce) {
     .page-loader { display: none; }
@@ -1448,13 +1452,13 @@ body.light-mode .hero-card-mockup {
     .hero-grid { grid-template-columns: 1fr; gap: 36px; text-align: center; }
     .hero-title { font-size: clamp(2.6rem, 9vw, 3.8rem); letter-spacing: -1.8px; }
     .hero-subtitle { margin: 0 auto 30px; font-size: 1.05rem; line-height: 1.65; }
-    .hero-actions { flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 12px; }
-    .hero-actions a { width: auto; flex: 0 0 auto; justify-content: center; }
+    .hero-actions { flex-direction: column; align-items: stretch; justify-content: center; gap: 12px; }
+    .hero-actions a { width: 100%; max-width: 100%; flex: 1 1 auto; justify-content: center; }
     .hero-visual { display: flex; margin-top: 8px; }
     .hero-card-mockup { transform: none; padding: 20px; border-radius: 20px; max-width: 420px; }
     .hero-trust { justify-content: center; flex-wrap: wrap; }
     .features-grid { grid-template-columns: 1fr; }
-    .stats-grid    { grid-template:columns: 1fr; gap: 14px; }
+    .stats-grid    { grid-template-columns: 1fr; gap: 14px; }
     .footer-grid   { grid-template-columns: 1fr; gap: 36px; }
     .steps-grid    { grid-template-columns: 1fr; }
     .footer-bottom { flex-direction: column; gap: 20px; text-align: center; }
@@ -1468,7 +1472,7 @@ body.light-mode .hero-card-mockup {
     .cta-inner h2 { font-size: clamp(1.9rem, 7vw, 2.8rem); }
     .cta-inner p { font-size: 1.02rem; margin-bottom: 30px; }
     .btn-cta { padding: 14px 40px; width: 100%; justify-content: center; font-size: 1.05rem; }
-    .btn-hero-primary, .btn-hero-secondary { padding: 14px 30px; font-size: 1rem; }
+    .btn-hero-primary, .btn-hero-secondary { padding: 16px 40px; font-size: 1.08rem; }
     .landing-footer { padding: 40px 18px 20px; }
     .header-inner { padding: 0 20px; }
     .header-logo-icon { width: 40px; height: 40px; }
@@ -1480,10 +1484,10 @@ body.light-mode .hero-card-mockup {
     .hero-badge { font-size: 0.8rem; padding: 7px 16px; margin-bottom: 18px; }
     .hero-title { font-size: clamp(2.2rem, 12vw, 3.2rem); letter-spacing: -1.5px; margin-bottom: 16px; }
     .hero-subtitle { font-size: 0.98rem; margin-bottom: 26px; line-height: 1.6; }
-    /* Keep hero buttons inline, compact — do NOT expand full width */
-    .hero-actions { flex-direction: row; flex-wrap: nowrap; gap: 10px; justify-content: center; }
-    .hero-actions a { width: auto; flex: 0 0 auto; }
-    .btn-hero-primary, .btn-hero-secondary { padding: 13px 20px; font-size: 0.93rem; }
+    /* Keep hero buttons the same size — stack full-width so they never overflow on 320px */
+    .hero-actions { flex-direction: column; gap: 10px; }
+    .hero-actions a { width: 100%; }
+    .btn-hero-primary, .btn-hero-secondary { padding: 16px 40px; font-size: 1.08rem; }
     .section { padding: 40px 16px; }
     .section-header { margin-bottom: 28px; }
     .section-label { font-size: 0.78rem; padding: 7px 16px; margin-bottom: 14px; }
@@ -1509,6 +1513,21 @@ body.light-mode .hero-card-mockup {
     .footer-col a { font-size: 0.88rem; padding: 4px 0; }
     .footer-brand p { font-size: 0.88rem; line-height: 1.65; }
     .hero-trust { margin-top: 28px; gap: 14px; }
+}
+
+/* ── Very small phones (320px) ── */
+@media (max-width: 360px) {
+    .hero { padding: 92px 14px 40px; }
+    .hero-badge { font-size: 0.76rem; padding: 7px 13px; gap: 8px; margin-bottom: 16px; }
+    .hero-title { font-size: clamp(1.9rem, 11vw, 2.6rem); letter-spacing: -1.2px; margin-bottom: 14px; }
+    .hero-subtitle { font-size: 0.95rem; margin-bottom: 24px; }
+    .hero-card-mockup { padding: 16px; border-radius: 18px; }
+    .hero-card-header { margin-bottom: 18px; gap: 8px; }
+    .hero-card-avatar span { font-size: 0.8rem; }
+    .hero-card-row { gap: 10px; padding: 12px 8px; }
+    .hero-card-icon { width: 40px; height: 40px; font-size: 1.05rem; border-radius: 10px; }
+    .hero-card-status { font-size: 0.7rem; padding: 4px 10px; }
+    .hero-trust { gap: 12px; }
 }
 
 /* ── Service Dropdown ── */
