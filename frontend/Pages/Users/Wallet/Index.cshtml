@@ -190,16 +190,32 @@
         }
 
         async function changeCurrency(currency) {
+            var oldDisplayCurrency = displayCurrency;
             displayCurrency = currency;
-            localStorage.setItem('walletDisplayCurrency', currency);
             document.getElementById('currencySelect').value = currency;
             updateDisplay();
             try {
-                await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(currency), {
+                var resp = await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(currency), {
                     method: 'POST',
                     headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
                 });
-            } catch(e) {}
+                var result = await resp.json();
+                if (result && result.success) {
+                    baseBalance = result.balance;
+                    baseWithdrawn = result.withdrawn;
+                    baseCurrency = result.currency;
+                    displayCurrency = result.currency;
+                    localStorage.setItem('walletDisplayCurrency', result.currency);
+                    document.getElementById('currencySelect').value = result.currency;
+                } else {
+                    displayCurrency = oldDisplayCurrency;
+                    document.getElementById('currencySelect').value = oldDisplayCurrency;
+                }
+            } catch(e) {
+                displayCurrency = oldDisplayCurrency;
+                document.getElementById('currencySelect').value = oldDisplayCurrency;
+            }
+            updateDisplay();
         }
 
         (async function init() {
@@ -210,12 +226,7 @@
                         currency = await window.__getUserCurrency();
                     }
                     if (currency && currency !== baseCurrency) {
-                        displayCurrency = currency;
-                        localStorage.setItem('walletDisplayCurrency', displayCurrency);
-                        await fetch('/wallet?handler=ChangeCurrency&currency=' + encodeURIComponent(displayCurrency), {
-                            method: 'POST',
-                            headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
-                        });
+                        await changeCurrency(currency);
                     }
                 } catch(e) {}
             }

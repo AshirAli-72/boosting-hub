@@ -198,8 +198,8 @@ public class ApplicationDbContext : DbContext
         // ── Wallet ────────────────────────────────────────────────────────────
         builder.Entity<Wallet>(e =>
         {
-            e.Property(w => w.TotalBalance).HasColumnType("decimal(18,2)");
-            e.Property(w => w.Withdrawn).HasColumnType("decimal(18,2)");
+            e.Property(w => w.TotalBalance).HasColumnType("decimal(18,6)");
+            e.Property(w => w.Withdrawn).HasColumnType("decimal(18,6)");
             e.Property(w => w.CreatedAt).HasColumnType("datetime2");
             e.Property(w => w.Currency).HasMaxLength(10);
             e.Property(w => w.Status).HasColumnType("nvarchar(20)");
@@ -210,8 +210,8 @@ public class ApplicationDbContext : DbContext
         builder.Entity<Transaction>(e =>
         {
             e.Property(t => t.Type).HasMaxLength(50).IsRequired();
-            e.Property(t => t.Amount).HasColumnType("decimal(18,2)");
-            e.Property(t => t.BalanceAfter).HasColumnType("decimal(18,2)");
+            e.Property(t => t.Amount).HasColumnType("decimal(18,6)");
+            e.Property(t => t.BalanceAfter).HasColumnType("decimal(18,6)");
             e.Property(t => t.Description).HasMaxLength(500);
             e.Property(t => t.ReferenceType).HasMaxLength(100);
             e.Property(t => t.CreatedAt).HasColumnType("datetime2");

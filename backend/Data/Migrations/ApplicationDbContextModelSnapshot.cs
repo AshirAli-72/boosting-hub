@@ -801,11 +801,11 @@ namespace BoostingHub.backend.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("amount");
 
                     b.Property<decimal>("BalanceAfter")
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("balance_after");
 
                     b.Property<DateTime>("CreatedAt")
@@ -969,7 +969,7 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnName("status");
 
                     b.Property<decimal>("TotalBalance")
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("total_balance");
 
                     b.Property<int>("UserId")
@@ -977,7 +977,7 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnName("user_id");
 
                     b.Property<decimal>("Withdrawn")
-                        .HasColumnType("decimal(18,2)")
+                        .HasColumnType("decimal(18,6)")
                         .HasColumnName("withdrawn");
 
                     b.HasKey("Id");

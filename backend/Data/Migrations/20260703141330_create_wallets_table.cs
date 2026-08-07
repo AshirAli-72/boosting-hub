@@ -20,9 +20,9 @@ namespace BoostingHub.backend.Data.Migrations
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     user_id = table.Column<int>(type: "int", nullable: false),
-                    total_balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    total_balance = table.Column<decimal>(type: "decimal(18,6)", nullable: false),
                     currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    withdrawn = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    withdrawn = table.Column<decimal>(type: "decimal(18,6)", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
                     status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
                 },
