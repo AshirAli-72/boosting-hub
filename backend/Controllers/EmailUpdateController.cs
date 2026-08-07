@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using BoostingHub.backend.Data;
+using BoostingHub.backend.Models;
 using BoostingHub.backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,20 +13,19 @@ namespace BoostingHub.backend.Controllers;
 [Route("api/email-update")]
 public class EmailUpdateController : ControllerBase
 {
+    private static readonly TimeSpan OtpExpiry = TimeSpan.FromMinutes(10);
+
     private readonly ApplicationDbContext _db;
     private readonly IEmailService _emailService;
-    private readonly IConfiguration _config;
     private readonly ILogger<EmailUpdateController> _logger;
 
     public EmailUpdateController(
         ApplicationDbContext db,
         IEmailService emailService,
-        IConfiguration config,
         ILogger<EmailUpdateController> logger)
     {
         _db = db;
         _emailService = emailService;
-        _config = config;
         _logger = logger;
     }
 
@@ -38,8 +37,8 @@ public class EmailUpdateController : ControllerBase
         return int.TryParse(sessionId, out var sid) ? sid : 0;
     }
 
-    [HttpPost("send-link")]
-    public async Task<IActionResult> SendLink([FromBody] SendLinkRequest req)
+    [HttpPost("send-otp")]
+    public async Task<IActionResult> SendOtp([FromBody] SendLinkRequest req)
     {
         if (string.IsNullOrWhiteSpace(req.NewEmail) || !req.NewEmail.Contains('@'))
             return BadRequest(new { success = false, message = "Please enter a valid email address." });
@@ -47,19 +46,37 @@ public class EmailUpdateController : ControllerBase
         var userId = GetUserId();
         if (userId == 0) return Unauthorized(new { success = false, message = "Not authenticated." });
 
-        var emailLower = req.NewEmail.Trim().ToLower();
+        var newEmail = req.NewEmail.Trim().ToLower();
 
-        var emailTaken = await _db.Users.AnyAsync(u => u.Email == emailLower && u.Id != userId);
+        var emailTaken = await _db.Users.AnyAsync(u => u.Email == newEmail && u.Id != userId);
         if (emailTaken)
             return BadRequest(new { success = false, message = "This email is already in use by another account." });
 
-        var token = EncodeEmailChangeToken(userId, emailLower);
-        var baseUrl = $"https://{_config["App:Domain"] ?? "boostinghub.somee.com"}";
-        var verificationLink = $"{baseUrl}/api/email-update/verify?token={Uri.EscapeDataString(token)}";
-
         var user = await _db.Users.FindAsync(userId);
-        var userName = user?.Name ?? "User";
+        if (user == null)
+            return Unauthorized(new { success = false, message = "Not authenticated." });
 
+        var otp = GenerateOtp();
+
+        // Invalidate any previous pending OTPs for this user
+        var pending = await _db.EmailChanges
+            .Where(x => x.UserId == userId && !x.IsUsed)
+            .ToListAsync();
+        foreach (var p in pending)
+            p.IsUsed = true;
+
+        _db.EmailChanges.Add(new EmailChange
+        {
+            UserId = userId,
+            OldEmail = user.Email,
+            NewEmail = newEmail,
+            OtpCode = HashOtp(otp),
+            IsUsed = false,
+            CreatedAt = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync();
+
+        var userName = user.Name ?? "User";
         var emailHtml = $"""
             <!DOCTYPE html>
             <html>
@@ -75,12 +92,12 @@ public class EmailUpdateController : ControllerBase
                     </tr>
                     <tr><td style="padding:36px 40px 28px;">
                       <p style="font-size:15px;color:#64748B;margin:0 0 6px;">Hello {userName},</p>
-                      <h2 style="font-size:18px;font-weight:700;color:#1E293B;margin:0 0 16px;">Verify Your New Email</h2>
-                      <p style="font-size:15px;color:#1E293B;line-height:1.7;margin:0 0 24px;">Click the button below to confirm changing your email to <strong>{emailLower}</strong>.</p>
+                      <h2 style="font-size:18px;font-weight:700;color:#1E293B;margin:0 0 16px;">Confirm Your New Email</h2>
+                      <p style="font-size:15px;color:#1E293B;line-height:1.7;margin:0 0 24px;">Use the code below to confirm changing your email to <strong>{newEmail}</strong>.</p>
                       <div style="text-align:center;margin:0 0 24px;">
-                        <a href="{verificationLink}" target="_self" style="display:inline-block;padding:14px 36px;font-size:16px;font-weight:600;color:#fff;background:linear-gradient(135deg,#7C3AED,#0D9488);border-radius:10px;text-decoration:none;">Verify Email Address</a>
+                        <span style="display:inline-block;padding:16px 40px;font-size:28px;font-weight:800;letter-spacing:8px;color:#1E293B;background:#F1F5F9;border:2px dashed #7C3AED;border-radius:12px;">{otp}</span>
                       </div>
-                      <p style="font-size:13px;color:#64748B;text-align:center;margin:0 0 8px;">This link expires in <strong>24 hours</strong>.</p>
+                      <p style="font-size:13px;color:#64748B;text-align:center;margin:0 0 8px;">This code expires in <strong>10 minutes</strong>.</p>
                       <p style="font-size:13px;color:#94A3B8;text-align:center;margin:0;">If you did not request this, you can safely ignore this email.</p>
                     </td></tr>
                     <tr>
@@ -97,101 +114,83 @@ public class EmailUpdateController : ControllerBase
 
         try
         {
-            await _emailService.SendEmailAsync(emailLower, "Boosting Hub – Verify Your New Email", emailHtml);
+            await _emailService.SendEmailAsync(newEmail, "Boosting Hub – Confirm Your New Email", emailHtml);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send email change verification link to {Email} for user {UserId}", emailLower, userId);
-            return StatusCode(500, new { success = false, message = "Failed to send verification email. Please try again." });
+            _logger.LogError(ex, "Failed to send email change OTP to {Email} for user {UserId}", newEmail, userId);
+            return StatusCode(500, new { success = false, message = "Failed to send verification code. Please try again." });
         }
 
-        _logger.LogInformation("Email change verification link sent to {Email} for user {UserId}", emailLower, userId);
+        _logger.LogInformation("Email change OTP sent to {Email} for user {UserId}", newEmail, userId);
 
-        return Ok(new { success = true, message = $"A verification link has been sent to {emailLower}. Check your inbox and click the link to confirm." });
+        return Ok(new { success = true, message = $"A verification code has been sent to {newEmail}. It expires in 10 minutes." });
     }
 
-    [HttpGet("verify")]
-    public async Task<IActionResult> Verify([FromQuery] string token)
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest req)
     {
-        if (string.IsNullOrWhiteSpace(token))
-            return BadRequest("Invalid verification link.");
+        if (string.IsNullOrWhiteSpace(req.NewEmail) || string.IsNullOrWhiteSpace(req.OtpCode))
+            return BadRequest(new { success = false, message = "Please enter the verification code." });
 
-        var payload = DecodeEmailChangeToken(token);
-        if (payload == null)
-            return BadRequest("Invalid or expired verification link. Please request a new one.");
+        var userId = GetUserId();
+        if (userId == 0) return Unauthorized(new { success = false, message = "Not authenticated." });
 
-        var user = await _db.Users.FindAsync(payload.UserId);
+        var newEmail = req.NewEmail.Trim().ToLower();
+        var user = await _db.Users.FindAsync(userId);
         if (user == null)
-            return BadRequest("User not found.");
+            return Unauthorized(new { success = false, message = "Not authenticated." });
 
-        var alreadyTaken = await _db.Users.AnyAsync(u => u.Email == payload.NewEmail && u.Id != payload.UserId);
+        var record = await _db.EmailChanges
+            .Where(x => x.UserId == userId && x.NewEmail == newEmail && !x.IsUsed)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (record == null)
+            return BadRequest(new { success = false, message = "No pending verification found. Please request a new code." });
+
+        if (DateTime.UtcNow - record.CreatedAt > OtpExpiry)
+            return BadRequest(new { success = false, message = "This code has expired. Please request a new one." });
+
+        if (record.OtpCode != HashOtp(req.OtpCode.Trim()))
+            return BadRequest(new { success = false, message = "Invalid verification code. Please try again." });
+
+        var alreadyTaken = await _db.Users.AnyAsync(u => u.Email == newEmail && u.Id != userId);
         if (alreadyTaken)
-            return BadRequest("This email was taken by someone else. Please request a new verification link.");
+            return BadRequest(new { success = false, message = "This email was taken by someone else. Please request a new code." });
 
-        user.Email = payload.NewEmail;
-        user.EmailChangeToken = token;
+        var oldEmail = user.Email;
+        user.Email = newEmail;
+        record.IsUsed = true;
         await _db.SaveChangesAsync();
 
-        _logger.LogInformation("User {UserId} successfully verified and updated email to {Email}", payload.UserId, payload.NewEmail);
+        _logger.LogInformation("User {UserId} verified OTP and updated email from {OldEmail} to {NewEmail}", userId, oldEmail, newEmail);
 
-        return Redirect($"/settings?email_verified=1");
+        return Ok(new { success = true, message = "Email updated successfully." });
     }
 
-    private string EncodeEmailChangeToken(int userId, string newEmail)
+    private static string GenerateOtp()
     {
-        var payload = JsonSerializer.Serialize(new
-        {
-            UserId = userId,
-            NewEmail = newEmail,
-            CreatedAt = DateTime.UtcNow
-        });
-
-        var key = SHA256.HashData(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-        using var aes = Aes.Create();
-        aes.Key = key;
-        aes.GenerateIV();
-        var plaintext = Encoding.UTF8.GetBytes(payload);
-        using var encryptor = aes.CreateEncryptor();
-        var ciphertext = encryptor.TransformFinalBlock(plaintext, 0, plaintext.Length);
-        var result = new byte[aes.IV.Length + ciphertext.Length];
-        Buffer.BlockCopy(aes.IV, 0, result, 0, aes.IV.Length);
-        Buffer.BlockCopy(ciphertext, 0, result, aes.IV.Length, ciphertext.Length);
-        return Convert.ToBase64String(result);
+        var bytes = new byte[4];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+        return (BitConverter.ToUInt32(bytes, 0) % 1_000_000).ToString("D6");
     }
 
-    private EmailChangePayload? DecodeEmailChangeToken(string token)
+    private static string HashOtp(string otp)
     {
-        try
-        {
-            var raw = Convert.FromBase64String(token);
-            var iv = raw.AsSpan(0, 16).ToArray();
-            var ciphertext = raw.AsSpan(16).ToArray();
-            var key = SHA256.HashData(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            using var aes = Aes.Create();
-            aes.Key = key;
-            aes.IV = iv;
-            using var decryptor = aes.CreateDecryptor();
-            var plaintext = decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
-            var data = JsonSerializer.Deserialize<EmailChangePayload>(Encoding.UTF8.GetString(plaintext));
-            if (data == null) return null;
-            if (DateTime.UtcNow - data.CreatedAt > TimeSpan.FromHours(24)) return null;
-            return data;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private record EmailChangePayload
-    {
-        public int UserId { get; init; }
-        public string NewEmail { get; init; } = "";
-        public DateTime CreatedAt { get; init; }
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(otp));
+        return Convert.ToBase64String(bytes);
     }
 }
 
 public class SendLinkRequest
 {
     public string NewEmail { get; set; } = "";
+}
+
+public class VerifyOtpRequest
+{
+    public string NewEmail { get; set; } = "";
+    public string OtpCode { get; set; } = "";
 }

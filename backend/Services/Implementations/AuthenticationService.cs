@@ -383,7 +383,7 @@ EmailVerifiedAt = user.EmailVerifiedAt,
         if (payload == null)
             return Result.Failure<AuthResponseDto>("Invalid or expired verification link", "INVALID_TOKEN");
 
-        if (DateTime.UtcNow - payload.CreatedAt > TimeSpan.FromHours(24))
+        if (DateTime.UtcNow - payload.CreatedAt > TimeSpan.FromHours(1))
             return Result.Failure<AuthResponseDto>("Verification link has expired. Please register again.", "TOKEN_EXPIRED");
 
         var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Email == payload.Email, ct);

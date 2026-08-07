@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BoostingHub.backend.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260722102330_create_social_media_accounts_table")]
-    partial class create_social_media_accounts_table
+    [Migration("20260807091520_create_email_changes_table")]
+    partial class create_email_changes_table
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,11 +73,21 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AccountNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("account_number");
+
                     b.Property<string>("AccountTitle")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("account_title");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("bank_name");
 
                     b.Property<string>("Cnic")
                         .IsRequired()
@@ -205,6 +215,98 @@ namespace BoostingHub.backend.Data.Migrations
                     b.ToTable("activity_logs");
                 });
 
+            modelBuilder.Entity("BoostingHub.backend.Models.EmailChange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_used");
+
+                    b.Property<string>("NewEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("new_email");
+
+                    b.Property<string>("OldEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("old_email");
+
+                    b.Property<string>("OtpCode")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("otp_code");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "IsUsed");
+
+                    b.ToTable("email_changes", (string)null);
+                });
+
+            modelBuilder.Entity("BoostingHub.backend.Models.ManualPaymentProof", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int")
+                        .HasColumnName("order_id");
+
+                    b.Property<decimal>("PaidAmount")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("paid_amount");
+
+                    b.Property<string>("PaidVoucher")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("paid_voucher");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("payment_method");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("SubmitDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("submit_date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("manual_payment_proofs", (string)null);
+                });
+
             modelBuilder.Entity("BoostingHub.backend.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -269,9 +371,10 @@ namespace BoostingHub.backend.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Budget")
-                        .HasColumnType("decimal(18,2)")
-                        .HasColumnName("budget");
+                    b.Property<string>("Attachment")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("attachment");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2")
@@ -279,7 +382,6 @@ namespace BoostingHub.backend.Data.Migrations
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)")
                         .HasColumnName("currency");
 
@@ -306,6 +408,11 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("quantity");
 
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)")
+                        .HasColumnName("reject_reason");
+
                     b.Property<string>("Service")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -317,17 +424,74 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("social_media_url");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .HasColumnType("int")
                         .HasColumnName("status");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("total_amount");
+
+                    b.Property<string>("VoucherNo")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("voucher_no");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Status");
 
                     b.ToTable("orders", (string)null);
+                });
+
+            modelBuilder.Entity("BoostingHub.backend.Models.Package", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("currency");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("platform");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("price");
+
+                    b.Property<string>("Service")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("service");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Platform", "Service");
+
+                    b.ToTable("packages");
                 });
 
             modelBuilder.Entity("BoostingHub.backend.Models.Permission", b =>
@@ -519,10 +683,9 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(10)")
-                        .HasColumnName("currency");
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("expiry_date");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int")
@@ -615,10 +778,9 @@ namespace BoostingHub.backend.Data.Migrations
 
                     b.Property<string>("VerificationStatus")
                         .IsRequired()
-                        .HasMaxLength(50)
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("None")
+                        .HasDefaultValue("4")
                         .HasColumnName("verification_status");
 
                     b.HasKey("Id");
@@ -741,10 +903,8 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(500)")
                         .HasColumnName("remember_token");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
                         .HasColumnName("status");
 
                     b.HasKey("Id");
@@ -808,7 +968,6 @@ namespace BoostingHub.backend.Data.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
                         .HasColumnName("status");
 
@@ -830,6 +989,100 @@ namespace BoostingHub.backend.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("wallets");
+                });
+
+            modelBuilder.Entity("BoostingHub.backend.Models.WebsiteSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AboutDescription")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)")
+                        .HasColumnName("about_description");
+
+                    b.Property<string>("AboutTitle")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnName("about_title");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("address");
+
+                    b.Property<string>("FaviconPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("favicon_path");
+
+                    b.Property<string>("FooterDescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("footer_description");
+
+                    b.Property<string>("FooterText")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("footer_text");
+
+                    b.Property<string>("HeroDescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)")
+                        .HasColumnName("hero_description");
+
+                    b.Property<string>("HeroSubtitle")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("hero_subtitle");
+
+                    b.Property<string>("HeroTitle")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnName("hero_title");
+
+                    b.Property<string>("LinkedInUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("linkedin_url");
+
+                    b.Property<string>("LogoPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("logo_path");
+
+                    b.Property<string>("SiteName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("site_name");
+
+                    b.Property<string>("SupportEmail")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("support_email");
+
+                    b.Property<string>("SupportPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("support_phone");
+
+                    b.Property<string>("TwitterUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("twitter_url");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("website_settings", (string)null);
                 });
 
             modelBuilder.Entity("BoostingHub.backend.Models.AcceptedTask", b =>
@@ -870,6 +1123,28 @@ namespace BoostingHub.backend.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BoostingHub.backend.Models.EmailChange", b =>
+                {
+                    b.HasOne("BoostingHub.backend.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BoostingHub.backend.Models.ManualPaymentProof", b =>
+                {
+                    b.HasOne("BoostingHub.backend.Models.Orders", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("BoostingHub.backend.Models.Notification", b =>

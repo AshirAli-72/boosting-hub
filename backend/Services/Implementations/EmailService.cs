@@ -119,7 +119,7 @@ public class EmailService : IEmailService
             <div style="text-align:center;margin:32px 0;">
                 <a href="{data}" target="_blank" style="display:inline-block;padding:14px 36px;font-size:16px;font-weight:600;color:#fff;background:linear-gradient(135deg,{brandColor},{accentColor});border-radius:10px;text-decoration:none;">Verify Email Address</a>
             </div>
-            <p style="font-size:14px;color:{mutedColor};text-align:center;">This link expires in <strong>24 hours</strong>.</p>
+            <p style="font-size:14px;color:{mutedColor};text-align:center;">This link expires in <strong>1 hour</strong>.</p>
             <p style="font-size:14px;color:{mutedColor};text-align:center;">If you didn't create an account, you can safely ignore this email.</p>
             """,
             "ResetPassword" => $"""

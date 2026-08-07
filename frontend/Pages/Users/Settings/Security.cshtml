@@ -57,6 +57,20 @@
                                                 <i class="input-icon bi bi-envelope"></i>
                                             </div>
                                             <div id="emailLinkMsg" class="mt-2 hidden"></div>
+                                            <div id="otpVerifyBox" class="mt-3 hidden">
+                                                <div class="input-group-custom mb-2">
+                                                    <label for="otpCodeInput" class="form-label">Enter the 6-digit code sent to your new email</label>
+                                                    <div class="input-icon-wrapper">
+                                                        <input type="text" id="otpCodeInput" class="form-control" inputmode="numeric" maxlength="6" placeholder="Enter verification code" autocomplete="one-time-code" />
+                                                        <i class="input-icon bi bi-shield-lock"></i>
+                                                    </div>
+                                                    <span id="otpExpiryMsg" class="text-muted small"></span>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-auth flex-fill" id="verifyOtpBtn" onclick="verifyOtp()"><i class="bi bi-check-circle"></i> Verify Code</button>
+                                                    <button type="button" class="btn btn-outline-secondary" id="resendOtpBtn" onclick="sendEmailOtp(true)"><i class="bi bi-arrow-counterclockwise"></i> Resend</button>
+                                                </div>
+                                            </div>
                                             <div id="emailOtpMsg" class="mt-1"></div>
                                         </div>
                                         <div class="input-group-custom mb-3">
@@ -214,6 +228,7 @@
             var current = document.getElementById('newEmailInput').value.trim();
             if (current !== _originalEmail) {
                 document.getElementById('emailLinkMsg').style.display = 'none';
+                document.getElementById('otpVerifyBox').classList.add('hidden');
                 document.getElementById('emailOtpMsg').innerHTML = '';
             }
         }
@@ -224,11 +239,11 @@
                 return true;
             }
             e.preventDefault();
-            sendEmailLink();
+            sendEmailOtp(false);
             return false;
         }
 
-        function sendEmailLink() {
+        function sendEmailOtp(isResend) {
             var email = document.getElementById('newEmailInput').value.trim();
             if (!email || email.indexOf('@@') === -1) {
                 showOtpMsg('Please enter a valid email address.', 'danger');
@@ -236,8 +251,8 @@
             }
             var saveBtn = document.getElementById('saveProfileBtn');
             saveBtn.disabled = true;
-            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending verification linkâ€¦';
-            fetch('/api/email-update/send-link', {
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Sending verification code...';
+            fetch('/api/email-update/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' },
                 body: JSON.stringify({ newEmail: email })
@@ -247,10 +262,14 @@
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="bi bi-save"></i> Save Changes';
                 if (data.success) {
-                    var linkMsg = document.getElementById('emailLinkMsg');
-                    linkMsg.style.display = 'block';
-                    linkMsg.innerHTML = '<div class="alert alert-success py-2 px-3 mb-0 small"><i class="bi bi-envelope-check me-1"></i>' + data.message + '</div>';
+                    var otpBox = document.getElementById('otpVerifyBox');
+                    otpBox.classList.remove('hidden');
+                    document.getElementById('emailLinkMsg').style.display = 'none';
                     document.getElementById('emailOtpMsg').innerHTML = '';
+                    document.getElementById('otpCodeInput').value = '';
+                    document.getElementById('otpExpiryMsg').innerHTML = 'A 6-digit code has been sent. It expires in <strong>10 minutes</strong>.';
+                    document.getElementById('otpCodeInput').focus();
+                    if (!isResend) otpBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 } else {
                     showOtpMsg(data.message, 'danger');
                 }
@@ -258,6 +277,41 @@
             .catch(function() {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="bi bi-save"></i> Save Changes';
+                showOtpMsg('Request failed. Please try again.', 'danger');
+            });
+        }
+
+        function verifyOtp() {
+            var email = document.getElementById('newEmailInput').value.trim();
+            var otp = document.getElementById('otpCodeInput').value.trim();
+            if (!otp) {
+                showOtpMsg('Please enter the verification code.', 'danger');
+                return;
+            }
+            var verifyBtn = document.getElementById('verifyOtpBtn');
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Verifying...';
+            fetch('/api/email-update/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' },
+                body: JSON.stringify({ newEmail: email, otpCode: otp })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i class="bi bi-check-circle"></i> Verify Code';
+                if (data.success) {
+                    _originalEmail = email;
+                    document.getElementById('otpVerifyBox').classList.add('hidden');
+                    document.getElementById('emailOtpMsg').innerHTML = '<div class="alert alert-success py-2 px-3 mb-0 small"><i class="bi bi-envelope-check me-1"></i>' + data.message + '</div>';
+                    showToast(data.message, 'success');
+                } else {
+                    showOtpMsg(data.message, 'danger');
+                }
+            })
+            .catch(function() {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i class="bi bi-check-circle"></i> Verify Code';
                 showOtpMsg('Request failed. Please try again.', 'danger');
             });
         }

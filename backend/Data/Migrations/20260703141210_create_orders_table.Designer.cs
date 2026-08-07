@@ -583,11 +583,6 @@ namespace BoostingHub.backend.Data.Migrations
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("email");
 
-                    b.Property<string>("EmailChangeToken")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("email_change_token");
-
                     b.Property<DateTime?>("EmailVerifiedAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("email_verified_at");

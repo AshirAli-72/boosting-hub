@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- Boosting Hub — Full Database Schema
 -- Run this in SSMS against [boostinghub_db]
 -- ============================================================
@@ -13,7 +13,6 @@ CREATE TABLE [users] (
     [status] int NOT NULL,
     [email_verified_at] datetime2 NULL,
     [remember_token] nvarchar(500) NULL,
-    [email_change_token] nvarchar(500) NULL,
     [created_at] datetime2 NOT NULL,
     CONSTRAINT [PK_users] PRIMARY KEY ([id])
 );
@@ -329,6 +328,22 @@ CREATE TABLE [website_settings] (
     [updated_at] datetime2 NOT NULL,
     CONSTRAINT [PK_website_settings] PRIMARY KEY ([id])
 );
+GO
+
+-- ── Email Changes ─────────────────────────────────────────
+CREATE TABLE [email_changes] (
+    [id] int NOT NULL IDENTITY,
+    [user_id] int NOT NULL,
+    [old_email] nvarchar(255) NULL,
+    [new_email] nvarchar(255) NOT NULL,
+    [otp_code] nvarchar(500) NOT NULL,
+    [is_used] bit NOT NULL,
+    [created_at] datetime2 NOT NULL,
+    CONSTRAINT [PK_email_changes] PRIMARY KEY ([id]),
+    CONSTRAINT [FK_email_changes_users_user_id] FOREIGN KEY ([user_id]) REFERENCES [users] ([id])
+);
+CREATE INDEX [IX_email_changes_user_id] ON [email_changes] ([user_id]);
+CREATE INDEX [IX_email_changes_user_id_is_used] ON [email_changes] ([user_id], [is_used]);
 GO
 
 PRINT 'All tables created successfully.';

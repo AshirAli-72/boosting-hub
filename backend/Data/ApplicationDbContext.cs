@@ -26,6 +26,7 @@ public class ApplicationDbContext : DbContext
      public DbSet<Package> Packages { get; set; }
      public DbSet<WebsiteSetting> WebsiteSettings { get; set; }
      public DbSet<ManualPaymentProof> ManualPaymentProofs { get; set; }
+     public DbSet<EmailChange> EmailChanges { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -43,7 +44,6 @@ public class ApplicationDbContext : DbContext
             e.Property(u => u.Password).HasMaxLength(500);
             e.Property(u => u.RememberToken).HasMaxLength(500);
             e.Property(u => u.Name).HasMaxLength(200);
-            e.Property(u => u.EmailChangeToken).HasMaxLength(500);
             e.HasOne(u => u.Wallet).WithOne(w => w.User).HasForeignKey<Wallet>(w => w.UserId);
         });
 
@@ -313,6 +313,19 @@ public class ApplicationDbContext : DbContext
             e.Property(p => p.CreatedAt).HasColumnType("datetime2");
             e.Property(p => p.UpdatedAt).HasColumnType("datetime2");
             e.HasIndex(p => new { p.Platform, p.Service });
+        });
+
+        // ── EmailChange ─────────────────────────────────────────────────────
+        builder.Entity<EmailChange>(e =>
+        {
+            e.ToTable("email_changes");
+            e.Property(x => x.OldEmail).HasMaxLength(255);
+            e.Property(x => x.NewEmail).HasMaxLength(255).IsRequired();
+            e.Property(x => x.OtpCode).HasMaxLength(500).IsRequired();
+            e.Property(x => x.CreatedAt).HasColumnType("datetime2");
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(x => x.UserId);
+            e.HasIndex(x => new { x.UserId, x.IsUsed });
         });
 
     }
