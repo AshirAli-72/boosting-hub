@@ -157,6 +157,7 @@ public class TaskService : ITaskService, IDisposable
             }
         }
 
+        var nowUtc = DateTime.UtcNow;
         var tasks = pagedTasks.Select(t =>
         {
             var completedCount = completedCounts.GetValueOrDefault(t.Id, 0);
@@ -166,6 +167,8 @@ public class TaskService : ITaskService, IDisposable
                 userStatus = "Accepted";
 
             orderCurrencyMap.TryGetValue(t.OrderId, out var orderCurrency);
+
+            var isExpired = t.ExpiryDate.HasValue && t.ExpiryDate.Value <= nowUtc;
 
             return new AvailableTaskDto
             {
@@ -180,7 +183,7 @@ public class TaskService : ITaskService, IDisposable
                 RewardAmount = t.Reward,
                 Currency = orderCurrency ?? "PKR",
                 UserStatus = userStatus,
-                Status = StatusHelper.TaskGenerateStatusToString(t.Status),
+                Status = isExpired ? "Expired" : StatusHelper.TaskGenerateStatusToString(t.Status),
                 CreatedAt = t.CreatedAt,
                 ExpiresAt = t.ExpiryDate
             };
@@ -244,7 +247,7 @@ public class TaskService : ITaskService, IDisposable
             Currency = task.Order?.Currency ?? "PKR",
             Description = task.Order?.Description ?? string.Empty,
             UserStatus = userStatus,
-            Status = StatusHelper.TaskGenerateStatusToString(task.Status),
+            Status = task.ExpiryDate.HasValue && task.ExpiryDate.Value <= DateTime.UtcNow ? "Expired" : StatusHelper.TaskGenerateStatusToString(task.Status),
             CreatedAt = task.CreatedAt,
             ExpiresAt = task.ExpiryDate
         });
@@ -257,6 +260,8 @@ public class TaskService : ITaskService, IDisposable
             return Result.Failure<AcceptTaskResult>("Task not found", "NOT_FOUND");
         if (task.Status != StatusHelper.TaskGenerateActive)
             return Result.Failure<AcceptTaskResult>("Task is no longer active", "INACTIVE");
+        if (task.ExpiryDate.HasValue && task.ExpiryDate.Value <= DateTime.UtcNow)
+            return Result.Failure<AcceptTaskResult>("Task has expired", "TASK_EXPIRED");
 
         var worker = await _db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
         if (worker == null || worker.Status != 1)
@@ -433,6 +438,9 @@ public class TaskService : ITaskService, IDisposable
 
             if (task.Status != StatusHelper.TaskGenerateActive)
                 return Result.Failure("Task has expired or is no longer available", "TASK_EXPIRED");
+
+            if (task.ExpiryDate.HasValue && task.ExpiryDate.Value <= DateTime.UtcNow)
+                return Result.Failure("Task has expired", "TASK_EXPIRED");
 
             var platformAccount = await _db.SocialMediaAccounts
                 .FirstOrDefaultAsync(s => s.UserId == userId && s.Platform == task.Platform);

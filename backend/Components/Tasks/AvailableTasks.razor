@@ -292,6 +292,11 @@
             var result = await TaskService.GetTaskDetailAsync(taskId, UserId);
             if (result.IsSuccess && result.Data != null)
             {
+                if (string.Equals(result.Data.Status, "Expired", StringComparison.OrdinalIgnoreCase))
+                {
+                    CloseDetail();
+                    return;
+                }
                 selectedTask = result.Data;
                 var displayCurrency = GetDisplayCurrency(selectedTask.Currency);
                 _convertedSymbol = GetDisplaySymbol(displayCurrency);

@@ -1,0 +1,146 @@
+@page "/admin/expire-tasks"
+@model BoostingHub.frontend.Pages.Admin.Tasks.ExpiredModel
+@{
+    ViewData["Title"] = "Expire Tasks";
+    ViewData["BodyClass"] = "admin-page";
+}
+
+        <div class="admin-header">
+            <h3><i class="bi bi-hourglass-top text-primary"></i> Expire Tasks</h3>
+            <div class="admin-header-right">
+                <button id="themeToggle" class="btn btn-sm btn-outline-primary me-3 border-0" aria-label="Toggle Theme">
+                    <i class="bi bi-moon-stars fs-5"></i>
+                </button>
+                <div class="user-profile-dropdown" id="profileDropdown">
+                    <span class="admin-user-badge" onclick="toggleProfileMenu()">
+                        <i class="bi bi-person-circle"></i> Admin
+                        <i class="bi bi-chevron-down profile-dropdown-caret"></i>
+                    </span>
+                    <div class="profile-menu hidden" id="profileMenu">
+                        <a href="/logout" class="profile-menu-item"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-content">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    @if (Model.Tasks.Count == 0)
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-hourglass-top fs-1"></i>
+                            <p class="mt-2">No expired tasks found.</p>
+                            <p class="small">Tasks appear here once their expiry date has passed.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle admin-table">
+                                <thead class="admin-thead">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Platform</th>
+                                        <th>Service</th>
+                                        <th>Remaining Slots</th>
+                                        <th>Completed</th>
+                                        <th>Reward</th>
+                                        <th>Expiry Date</th>
+                                        <th>Status</th>
+                                        <th>Change Expiry</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var task in Model.Tasks)
+                                    {
+                                        <tr>
+                                            <td>#@task.Id</td>
+                                            <td>@task.Platform</td>
+                                            <td>@task.Service</td>
+                                            <td>@(task.Quantity - task.CompletedCount)</td>
+                                            <td>@task.CompletedCount</td>
+                                            <td><span data-pkr="@task.Reward" class="fw-bold task-reward">@Model.GetCurrencySymbol(task.Currency)@task.Reward.ToString("N2") @task.Currency</span></td>
+                                            <td>
+                                                <span class="badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">@(task.ExpiryDate?.ToString("yyyy-MM-dd") ?? "-")</span>
+                                            </td>
+                                            <td>@task.Status</td>
+                                            <td>
+                                                <form method="post" asp-page-handler="ChangeExpiry" class="d-inline-flex align-items-center gap-1">
+                                                    <input type="hidden" name="id" value="@task.Id" />
+                                                    <select name="days" class="form-select form-select-sm" style="width:auto;min-width:130px;" onchange="this.form.submit()">
+                                                        <option value="">Extend...</option>
+                                                        <option value="1">+ 1 Day</option>
+                                                        <option value="3">+ 3 Days</option>
+                                                        <option value="5">+ 5 Days</option>
+                                                        <option value="7">+ 7 Days</option>
+                                                        <option value="15">+ 15 Days</option>
+                                                        <option value="30">+ 30 Days</option>
+                                                        <option value="-1">No Expiry</option>
+                                                    </select>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if (Model.TotalPages > 1)
+                        {
+                            <nav class="mt-4">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <span class="text-muted small">Showing @(((Model.CurrentPage - 1) * 10) + 1)-@(Math.Min(Model.CurrentPage * 10, Model.TotalCount)) of @Model.TotalCount tasks</span>
+                                    <ul class="pagination mb-0">
+                                        <li class="page-item @(!Model.HasPrevious ? "disabled" : "")">
+                                            <a class="page-link" href="?page=@(Model.CurrentPage - 1)"><i class="bi bi-chevron-left"></i></a>
+                                        </li>
+                                        @for (int i = 1; i <= Model.TotalPages; i++)
+                                        {
+                                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                                <a class="page-link" href="?page=@i">@i</a>
+                                            </li>
+                                        }
+                                        <li class="page-item @(!Model.HasNext ? "disabled" : "")">
+                                            <a class="page-link" href="?page=@(Model.CurrentPage + 1)"><i class="bi bi-chevron-right"></i></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </nav>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+@section Scripts {
+    @if (TempData["Success"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof showToast === 'function') showToast('@TempData["Success"]', 'success');
+            });
+        </script>
+    }
+    @if (TempData["Error"] is string eMsg && !string.IsNullOrEmpty(eMsg))
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof showToast === 'function') showToast('@eMsg', 'danger');
+            });
+        </script>
+    }
+    <script>
+        function toggleProfileMenu() {
+            var menu = document.getElementById('profileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            var pd = document.getElementById('profileDropdown');
+            if (pd && !pd.contains(e.target)) {
+                var m = document.getElementById('profileMenu');
+                if (m) m.style.display = 'none';
+            }
+        });
+        document.addEventListener('DOMContentLoaded', function() { convertAdminPrices(); });
+    </script>
+}

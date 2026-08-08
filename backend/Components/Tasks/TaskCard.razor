@@ -1,14 +1,18 @@
 @using BoostingHub.backend.DTOs
 @inject IJSRuntime JS
 
-<div class="task-card @(Task.UserStatus == "Accepted" ? "task-card-accepted" : Task.UserStatus == "Completed" ? "task-card-completed" : "") @(IsSelected ? "task-card-selected" : "")" @onclick="OnSelect" role="button" tabindex="0">
+<div class="task-card @(Task.UserStatus == "Accepted" ? "task-card-accepted" : Task.UserStatus == "Completed" ? "task-card-completed" : "") @(IsSelected ? "task-card-selected" : "") @(IsExpired ? "task-card-expired" : "")" @onclick="OnCardClick" role="button" tabindex="@(IsExpired ? -1 : 0)">
     <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
         <span class="task-platform-badge"><i class="bi bi-globe2 me-1"></i>@Task.Platform</span>
         <span class="text-warning fw-bold fs-5">@_convertedSymbol@(_convertedAmount.ToString("F2"))</span>
     </div>
     <div class="d-flex align-items-center gap-2 mb-2">
         <span class="task-meta-item"><i class="bi bi-tag me-1"></i>@Task.Service</span>
-        @if (Task.UserStatus == "Accepted")
+        @if (IsExpired)
+        {
+            <span class="task-status-badge-expired" style="font-size:0.75rem;background:rgba(239,68,68,0.15);color:#EF4444;padding:2px 8px;border-radius:12px;"><i class="bi bi-clock-history me-1"></i>Expired</span>
+        }
+        else if (Task.UserStatus == "Accepted")
         {
             <span class="task-status-badge-accepted" style="font-size:0.75rem;background:rgba(59,130,246,0.15);color:#3B82F6;padding:2px 8px;border-radius:12px;"><i class="bi bi-check-circle me-1"></i>Accepted</span>
         }
@@ -34,6 +38,14 @@
     [Parameter, EditorRequired] public AvailableTaskDto Task { get; set; } = new();
     [Parameter] public bool IsSelected { get; set; }
     [Parameter] public EventCallback OnSelect { get; set; }
+
+    private bool IsExpired => string.Equals(Task.Status, "Expired", StringComparison.OrdinalIgnoreCase);
+
+    private async Task OnCardClick()
+    {
+        if (IsExpired) return;
+        await OnSelect.InvokeAsync();
+    }
 
     private string _convertedSymbol = "";
     private decimal _convertedAmount;

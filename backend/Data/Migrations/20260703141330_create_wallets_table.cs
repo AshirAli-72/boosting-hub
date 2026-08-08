@@ -11,8 +11,6 @@ namespace BoostingHub.backend.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
            
-         
-
             migrationBuilder.CreateTable(
                 name: "wallets",
                 columns: table => new
@@ -36,8 +34,6 @@ namespace BoostingHub.backend.Data.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-           
 
             migrationBuilder.CreateIndex(
                 name: "IX_wallets_user_id",

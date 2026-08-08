@@ -19,3 +19,15 @@
 .task-card-completed {
     border-left: 3px solid #10B981;
 }
+
+.task-card-expired {
+    cursor: not-allowed;
+    opacity: 0.55;
+    border-left: 3px solid #EF4444;
+    filter: grayscale(0.3);
+}
+
+.task-card-expired:hover {
+    transform: none;
+    box-shadow: none;
+}
